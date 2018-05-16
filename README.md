@@ -65,7 +65,7 @@ Thanks for the Chinese translation work done by [keras-team](https://github.com/
 
 ### 严正声明
 
-本文档可免费用于学习和科学研究，可自由传播，但切勿擅自用于商业用途，由此引发一切后果作者概不负责。
+本文档可免费用于学习和科学研究，可自由传播，但切勿擅自用于商业用途，由此引发一切后果贡献者概不负责。
 
 Statement: This document can be freely used for learning and scientific research and is freely disseminated, but it must not be used for commercial purposes. Otherwise, the the contributor is not responsible for the consequences.
 
