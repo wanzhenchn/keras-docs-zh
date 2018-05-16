@@ -10,7 +10,7 @@ Keras Deep Learning Library PDF version
 
 感谢 [keras-team](https://github.com/keras-team/keras-docs-zh) 所做的中文翻译工作，本文档制作基于此处。
 
-The main reason of organizing PDF version based the Chinese Keras Markdown is that it is easy to read locally when learning the Keras Deep Learning Library. For the latest PDF version. 
+The main reason of organizing PDF version based the Chinese Keras Markdown is that it is easy to read locally when learning the Keras Deep Learning Library. 
 
 Thanks for the Chinese translation work done by [keras-team](https://github.com/keras-team/keras-docs-zh), this document is produced based on it.
 
@@ -67,6 +67,6 @@ Thanks for the Chinese translation work done by [keras-team](https://github.com/
 
 本文档可免费用于学习和科学研究，可自由传播，但切勿擅自用于商业用途，由此引发一切后果作者概不负责。
 
-Statement: This document can be freely used for learning and scientific research and is freely disseminated, but it must not be used for commercial purposes. Otherwise, the author is not responsible for the consequences.
+Statement: This document can be freely used for learning and scientific research and is freely disseminated, but it must not be used for commercial purposes. Otherwise, the the contributor is not responsible for the consequences.
 
 Welcome to contribute!!!
