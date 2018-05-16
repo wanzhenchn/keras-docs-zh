@@ -3,11 +3,16 @@ Keras Deep Learning Library PDF version
 
 ## Keras: 基于 Python 的深度学习库 PDF版本
 
-网页版请访问 [Keras官方中文文档](https://keras.io/zh/)。
+- 网页版请访问 [Keras官方中文文档](https://keras.io/zh/)。
+- Markdown版请访问 [keras-docs-zh](https://github.com/keras-team/keras-docs-zh)。
 
-整理 Keras: 基于 Python 的深度学习库（PDF 版） 的主要原因在于学习 Keras 深度学习库时方便本地查阅。感谢 [keras-team](https://github.com/keras-team/keras-docs-zh) 所做的中文翻译工作，本文档制作基于此处。
+整理 Keras: 基于 Python 的深度学习库（PDF 版） 的主要原因在于学习 Keras 深度学习库时方便本地查阅。
 
-The main reason of organizing PDF version based the Chinese Keras Markdown is that it is easy to read locally when learning the Keras Deep Learning Library. For the latest PDF version. Thanks for the Chinese translation work done by [keras-team](https://github.com/keras-team/keras-docs-zh), this document is produced based on it.
+感谢 [keras-team](https://github.com/keras-team/keras-docs-zh) 所做的中文翻译工作，本文档制作基于此处。
+
+The main reason of organizing PDF version based the Chinese Keras Markdown is that it is easy to read locally when learning the Keras Deep Learning Library. For the latest PDF version. 
+
+Thanks for the Chinese translation work done by [keras-team](https://github.com/keras-team/keras-docs-zh), this document is produced based on it.
 
 
 ## 排版规范 Typesetting
