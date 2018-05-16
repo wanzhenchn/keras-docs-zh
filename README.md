@@ -1,5 +1,6 @@
-# PDF version of the Keras Chinese (zh-cn) translation docs 
+# Keras 深度学习库 PDF 版 Keras Deep Learning Library PDF version
 
+## Keras: 基于 Python 的深度学习库 PDF版本
 
 网页版请访问 [Keras官方中文文档](https://keras.io/zh/)。
 
