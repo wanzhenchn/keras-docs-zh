@@ -1,0 +1,79 @@
+\section{模型}\label{about-keras-models}
+\subsection{关于Keras模型}
+在 Keras 中有两类模型：\hyperref[sequential-api]{Sequential 顺序模型} 和
+\hyperref[model-api]{使用函数式 API 的 Model 类模型}。
+
+这些模型有许多共同的方法：
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{model.summary()}: 打印出模型概述信息。 它是
+  \hyperref[print-summary]{utils.print\_summary} 的简捷调用。
+\item
+  \texttt{model.get\_config()}:
+  返回包含模型配置信息的字典。通过以下代码，就可以根据这些配置信息重新实例化模型：
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{config }\OperatorTok{=} \NormalTok{model.get_config()}
+\NormalTok{model }\OperatorTok{=} \NormalTok{Model.from_config(config)}
+\CommentTok{# or, for Sequential:}
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential.from_config(config)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{model.get\_weights()}: 返回模型权重的张量列表，类型为 Numpy
+  array。
+\item
+  \texttt{model.set\_weights(weights)}: 从 Nympy array
+  中为模型设置权重。列表中的数组必须与 \texttt{get\_weights()}
+  返回的权重具有相同的尺寸。
+\item
+  \texttt{model.to\_json()}: 以 JSON
+  字符串的形式返回模型的表示。请注意，该表示不包括权重，只包含结构。你可以通过以下代码，从
+  JSON 字符串中重新实例化相同的模型（带有重新初始化的权重）：
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{model_from_json}
+
+\NormalTok{json_string }\OperatorTok{=} \NormalTok{model.to_json()}
+\NormalTok{model }\OperatorTok{=} \NormalTok{model_from_json(json_string)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{model.to\_yaml()}: 以 YAML
+  字符串的形式返回模型的表示。请注意，该表示不包括权重，只包含结构。你可以通过以下代码，从
+  YAML 字符串中重新实例化相同的模型（带有重新初始化的权重）：
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{model_from_yaml}
+
+\NormalTok{yaml_string }\OperatorTok{=} \NormalTok{model.to_yaml()}
+\NormalTok{model }\OperatorTok{=} \NormalTok{model_from_yaml(yaml_string)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{model.save\_weights(filepath)}: 将模型权重存储为 HDF5 文件。
+\item
+  \texttt{model.load\_weights(filepath,\ by\_name=False)}: 从 HDF5
+  文件（由 \texttt{save\_weights}
+  创建）中加载权重。默认情况下，模型的结构应该是不变的。
+  如果想将权重载入不同的模型（部分层相同）， 设置 \texttt{by\_name=True}
+  来载入那些名字相同的层的权重。
+\end{itemize}
+

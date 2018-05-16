@@ -1,0 +1,38 @@
+\section{可视化 Visualization}
+\textbf{模型可视化}\ref{visualization}
+
+\texttt{keras.utils.vis\_utils}模块提供了一些绘制Keras模型的实用功能(使用\texttt{graphviz})。
+
+以下实例，将绘制一张模型图，并保存为文件：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.utils }\ImportTok{import} \NormalTok{plot_model}
+\NormalTok{plot_model(model, to_file}\OperatorTok{=}\StringTok{'model.png'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{plot\_model}有两个可选参数:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{show\_shapes} (默认为False) 控制是否在图中输出各层的尺寸。
+\item
+  \texttt{show\_layer\_names} (默认为True)
+  控制是否在图中显示每一层的名字。
+\end{itemize}
+
+此外，你也可以直接取得\texttt{pydot.Graph}对象并自己渲染它。 ipython
+notebook中的可视化实例如下：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{IPython.display }\ImportTok{import} \NormalTok{SVG}
+\ImportTok{from} \NormalTok{keras.utils.vis_utils }\ImportTok{import} \NormalTok{model_to_dot}
+
+\NormalTok{SVG(model_to_dot(model).create(prog}\OperatorTok{=}\StringTok{'dot'}\NormalTok{, }\BuiltInTok{format}\OperatorTok{=}\StringTok{'svg'}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\newpage

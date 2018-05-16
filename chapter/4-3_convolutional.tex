@@ -1,0 +1,1075 @@
+\subsection{卷积层 Convolutional}
+    
+\subsubsection{Conv1D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/convolutional.py\#L237}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Conv1D(filters, kernel_size, strides}\OperatorTok{=}\DecValTok{1}, \\
+\hspace{3cm}\NormalTok{padding}\OperatorTok{=}\StringTok{'valid'}\NormalTok{, dilation_rate}\OperatorTok{=}\DecValTok{1}\NormalTok{, activation}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{use_bias}\OperatorTok{=}\VariableTok{True}\NormalTok{, kernel_initializer}\OperatorTok{=}\StringTok{'glorot_uniform'}, \\
+\hspace{3cm}\NormalTok{bias_initializer}\OperatorTok{=}\StringTok{'zeros'}\NormalTok{, kernel_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{bias_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, activity_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{kernel_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+1D 卷积层 (例如时序卷积)。
+
+该层创建了一个卷积核，该卷积核以
+单个空间（或时间）维上的层输入进行卷积， 以生成输出张量。 如果
+\texttt{use\_bias} 为 True， 则会创建一个偏置向量并将其添加到输出中。
+最后，如果 \texttt{activation} 不是 \texttt{None}，它也会应用于输出。
+
+当使用该层作为模型第一层时，需要提供 \texttt{input\_shape}
+参数（整数元组或 \texttt{None}），例如， \texttt{(10,\ 128)} 表示 10 个
+128 维的向量组成的向量序列， \texttt{(None,\ 128)} 表示 128
+维的向量组成的变长序列。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{filters}: 整数，输出空间的维度 （即卷积中滤波器的输出数量）。
+\item
+  \textbf{kernel\_size}: 一个整数，或者单个整数表示的元组或列表， 指明
+  1D 卷积窗口的长度。
+\item
+  \textbf{strides}: 一个整数，或者单个整数表示的元组或列表，
+  指明卷积的步长。 指定任何 stride 值 != 1 与指定
+  \texttt{dilation\_rate} 值 != 1 两者不兼容。
+\item
+  \textbf{padding}: \texttt{"valid"}, \texttt{"causal"} 或
+  \texttt{"same"} 之一 (大小写敏感) \texttt{"valid"} 表示「不填充」。
+  \texttt{"same"} 表示填充输入以使输出具有与原始输入相同的长度。
+  \texttt{"causal"} 表示因果（膨胀）卷积， 例如，output{[}t{]} 不依赖于
+  input{[}t+1:{]}， 在模型不应违反时间顺序的时间数据建模时非常有用。
+  在模型不应违反时间顺序的时间数据建模时非常有用。 详见
+  \href{https://arxiv.org/abs/1609.03499}{WaveNet: A Generative Model
+  for Raw Audio, section 2.1}。
+\item
+  \textbf{dilation\_rate}:
+  一个整数，或者单个整数表示的元组或列表，指定用于膨胀卷积的膨胀率。
+  当前，指定任何 \texttt{dilation\_rate} 值 != 1 与指定 stride 值 != 1
+  两者不兼容。
+\item
+  \textbf{activation}: 要使用的激活函数 (详见
+  \hyperref[activations]{activations})。
+  如果你不指定，则不使用激活函数 (即线性激活： \texttt{a(x)\ =\ x})。
+\item
+  \textbf{use\_bias}: 布尔值，该层是否使用偏置向量。
+\item
+  \textbf{kernel\_initializer}: \texttt{kernel} 权值矩阵的初始化器 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{bias\_initializer}: 偏置向量的初始化器 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{kernel\_regularizer}: 运用到 \texttt{kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{bias\_regularizer}: 运用到偏置向量的正则化函数 (详见
+  \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{activity\_regularizer}: 运用到层输出（它的激活值）的正则化函数
+  (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{kernel\_constraint}: 运用到 \texttt{kernel} 权值矩阵的约束函数
+  (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{bias\_constraint}: 运用到偏置向量的约束函数 (详见
+  \hyperref[constraints]{constraints})。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+3D 张量~，尺寸为 \texttt{(batch\_size,\ steps,\ input\_dim)}。
+
+\textbf{输出尺寸}
+
+3D 张量，尺寸为 \texttt{(batch\_size,\ new\_steps,\ filters)}。
+由于填充或窗口按步长滑动，\texttt{steps} 值可能已更改。
+
+
+\subsubsection{Conv2D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/convolutional.py\#L347}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Conv2D(filters, kernel_size, strides}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), padding}\OperatorTok{=}\StringTok{'valid'}, \\
+\hspace{3cm}\NormalTok{data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{, dilation_rate}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), activation}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{use_bias}\OperatorTok{=}\VariableTok{True}\NormalTok{, kernel_initializer}\OperatorTok{=}\StringTok{'glorot_uniform'}, \\
+\hspace{3cm}\NormalTok{bias_initializer}\OperatorTok{=}\StringTok{'zeros'}\NormalTok{, kernel_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{bias_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, activity_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{kernel_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+2D 卷积层 (例如对图像的空间卷积)。
+
+该层创建了一个卷积核， 该卷积核对层输入进行卷积， 以生成输出张量。 如果
+\texttt{use\_bias} 为 True， 则会创建一个偏置向量并将其添加到输出中。
+最后，如果 \texttt{activation} 不是 \texttt{None}，它也会应用于输出。
+
+当使用该层作为模型第一层时，需要提供 \texttt{input\_shape} 参数
+（整数元组，不包含样本表示的轴），例如，
+\texttt{input\_shape=(128,\ 128,\ 3)} 表示 128x128 RGB 图像， 在
+\texttt{data\_format="channels\_last"} 时。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{filters}: 整数，输出空间的维度 （即卷积中滤波器的输出数量）。
+\item
+  \textbf{kernel\_size}: 一个整数，或者 2 个整数表示的元组或列表， 指明
+  2D 卷积窗口的宽度和高度。 可以是一个整数，为所有空间维度指定相同的值。
+\item
+  \textbf{strides}: 一个整数，或者 2 个整数表示的元组或列表，
+  指明卷积沿宽度和高度方向的步长。
+  可以是一个整数，为所有空间维度指定相同的值。 指定任何 stride 值 != 1
+  与指定 \texttt{dilation\_rate} 值 != 1 两者不兼容。
+\item
+  \textbf{padding}: \texttt{"valid"} 或 \texttt{"same"} (大小写敏感)。
+\item
+  \textbf{data\_format}: 字符串， \texttt{channels\_last} (默认) 或
+  \texttt{channels\_first} 之一，表示输入中维度的顺序。
+  \texttt{channels\_last} 对应输入尺寸为
+  \texttt{(batch,\ height,\ width,\ channels)}，
+  \texttt{channels\_first} 对应输入尺寸为
+  \texttt{(batch,\ channels,\ height,\ width)}。 它默认为从 Keras
+  配置文件 \texttt{\textasciitilde{}/.keras/keras.json} 中 找到的
+  \texttt{image\_data\_format} 值。 如果你从未设置它，将使用
+  "channels\_last"。
+\item
+  \textbf{dilation\_rate}: 一个整数或 2 个整数的元组或列表，
+  指定膨胀卷积的膨胀率。 可以是一个整数，为所有空间维度指定相同的值。
+  当前，指定任何 \texttt{dilation\_rate} 值 != 1 与 指定 stride 值 != 1
+  两者不兼容。
+\item
+  \textbf{activation}: 要使用的激活函数 (详见
+  \hyperref[activations]{activations})。
+  如果你不指定，则不使用激活函数 (即线性激活： \texttt{a(x)\ =\ x})。
+\item
+  \textbf{use\_bias}: 布尔值，该层是否使用偏置向量。
+\item
+  \textbf{kernel\_initializer}: \texttt{kernel} 权值矩阵的初始化器 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{bias\_initializer}: 偏置向量的初始化器 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{kernel\_regularizer}: 运用到 \texttt{kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{bias\_regularizer}: 运用到偏置向量的正则化函数 (详见
+  \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{activity\_regularizer}: 运用到层输出（它的激活值）的正则化函数
+  (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{kernel\_constraint}: 运用到 \texttt{kernel} 权值矩阵的约束函数
+  (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{bias\_constraint}: 运用到偏置向量的约束函数 (详见
+  \hyperref[constraints]{constraints})。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 data\_format='channels\_first'， 输入 4D 张量，尺寸为
+  \texttt{(samples,\ channels,\ rows,\ cols)}。
+\item
+  如果 data\_format='channels\_last'， 输入 4D 张量，尺寸为
+  \texttt{(samples,\ rows,\ cols,\ channels)}。
+\end{itemize}
+
+\textbf{输出尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 data\_format='channels\_first'， 输出 4D 张量，尺寸为
+  \texttt{(samples,\ filters,\ new\_rows,\ new\_cols)}。
+\item
+  如果 data\_format='channels\_last'， 输出 4D 张量，尺寸为
+  \texttt{(samples,\ new\_rows,\ new\_cols,\ filters)}。
+\end{itemize}
+
+由于填充的原因， \texttt{rows} 和 \texttt{cols} 值可能已更改。
+
+
+
+\subsubsection{SeparableConv2D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/convolutional.py\#L1384}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.SeparableConv2D(filters, kernel_size, strides}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), padding}\OperatorTok{=}\StringTok{'valid'}, \\
+\hspace{3cm}\NormalTok{data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{, depth_multiplier}\OperatorTok{=}\DecValTok{1}\NormalTok{, activation}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{use_bias}\OperatorTok{=}\VariableTok{True}\NormalTok{, depthwise_initializer}\OperatorTok{=}\StringTok{'glorot_uniform'}, \\
+\hspace{3cm}\NormalTok{pointwise_initializer}\OperatorTok{=}\StringTok{'glorot_uniform'}\NormalTok{, bias_initializer}\OperatorTok{=}\StringTok{'zeros'}, \\
+\hspace{3cm}\NormalTok{depthwise_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, pointwise_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{bias_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, activity_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{depthwise_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, pointwise_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+深度方向的可分离 2D 卷积。
+
+可分离的卷积的操作包括，首先执行深度方向的空间卷积
+（分别作用于每个输入通道），紧接一个将所得输出通道
+混合在一起的逐点卷积。\texttt{depth\_multiplier} 参数控
+制深度步骤中每个输入通道生成多少个输出通道。
+
+直观地说，可分离的卷积可以理解为一种将卷积核分解成
+两个较小的卷积核的方法，或者作为 Inception 块的 一个极端版本。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{filters}: 整数，输出空间的维度 （即卷积中滤波器的输出数量）。
+\item
+  \textbf{kernel\_size}: 一个整数，或者 2 个整数表示的元组或列表， 指明
+  2D 卷积窗口的宽度和高度。 可以是一个整数，为所有空间维度指定相同的值。
+\item
+  \textbf{strides}: 一个整数，或者 2 个整数表示的元组或列表，
+  指明卷积沿宽度和高度方向的步长。
+  可以是一个整数，为所有空间维度指定相同的值。 指定任何 stride 值 != 1
+  与指定 \texttt{dilation\_rate} 值 != 1 两者不兼容。
+\item
+  \textbf{padding}: \texttt{"valid"} 或 \texttt{"same"} (大小写敏感)。
+\item
+  \textbf{data\_format}: 字符串， \texttt{channels\_last} (默认) 或
+  \texttt{channels\_first} 之一，表示输入中维度的顺序。
+  \texttt{channels\_last} 对应输入尺寸为
+  \texttt{(batch,\ height,\ width,\ channels)}，
+  \texttt{channels\_first} 对应输入尺寸为
+  \texttt{(batch,\ channels,\ height,\ width)}。 它默认为从 Keras
+  配置文件 \texttt{\textasciitilde{}/.keras/keras.json} 中 找到的
+  \texttt{image\_data\_format} 值。 如果你从未设置它，将使用
+  "channels\_last"。
+\item
+  \textbf{depth\_multiplier}: 每个输入通道的深度方向卷积输出通道的数量。
+  深度方向卷积输出通道的总数将等于
+  \texttt{filterss\_in\ *\ depth\_multiplier}。
+\item
+  \textbf{activation}: 要使用的激活函数 (详见
+  \hyperref[activations]{activations})。
+  如果你不指定，则不使用激活函数 (即线性激活： \texttt{a(x)\ =\ x})。
+\item
+  \textbf{use\_bias}: 布尔值，该层是否使用偏置向量。
+\item
+  \textbf{depthwise\_initializer}: 运用到深度方向的核矩阵的初始化器
+  (详见 \hyperref[initializers]{initializers})。
+\item
+  \textbf{pointwise\_initializer}: 运用到逐点核矩阵的初始化器 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{bias\_initializer}: 偏置向量的初始化器 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{depthwise\_regularizer}: 运用到深度方向的核矩阵的正则化函数
+  (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{pointwise\_regularizer}: 运用到逐点核矩阵的正则化函数 (详见
+  \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{bias\_regularizer}: 运用到偏置向量的正则化函数 (详见
+  \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{activity\_regularizer}: 运用到层输出（它的激活值）的正则化函数
+  (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{depthwise\_constraint}: 运用到深度方向的核矩阵的约束函数 (详见
+  \\hyperref[constraints]{constraints})。
+\item
+  \textbf{pointwise\_constraint}: 运用到逐点核矩阵的约束函数 (详见
+  \hyperref[constraints]{constraints})。
+\item
+  \textbf{bias\_constraint}: 运用到偏置向量的约束函数 (详见
+  \hyperref[constraints]{constraints})。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 data\_format='channels\_first'， 输入 4D 张量，尺寸为
+  \texttt{(batch,\ channels,\ rows,\ cols)}。
+\item
+  如果 data\_format='channels\_last'， 输入 4D 张量，尺寸为
+  \texttt{(batch,\ rows,\ cols,\ channels)}。
+\end{itemize}
+
+\textbf{输出尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 data\_format='channels\_first'， 输出 4D 张量，尺寸为
+  \texttt{(batch,\ filters,\ new\_rows,\ new\_cols)}。
+\item
+  如果 data\_format='channels\_last'， 输出 4D 张量，尺寸为
+  \texttt{(batch,\ new\_rows,\ new\_cols,\ filters)}。
+\end{itemize}
+
+由于填充的原因， \texttt{rows} 和 \texttt{cols} 值可能已更改。
+
+
+
+
+\subsubsection{Conv2DTranspose {\href{https://github.com/keras-team/keras/blob/master/keras/layers/convolutional.py\#L596}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Conv2DTranspose(filters, kernel_size, strides}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), padding}\OperatorTok{=}\StringTok{'valid'}, \\
+\hspace{3cm}\NormalTok{data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{, activation}\OperatorTok{=}\VariableTok{None}\NormalTok{, use_bias}\OperatorTok{=}\VariableTok{True}, \\
+\hspace{3cm}\NormalTok{kernel_initializer}\OperatorTok{=}\StringTok{'glorot_uniform'}\NormalTok{, bias_initializer}\OperatorTok{=}\StringTok{'zeros'}, \\
+\hspace{3cm}\NormalTok{kernel_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{activity_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, kernel_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+转置卷积层 (有时被成为反卷积)。
+
+对转置卷积的需求一般来自希望使用 与正常卷积相反方向的变换，
+即，将具有卷积输出尺寸的东西 转换为具有卷积输入尺寸的东西，
+同时保持与所述卷积相容的连通性模式。
+
+当使用该层作为模型第一层时，需要提供 \texttt{input\_shape} 参数
+（整数元组，不包含样本表示的轴），例如，
+\texttt{input\_shape=(128,\ 128,\ 3)} 表示 128x128 RGB 图像， 在
+\texttt{data\_format="channels\_last"} 时。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{filters}: 整数，输出空间的维度 （即卷积中滤波器的输出数量）。
+\item
+  \textbf{kernel\_size}: 一个整数，或者 2 个整数表示的元组或列表， 指明
+  2D 卷积窗口的宽度和高度。 可以是一个整数，为所有空间维度指定相同的值。
+\item
+  \textbf{strides}: 一个整数，或者 2 个整数表示的元组或列表，
+  指明卷积沿宽度和高度方向的步长。
+  可以是一个整数，为所有空间维度指定相同的值。 指定任何 stride 值 != 1
+  与指定 \texttt{dilation\_rate} 值 != 1 两者不兼容。
+\item
+  \textbf{padding}: \texttt{"valid"} 或 \texttt{"same"} (大小写敏感)。
+\item
+  \textbf{data\_format}: 字符串， \texttt{channels\_last} (默认) 或
+  \texttt{channels\_first} 之一，表示输入中维度的顺序。
+  \texttt{channels\_last} 对应输入尺寸为
+  \texttt{(batch,\ height,\ width,\ channels)}，
+  \texttt{channels\_first} 对应输入尺寸为
+  \texttt{(batch,\ channels,\ height,\ width)}。 它默认为从 Keras
+  配置文件 \texttt{\textasciitilde{}/.keras/keras.json} 中 找到的
+  \texttt{image\_data\_format} 值。 如果你从未设置它，将使用
+  "channels\_last"。
+\item
+  \textbf{dilation\_rate}: 一个整数或 2 个整数的元组或列表，
+  指定膨胀卷积的膨胀率。 可以是一个整数，为所有空间维度指定相同的值。
+  当前，指定任何 \texttt{dilation\_rate} 值 != 1 与 指定 stride 值 != 1
+  两者不兼容。
+\item
+  \textbf{activation}: 要使用的激活函数 (详见
+  \hyperref[activations]{activations})。
+  如果你不指定，则不使用激活函数 (即线性激活： \texttt{a(x)\ =\ x})。
+\item
+  \textbf{use\_bias}: 布尔值，该层是否使用偏置向量。
+\item
+  \textbf{kernel\_initializer}: \texttt{kernel} 权值矩阵的初始化器 (详见
+   \hyperref[initializers]{initializers})。
+\item
+  \textbf{bias\_initializer}: 偏置向量的初始化器 (详见
+   \hyperref[initializers]{initializers})。
+\item
+  \textbf{kernel\_regularizer}: 运用到 \texttt{kernel}
+  权值矩阵的正则化函数 (详见  \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{bias\_regularizer}: 运用到偏置向量的正则化函数 (详见
+  \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{activity\_regularizer}: 运用到层输出（它的激活值）的正则化函数
+  (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{kernel\_constraint}: 运用到 \texttt{kernel} 权值矩阵的约束函数
+  (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{bias\_constraint}: 运用到偏置向量的约束函数 (详见
+  \hyperref[constraints]{constraints})。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 data\_format='channels\_first'， 输入 4D 张量，尺寸为
+  \texttt{(batch,\ channels,\ rows,\ cols)}。
+\item
+  如果 data\_format='channels\_last'， 输入 4D 张量，尺寸为
+  \texttt{(batch,\ rows,\ cols,\ channels)}。
+\end{itemize}
+
+\textbf{输出尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 data\_format='channels\_first'， 输出 4D 张量，尺寸为
+  \texttt{(batch,\ filters,\ new\_rows,\ new\_cols)}。
+\item
+  如果 data\_format='channels\_last'， 输出 4D 张量，尺寸为
+  \texttt{(batch,\ new\_rows,\ new\_cols,\ filters)}。
+\end{itemize}
+
+由于填充的原因， \texttt{rows} 和 \texttt{cols} 值可能已更改。
+
+\textbf{参考文献}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://arxiv.org/abs/1603.07285v1}{A guide to convolution
+  arithmetic for deep learning}
+\item
+  \href{http://www.matthewzeiler.com/pubs/cvpr2010/cvpr2010.pdf}{Deconvolutional
+  Networks}
+\end{itemize}
+
+
+
+\subsubsection{Conv3D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/convolutional.py\#L471}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Conv3D(filters, kernel_size, strides}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), padding}\OperatorTok{=}\StringTok{'valid'}, \\
+\hspace{3cm}\NormalTok{data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{, dilation_rate}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), activation}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{use_bias}\OperatorTok{=}\VariableTok{True}\NormalTok{, kernel_initializer}\OperatorTok{=}\StringTok{'glorot_uniform'}, \\
+\hspace{3cm}\NormalTok{bias_initializer}\OperatorTok{=}\StringTok{'zeros'}\NormalTok{, kernel_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{bias_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, activity_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{kernel_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+3D 卷积层 (例如立体空间卷积)。
+
+该层创建了一个卷积核， 该卷积核对层输入进行卷积， 以生成输出张量。 如果
+\texttt{use\_bias} 为 True， 则会创建一个偏置向量并将其添加到输出中。
+最后，如果 \texttt{activation} 不是 \texttt{None}，它也会应用于输出。
+
+当使用该层作为模型第一层时，需要提供 \texttt{input\_shape} 参数
+（整数元组，不包含样本表示的轴），例如，
+\texttt{input\_shape=(128,\ 128,\ 128,\ 1)} 表示 128x128x128
+的单通道立体， 在 \texttt{data\_format="channels\_last"} 时。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{filters}: 整数，输出空间的维度 （即卷积中滤波器的输出数量）。
+\item
+  \textbf{kernel\_size}: 一个整数，或者 3 个整数表示的元组或列表， 指明
+  3D 卷积窗口的深度、高度和宽度。
+  可以是一个整数，为所有空间维度指定相同的值。
+\item
+  \textbf{strides}: 一个整数，或者 3 个整数表示的元组或列表，
+  指明卷积沿每一个空间维度的步长。
+  可以是一个整数，为所有空间维度指定相同的步长值。 指定任何 stride 值 !=
+  1 与指定 \texttt{dilation\_rate} 值 != 1 两者不兼容。
+\item
+  \textbf{padding}: \texttt{"valid"} 或 \texttt{"same"} (大小写敏感)。
+\item
+  \textbf{data\_format}: 字符串， \texttt{channels\_last} (默认) 或
+  \texttt{channels\_first} 之一，
+  表示输入中维度的顺序。\texttt{channels\_last} 对应输入尺寸为
+  \texttt{(batch,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3,\ channels)}，
+  \texttt{channels\_first} 对应输入尺寸为
+  \texttt{(batch,\ channels,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3)}。
+  它默认为从 Keras 配置文件 \texttt{\textasciitilde{}/.keras/keras.json}
+  中 找到的 \texttt{image\_data\_format} 值。 如果你从未设置它，将使用
+  "channels\_last"。
+\item
+  \textbf{dilation\_rate}: 一个整数或 3 个整数的元组或列表，
+  指定膨胀卷积的膨胀率。 可以是一个整数，为所有空间维度指定相同的值。
+  当前，指定任何 \texttt{dilation\_rate} 值 != 1 与 指定 stride 值 != 1
+  两者不兼容。
+\item
+  \textbf{activation}: 要使用的激活函数 (详见
+  \hyperref[activations]{activations})。
+  如果你不指定，则不使用激活函数 (即线性激活： \texttt{a(x)\ =\ x})。
+\item
+  \textbf{use\_bias}: 布尔值，该层是否使用偏置向量。
+\item
+  \textbf{kernel\_initializer}: \texttt{kernel} 权值矩阵的初始化器 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{bias\_initializer}: 偏置向量的初始化器 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{kernel\_regularizer}: 运用到 \texttt{kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{bias\_regularizer}: 运用到偏置向量的正则化函数 (详见
+  \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{activity\_regularizer}: 运用到层输出（它的激活值）的正则化函数
+  (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{kernel\_constraint}: 运用到 \texttt{kernel} 权值矩阵的约束函数
+  (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{bias\_constraint}: 运用到偏置向量的约束函数 (详见
+  \hyperref[constraints]{constraints})。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 data\_format='channels\_first'， 输入 5D 张量，尺寸为
+  \texttt{(samples,\ channels,\ conv\_dim1,\ conv\_dim2,\ conv\_dim3)}。
+\item
+  如果 data\_format='channels\_last'， 输入 5D 张量，尺寸为
+  \texttt{(samples,\ conv\_dim1,\ conv\_dim2,\ conv\_dim3,\ channels)}。
+\end{itemize}
+
+\textbf{输出尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 data\_format='channels\_first'， 输出 5D 张量，尺寸为
+  \texttt{(samples,\ filters,\ new\_conv\_dim1,\ new\_conv\_dim2,\ new\_conv\_dim3)}。
+\item
+  如果 data\_format='channels\_last'， 输出 5D 张量，尺寸为
+  \texttt{(samples,\ new\_conv\_dim1,\ new\_conv\_dim2,\ new\_conv\_dim3,\ filters)}。
+\end{itemize}
+
+由于填充的原因， \texttt{new\_conv\_dim1}, \texttt{new\_conv\_dim2} 和
+\texttt{new\_conv\_dim3} 值可能已更改。
+
+
+
+\subsubsection{Cropping1D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/convolutional.py\#L1962}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Cropping1D(cropping}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+1D 输入的裁剪层（例如时间序列）。
+
+它沿着时间维度（第 1 个轴）裁剪。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{cropping}: 整数或整数元组（长度为 2）。 在裁剪维度（第 1
+  个轴）的开始和结束位置 应该裁剪多少个单位。
+  如果只提供了一个整数，那么这两个位置将使用 相同的值。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+3D 张量，尺寸为 \texttt{(batch,\ axis\_to\_crop,\ features)}。
+
+\textbf{输出尺寸}
+
+3D 张量，尺寸为 \texttt{(batch,\ cropped\_axis,\ features)}。
+
+
+
+
+\subsubsection{Cropping2D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/convolutional.py\#L2007}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Cropping2D(cropping}\OperatorTok{=}\NormalTok{((}\DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{), (}\DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{)), data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+2D 输入的裁剪层（例如图像）。
+
+它沿着空间维度裁剪，即宽度和高度。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{cropping}: 整数，或 2 个整数的元组，或 2 个整数的 2 个元组。
+\item
+  如果为整数： 将对宽度和高度应用相同的对称裁剪。
+\item
+  如果为 2 个整数的元组： 解释为对高度和宽度的两个不同的对称裁剪值：
+  \texttt{(symmetric\_height\_crop,\ symmetric\_width\_crop)}。
+\item
+  如果为 2 个整数的 2 个元组： 解释为
+  \texttt{((top\_crop,\ bottom\_crop),\ (left\_crop,\ right\_crop))}。
+\item
+  \textbf{data\_format}: 字符串， \texttt{channels\_last} (默认) 或
+  \texttt{channels\_first} 之一，
+  表示输入中维度的顺序。\texttt{channels\_last} 对应输入尺寸为
+  \texttt{(batch,\ height,\ width,\ channels)}，
+  \texttt{channels\_first} 对应输入尺寸为
+  \texttt{(batch,\ channels,\ height,\ width)}。 它默认为从 Keras
+  配置文件 \texttt{\textasciitilde{}/.keras/keras.json} 中 找到的
+  \texttt{image\_data\_format} 值。 如果你从未设置它，将使用
+  "channels\_last"。
+\end{itemize}
+
+\textbf{输出尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 data\_format='channels\_first'， 输出 4D 张量，尺寸为
+  \texttt{(batch,\ filters,\ new\_rows,\ new\_cols)}。
+\end{itemize}
+
+由于填充的原因， \texttt{rows} 和 \texttt{cols} 值可能已更改。
+
+\textbf{输入尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_last"}， 输入 4D
+  张量，尺寸为 \texttt{(batch,\ rows,\ cols,\ channels)}。
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_first"}， 输入 4D
+  张量，尺寸为 \texttt{(batch,\ channels,\ rows,\ cols)}。
+\end{itemize}
+
+\textbf{输出尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_last"}， 输出 4D
+  张量，尺寸为
+  \texttt{(batch,\ cropped\_rows,\ cropped\_cols,\ channels)}
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_first"}， 输出 4D
+  张量，尺寸为
+  \texttt{(batch,\ channels,\ cropped\_rows,\ cropped\_cols)}。
+\end{itemize}
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 裁剪输入的 2D 图像或特征图}
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Cropping2D(cropping}\OperatorTok{=}\NormalTok{((}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{), (}\DecValTok{4}\NormalTok{, }\DecValTok{4}\NormalTok{)),}
+                     \NormalTok{input_shape}\OperatorTok{=}\NormalTok{(}\DecValTok{28}\NormalTok{, }\DecValTok{28}\NormalTok{, }\DecValTok{3}\NormalTok{)))}
+\CommentTok{# 现在 model.output_shape == (None, 24, 20, 3)}
+\NormalTok{model.add(Conv2D(}\DecValTok{64}\NormalTok{, (}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{), padding}\OperatorTok{=}\StringTok{'same'}\NormalTok{))}
+\NormalTok{model.add(Cropping2D(cropping}\OperatorTok{=}\NormalTok{((}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{), (}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{))))}
+\CommentTok{# 现在 model.output_shape == (None, 20, 16. 64)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{Cropping3D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/convolutional.py\#L2150}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Cropping3D(cropping}\OperatorTok{=}\NormalTok{((}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), (}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), (}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{)), data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+3D 数据的裁剪层（例如空间或时空）。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{cropping}: 整数，或 3 个整数的元组，或 2 个整数的 3 个元组。
+\item
+  如果为整数： 将对深度、高度和宽度应用相同的对称裁剪。
+\item
+  如果为 3 个整数的元组： 解释为对深度、高度和高度的 3
+  个不同的对称裁剪值：
+  \texttt{(symmetric\_dim1\_crop,\ symmetric\_dim2\_crop,\ symmetric\_dim3\_crop)}。
+\item
+  如果为 2 个整数的 3 个元组： 解释为
+  \texttt{((left\_dim1\_crop,\ right\_dim1\_crop),\ (left\_dim2\_crop,\ right\_dim2\_crop),\ (left\_dim3\_crop,\ right\_dim3\_crop))}。
+\item
+  \textbf{data\_format}: 字符串， \texttt{channels\_last} (默认) 或
+  \texttt{channels\_first} 之一，
+  表示输入中维度的顺序。\texttt{channels\_last} 对应输入尺寸为
+  \texttt{(batch,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3,\ channels)}，
+  \texttt{channels\_first} 对应输入尺寸为
+  \texttt{(batch,\ channels,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3)}。
+  它默认为从 Keras 配置文件 \texttt{\textasciitilde{}/.keras/keras.json}
+  中 找到的 \texttt{image\_data\_format} 值。 如果你从未设置它，将使用
+  "channels\_last"。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_last"}， 输入 5D
+  张量，尺寸为
+  \texttt{(batch,\ first\_axis\_to\_crop,\ second\_axis\_to\_crop,\ third\_axis\_to\_crop,\ depth)}。
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_first"}， 输入 5D
+  张量，尺寸为
+  \texttt{(batch,\ depth,\ first\_axis\_to\_crop,\ second\_axis\_to\_crop,\ third\_axis\_to\_crop)}。
+\end{itemize}
+
+\textbf{输出尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_last"}， 输出 5D
+  张量，尺寸为
+  \texttt{(batch,\ first\_cropped\_axis,\ second\_cropped\_axis,\ third\_cropped\_axis,\ depth)}
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_first"}， 输出 5D
+  张量，尺寸为
+  \texttt{(batch,\ depth,\ first\_cropped\_axis,\ second\_cropped\_axis,\ third\_cropped\_axis)}。
+\end{itemize}
+
+
+
+\subsubsection{UpSampling1D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/convolutional.py\#L1514}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.UpSampling1D(size}\OperatorTok{=}\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+1D 输入的上采样层。
+
+沿着时间轴重复每个时间步 \texttt{size} 次。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{size}: 整数。上采样因子。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+3D 张量，尺寸为 \texttt{(batch,\ steps,\ features)}。
+
+\textbf{输出尺寸}
+
+3D 张量，尺寸为 \texttt{(batch,\ upsampled\_steps,\ features)}。
+
+
+
+
+\subsubsection{UpSampling2D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/convolutional.py\#L1549}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.UpSampling2D(size}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{), data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+2D 输入的上采样层。
+
+沿着数据的行和列分别重复 \texttt{size{[}0{]}} 和 \texttt{size{[}1{]}}
+次。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{size}: 整数，或 2 个整数的元组。 行和列的上采样因子。
+\item
+  \textbf{data\_format}: 字符串， \texttt{channels\_last} (默认) 或
+  \texttt{channels\_first} 之一，
+  表示输入中维度的顺序。\texttt{channels\_last} 对应输入尺寸为
+  \texttt{(batch,\ height,\ width,\ channels)}，
+  \texttt{channels\_first} 对应输入尺寸为
+  \texttt{(batch,\ channels,\ height,\ width)}。 它默认为从 Keras
+  配置文件 \texttt{\textasciitilde{}/.keras/keras.json} 中 找到的
+  \texttt{image\_data\_format} 值。 如果你从未设置它，将使用
+  "channels\_last"。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_last"}， 输入 4D
+  张量，尺寸为 \texttt{(batch,\ rows,\ cols,\ channels)}。
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_first"}， 输入 4D
+  张量，尺寸为 \texttt{(batch,\ channels,\ rows,\ cols)}。
+\end{itemize}
+
+\textbf{输出尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_last"}， 输出 4D
+  张量，尺寸为
+  \texttt{(batch,\ upsampled\_rows,\ upsampled\_cols,\ channels)}。
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_first"}， 输出 4D
+  张量，尺寸为
+  \texttt{(batch,\ channels,\ upsampled\_rows,\ upsampled\_cols)}。
+\end{itemize}
+
+
+
+
+\subsubsection{UpSampling3D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/convolutional.py\#L1618}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.UpSampling3D(size}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{), data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+3D 输入的上采样层。
+
+沿着数据的第 1、2、3 维度分别重复
+\texttt{size{[}0{]}}、\texttt{size{[}1{]}} 和 \texttt{size{[}2{]}} 次。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{size}: 整数，或 3 个整数的元组。 dim1, dim2 和 dim3
+  的上采样因子。
+\item
+  \textbf{data\_format}: 字符串， \texttt{channels\_last} (默认) 或
+  \texttt{channels\_first} 之一，
+  表示输入中维度的顺序。\texttt{channels\_last} 对应输入尺寸为
+  \texttt{(batch,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3,\ channels)}，
+  \texttt{channels\_first} 对应输入尺寸为
+  \texttt{(batch,\ channels,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3)}。
+  它默认为从 Keras 配置文件 \texttt{\textasciitilde{}/.keras/keras.json}
+  中 找到的 \texttt{image\_data\_format} 值。 如果你从未设置它，将使用
+  "channels\_last"。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_last"}， 输入 5D
+  张量，尺寸为 \texttt{(batch,\ dim1,\ dim2,\ dim3,\ channels)}。
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_first"}， 输入 5D
+  张量，尺寸为 \texttt{(batch,\ channels,\ dim1,\ dim2,\ dim3)}。
+\end{itemize}
+
+\textbf{输出尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_last"}， 输出 5D
+  张量，尺寸为
+  \texttt{(batch,\ upsampled\_dim1,\ upsampled\_dim2,\ upsampled\_dim3,\ channels)}。
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_first"}， 输出 5D
+  张量，尺寸为
+  \texttt{(batch,\ channels,\ upsampled\_dim1,\ upsampled\_dim2,\ upsampled\_dim3)}。
+\end{itemize}
+
+
+
+
+\subsubsection{ZeroPadding1D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/convolutional.py\#L1692}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.ZeroPadding1D(padding}\OperatorTok{=}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+1D 输入的零填充层（例如，时间序列）。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{padding}: 整数，或长度为 2 的整数元组，或字典。
+\item
+  如果为整数： 在填充维度（第一个轴）的开始和结束处添加多少个零。
+\item
+  长度为 2 的整数元组： 在填充维度的开始和结尾处添加多少个零
+  (\texttt{(left\_pad,\ right\_pad)})。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+3D 张量，尺寸为 \texttt{(batch,\ axis\_to\_pad,\ features)}。
+
+\textbf{输出尺寸}
+
+3D 张量，尺寸为 \texttt{(batch,\ padded\_axis,\ features)}。
+
+
+
+
+\subsubsection{ZeroPadding2D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/convolutional.py\#L1734}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.ZeroPadding2D(padding}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+2D 输入的零填充层（例如图像）。
+
+该图层可以在图像张量的顶部、底部、左侧和右侧添加零表示的行和列。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{padding}: 整数，或 2 个整数的元组，或 2 个整数的 2 个元组。
+\item
+  如果为整数：将对宽度和高度运用相同的对称填充。
+\item
+  如果为 2 个整数的元组：
+\item
+  如果为整数：: 解释为高度和高度的 2 个不同的对称裁剪值：
+  \texttt{(symmetric\_height\_pad,\ symmetric\_width\_pad)}。
+\item
+  如果为 2 个整数的 2 个元组： 解释为
+  \texttt{((top\_pad,\ bottom\_pad),\ (left\_pad,\ right\_pad))}。
+\item
+  \textbf{data\_format}: 字符串， \texttt{channels\_last} (默认) 或
+  \texttt{channels\_first} 之一，
+  表示输入中维度的顺序。\texttt{channels\_last} 对应输入尺寸为
+  \texttt{(batch,\ height,\ width,\ channels)}，
+  \texttt{channels\_first} 对应输入尺寸为
+  \texttt{(batch,\ channels,\ height,\ width)}。 它默认为从 Keras
+  配置文件 \texttt{\textasciitilde{}/.keras/keras.json} 中 找到的
+  \texttt{image\_data\_format} 值。 如果你从未设置它，将使用
+  "channels\_last"。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_last"}， 输入 4D
+  张量，尺寸为 \texttt{(batch,\ rows,\ cols,\ channels)}。
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_first"}， 输入 4D
+  张量，尺寸为 \texttt{(batch,\ channels,\ rows,\ cols)}。
+\end{itemize}
+
+\textbf{输出尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_last"}， 输出 4D
+  张量，尺寸为
+  \texttt{(batch,\ padded\_rows,\ padded\_cols,\ channels)}。
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_first"}， 输出 4D
+  张量，尺寸为
+  \texttt{(batch,\ channels,\ padded\_rows,\ padded\_cols)}。
+\end{itemize}
+
+
+
+
+\subsubsection{ZeroPadding3D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/convolutional.py\#L1844}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.ZeroPadding3D(padding}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+3D 数据的零填充层(空间或时空)。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{padding}: 整数，或 3 个整数的元组，或 2 个整数的 3 个元组。
+\item
+  如果为整数：将对深度、高度和宽度运用相同的对称填充。
+\item
+  如果为 3 个整数的元组： 解释为深度、高度和宽度的三个不同的对称填充值：
+  \texttt{(symmetric\_dim1\_pad,\ symmetric\_dim2\_pad,\ symmetric\_dim3\_pad)}.
+\item
+  如果为 2 个整数的 3 个元组：解释为
+  \texttt{((left\_dim1\_pad,\ right\_dim1\_pad),\ (left\_dim2\_pad,\ right\_dim2\_pad),\ (left\_dim3\_pad,\ right\_dim3\_pad))}
+\item
+  \textbf{data\_format}: 字符串， \texttt{channels\_last} (默认) 或
+  \texttt{channels\_first} 之一，
+  表示输入中维度的顺序。\texttt{channels\_last} 对应输入尺寸为
+  \texttt{(batch,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3,\ channels)}，
+  \texttt{channels\_first} 对应输入尺寸为
+  \texttt{(batch,\ channels,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3)}。
+  它默认为从 Keras 配置文件 \texttt{\textasciitilde{}/.keras/keras.json}
+  中 找到的 \texttt{image\_data\_format} 值。 如果你从未设置它，将使用
+  "channels\_last"。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_last"}， 输入 5D
+  张量，尺寸为
+  \texttt{(batch,\ first\_axis\_to\_pad,\ second\_axis\_to\_pad,\ third\_axis\_to\_pad,\ depth)}。
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_first"}， 输入 5D
+  张量，尺寸为
+  \texttt{(batch,\ depth,\ first\_axis\_to\_pad,\ second\_axis\_to\_pad,\ third\_axis\_to\_pad)}。
+\end{itemize}
+
+\textbf{输出尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_last"}， 输出 5D
+  张量，尺寸为
+  \texttt{(batch,\ first\_padded\_axis,\ second\_padded\_axis,\ third\_axis\_to\_pad,\ depth)}。
+\item
+  如果 \texttt{data\_format} 为 \texttt{"channels\_first"}， 输出 5D
+  张量，尺寸为
+  \texttt{(batch,\ depth,\ first\_padded\_axis,\ second\_padded\_axis,\ third\_axis\_to\_pad)}。
+\end{itemize}
+
+\newpage

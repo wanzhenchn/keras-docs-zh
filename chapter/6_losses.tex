@@ -1,0 +1,211 @@
+\section{损失函数 Losses}\label{losses}
+    
+\subsection{损失函数的使用}
+
+损失函数（或称目标函数、优化评分函数）是编译模型时所需的两个参数之一：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(loss}\OperatorTok{=}\StringTok{'mean_squared_error'}\NormalTok{, optimizer}\OperatorTok{=}\StringTok{'sgd'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{losses}
+
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(loss}\OperatorTok{=}\NormalTok{losses.mean_squared_error, optimizer}\OperatorTok{=}\StringTok{'sgd'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+你可以传递一个现有的损失函数名，或者一个TensorFlow/Theano符号函数。
+该符号函数为每个数据点返回一个标量，有以下两个参数:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{y\_true}: 真实标签. TensorFlow/Theano张量。
+\item
+  \textbf{y\_pred}: 预测值.
+  TensorFlow/Theano张量，其shape与y\_true相同。
+\end{itemize}
+
+实际的优化目标是所有数据点的输出数组的平均值。
+
+有关这些函数的几个例子，请查看\href{https://github.com/keras-team/keras/blob/master/keras/losses.py}{losses
+source}。
+
+\subsection{可用损失函数}\label{ux53efux7528ux635fux5931ux51fdux6570}
+
+\subsubsection{mean\_squared\_error}\label{meanux5fsquaredux5ferror}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mean_squared_error(y_true, y_pred)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{mean\_absolute\_error}\label{meanux5fabsoluteux5ferror}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mean_absolute_error(y_true, y_pred)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{mean\_absolute\_percentage\_error}\label{meanux5fabsoluteux5fpercentageux5ferror}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mean_absolute_percentage_error(y_true, y_pred)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{mean\_squared\_logarithmic\_error}\label{meanux5fsquaredux5flogarithmicux5ferror}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mean_squared_logarithmic_error(y_true, y_pred)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{squared\_hinge}\label{squaredux5fhinge}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{squared_hinge(y_true, y_pred)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{hinge}\label{hinge}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{hinge(y_true, y_pred)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{categorical\_hinge}\label{categoricalux5fhinge}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{categorical_hinge(y_true, y_pred)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{logcosh}\label{logcosh}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{logcosh(y_true, y_pred)}
+\end{Highlighting}
+\end{Shaded}
+
+预测误差的双曲余弦的对数。
+
+对于小的\texttt{x}，\texttt{log(cosh(x))}近似等于\texttt{(x\ **\ 2)\ /\ 2}。对于大的\texttt{x}，近似于\texttt{abs(x)\ -\ log(2)}。这表示'logcosh'与均方误差大致相同，但是不会受到偶尔疯狂的错误预测的强烈影响。
+
+\textbf{Arguments}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{y\_true}: 目标真实值的张量。
+\item
+  \textbf{y\_pred}: 目标预测值的张量。
+\end{itemize}
+
+\textbf{Returns}
+
+每个样本都有一个标量损失的张量。
+
+
+
+\subsubsection{categorical\_crossentropy}\label{categoricalux5fcrossentropy}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{categorical_crossentropy(y_true, y_pred)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{sparse\_categorical\_crossentropy}\label{sparseux5fcategoricalux5fcrossentropy}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{sparse_categorical_crossentropy(y_true, y_pred)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{binary\_crossentropy}\label{binaryux5fcrossentropy}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{binary_crossentropy(y_true, y_pred)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{kullback\_leibler\_divergence}\label{kullbackux5fleiblerux5fdivergence}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{kullback_leibler_divergence(y_true, y_pred)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{poisson}\label{poisson}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{poisson(y_true, y_pred)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{cosine\_proximity}\label{cosineux5fproximity}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cosine_proximity(y_true, y_pred)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\textbf{注意}:
+当使用\texttt{categorical\_crossentropy}损失时，你的目标值应该是分类格式
+(即，如果你有10个类，每个样本的目标值应该是一个10维的向量，这个向量除了表示类别的那个索引为1，其他均为0)。
+为了将 \emph{整数目标值} 转换为
+\emph{分类目标值}，你可以使用Keras实用函数\texttt{to\_categorical}：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.utils.np_utils }\ImportTok{import} \NormalTok{to_categorical}
+
+\NormalTok{categorical_labels }\OperatorTok{=} \NormalTok{to_categorical(int_labels, num_classes}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+\newpage

@@ -1,0 +1,86 @@
+% !TEX program = xelatex
+% Created by WAN Zhen, wanzhen@cqu.edu.cn
+% Welcome to contribute!
+
+
+\documentclass[11pt,a4paper,titlepage]{ctexart}
+
+\usepackage{keras-docs-zh}
+
+\begin{document}
+
+\pdfbookmark[0]{Keras: 基于 Python的深度学习库}{title}
+
+\titlepicture[width=.5\textwidth]{logo/keras-logo.png}
+\title{\huge \href{https://github.com/Godblesswz/keras-docs-zh}{Keras: 基于 Python 的深度学习库 \\ Keras: The Python Deep Learning library}\thanks{Copyright \textcopyright\ 2018 by \href{https://github.com/keras-team}{Keras-Team}}\vspace{0.7cm}}
+\author{\Large Author: \href{https://github.com/keras-team}{Keras-Team}\vspace{0.2cm}\\
+Contributor: \Large\kaishu{\href{https://github.com/Godblesswz}{万\ 震 (WAN Zhen)}} \vspace{0.2cm}\\
+{\color{blue}\faGithub}\hspace{0.1cm} {\href{https://github.com/Godblesswz}{Godblesswz}}\\
+{\color{blue}\faEnvelopeO}\hspace{0.1cm}{{wanzhen@cqu.edu.cn}} 
+\vspace{0.6cm}}
+\date{\today}
+
+\maketitle
+%\clearpage\maketitle
+%\thispagestyle{empty}
+
+%%==========preface=============
+
+\input{preface/preface}
+
+
+%%==========content=============
+\pdfbookmark[1]{\contentsname}{toc}
+
+%目录单栏排版
+\begingroup    %对目录部分单独处理
+\pagenumbering{Roman} %gobble关闭页码计数
+%\pagestyle{empty}  %清除页眉页脚
+\tableofcontents %生成目录
+\endgroup
+\clearpage
+\pagenumbering{arabic}%打开页码计数, roman、Roman
+
+
+%%==========main body=============
+\input{chapter/1-1_intro}
+\input{chapter/1-2_why_use_keras}
+\input{chapter/2-1_sequential-model-guide}
+\input{chapter/2-2_functional-api-guide}
+\input{chapter/2-3_faq}
+\input{chapter/3-1_about-keras-models}
+\input{chapter/3-2_Sequential}
+\input{chapter/3-3_model}
+\input{chapter/4-1_about-keras-layers}
+\input{chapter/4-2_core}
+\input{chapter/4-3_convolutional}
+\input{chapter/4-4_pooling}
+\input{chapter/4-5_locally-connected}
+\input{chapter/4-6_recurrent}
+\input{chapter/4-7_embedding}
+\input{chapter/4-8_merge}
+\input{chapter/4-9_advanced-activations}
+\input{chapter/4-10_normalization}
+\input{chapter/4-11_noise}
+\input{chapter/4-12_wrappers}
+\input{chapter/4-13_writing-your-own-keras-layers}
+\input{chapter/5-1_preprocessing-sequence}
+\input{chapter/5-2_preprocessing-text}
+\input{chapter/5-3_preprocessing-image}
+\input{chapter/6_losses}
+\input{chapter/7_metrics}
+\input{chapter/8_optimizers}
+\input{chapter/9_activations}
+\input{chapter/10_callbacks}
+\input{chapter/11_datasets}
+\input{chapter/12_applications}
+\input{chapter/13_backend}
+\input{chapter/14_initializers}
+\input{chapter/15_regularizers}
+\input{chapter/16_constraints}
+\input{chapter/17_visualization}
+\input{chapter/18_scikit-learn-api}
+\input{chapter/19_utils}
+\input{chapter/20_contributing}
+
+\end{document}

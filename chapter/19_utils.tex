@@ -1,0 +1,411 @@
+\section{工具}
+
+
+\subsection{ CustomObjectScope {\href{https://github.com/keras-team/keras/blob/master/keras/utils/generic_utils.py\#L20}{{[}source{]}}}}\label{customobjectscope}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.utils.CustomObjectScope()}
+\end{Highlighting}
+\end{Shaded}
+
+提供一个无法转义的\texttt{\_GLOBAL\_CUSTOM\_OBJECTS} 范围。
+
+\texttt{with} 语句中的代码将能够通过名称访问自定义对象。
+对全局自定义对象的更改会在封闭的 \texttt{with} 语句中持续存在。
+在\texttt{with}语句结束时， 全局自定义对象将恢复到 \texttt{with}
+语句开始时的状态。
+
+\textbf{例子}
+
+考虑自定义对象 \texttt{MyObject} (例如一个类)：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ControlFlowTok{with} \NormalTok{CustomObjectScope(\{}\StringTok{'MyObject'}\NormalTok{:MyObject\}):}
+    \NormalTok{layer }\OperatorTok{=} \NormalTok{Dense(..., kernel_regularizer}\OperatorTok{=}\StringTok{'MyObject'}\NormalTok{)}
+	\CommentTok{# 保存，加载等操作将按这个名称来识别自定义对象}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+
+\subsection{ HDF5Matrix {\href{https://github.com/keras-team/keras/blob/master/keras/utils/io_utils.py\#L16}{{[}source{]}}}}\label{HDF5Matrix}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.utils.HDF5Matrix(datapath, dataset, start}\OperatorTok{=}\DecValTok{0}\NormalTok{, end}\OperatorTok{=}\VariableTok{None}\NormalTok{, normalizer}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+使用 HDF5 数据集表示，而不是 Numpy 数组。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{x_data }\OperatorTok{=} \NormalTok{HDF5Matrix(}\StringTok{'input/file.hdf5'}\NormalTok{, }\StringTok{'data'}\NormalTok{)}
+\NormalTok{model.predict(x_data)}
+\end{Highlighting}
+\end{Shaded}
+
+提供 \texttt{start} 和 \texttt{end} 将允许使用数据集的一个切片。
+
+你还可以给出标准化函数（或 lambda）（可选）。
+这将在检索到的每一个数据切片上调用它。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{datapath}: 字符串，HDF5 文件路径。
+\item
+  \textbf{dataset}: 字符串，datapath指定的文件中的 HDF5 数据集名称。
+\item
+  \textbf{start}: 整数，所需的指定数据集的切片的开始位置。
+\item
+  \textbf{end}: 整数，所需的指定数据集的切片的结束位置。
+\item
+  \textbf{normalizer}: 在检索数据时调用的函数。
+\end{itemize}
+
+\textbf{返回}
+
+一个类数组的 HDF5 数据集。
+
+
+
+
+\subsection{ Sequence {\href{https://github.com/keras-team/keras/blob/master/keras/utils/data_utils.py\#L303}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.utils.Sequence()}
+\end{Highlighting}
+\end{Shaded}
+
+用于拟合数据序列的基类，例如一个数据集。
+
+每一个 \texttt{Sequence} 必须实现 \texttt{\_\_getitem\_\_} 和
+\texttt{\_\_len\_\_} 方法。 如果你想在迭代之间修改你的数据集，你可以实现
+\texttt{on\_epoch\_end}。 \texttt{\_\_getitem\_\_}
+方法应该范围一个完整的批次。
+
+\textbf{注意}
+
+\texttt{Sequence}
+是进行多进程处理的更安全的方法。这种结构保证网络在每个时期每个样本只训练一次，这与生成器不同。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{skimage.io }\ImportTok{import} \NormalTok{imread}
+\ImportTok{from} \NormalTok{skimage.transform }\ImportTok{import} \NormalTok{resize}
+\ImportTok{import} \NormalTok{numpy }\ImportTok{as} \NormalTok{np}
+\ImportTok{import} \NormalTok{math}
+
+\CommentTok{# 这里，`x_set` 是图像的路径列表}
+\CommentTok{# 以及 `y_set` 是对应的类别}
+
+\KeywordTok{class} \NormalTok{CIFAR10Sequence(Sequence):}
+
+    \KeywordTok{def} \FunctionTok{__init__}\NormalTok{(}\VariableTok{self}\NormalTok{, x_set, y_set, batch_size):}
+        \VariableTok{self}\NormalTok{.x, }\VariableTok{self}\NormalTok{.y }\OperatorTok{=} \NormalTok{x_set, y_set}
+        \VariableTok{self}\NormalTok{.batch_size }\OperatorTok{=} \NormalTok{batch_size}
+
+    \KeywordTok{def} \FunctionTok{__len__}\NormalTok{(}\VariableTok{self}\NormalTok{):}
+        \ControlFlowTok{return} \NormalTok{math.ceil(}\BuiltInTok{len}\NormalTok{(}\VariableTok{self}\NormalTok{.x) }\OperatorTok{/} \VariableTok{self}\NormalTok{.batch_size)}
+
+    \KeywordTok{def} \FunctionTok{__getitem__}\NormalTok{(}\VariableTok{self}\NormalTok{, idx):}
+        \NormalTok{batch_x }\OperatorTok{=} \VariableTok{self}\NormalTok{.x[idx }\OperatorTok{*} \VariableTok{self}\NormalTok{.batch_size:(idx }\OperatorTok{+} \DecValTok{1}\NormalTok{) }\OperatorTok{*} \VariableTok{self}\NormalTok{.batch_size]}
+        \NormalTok{batch_y }\OperatorTok{=} \VariableTok{self}\NormalTok{.y[idx }\OperatorTok{*} \VariableTok{self}\NormalTok{.batch_size:(idx }\OperatorTok{+} \DecValTok{1}\NormalTok{) }\OperatorTok{*} \VariableTok{self}\NormalTok{.batch_size]}
+
+        \ControlFlowTok{return} \NormalTok{np.array([}
+            \NormalTok{resize(imread(file_name), (}\DecValTok{200}\NormalTok{, }\DecValTok{200}\NormalTok{))}
+               \ControlFlowTok{for} \NormalTok{file_name }\OperatorTok{in} \NormalTok{batch_x]), np.array(batch_y)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsection{to\_categorical}\label{toux5fcategorical}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.utils.to_categorical(y, num_classes}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+将类向量（整数）转换为二进制类矩阵。
+
+例如。用于 categorical\_crossentropy。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{y}: 需要转换成矩阵的类矢量 (从 0 到 num\_classes 的整数)。
+\item
+  \textbf{num\_classes}: 总类别数。
+\end{itemize}
+
+\textbf{返回}
+
+输入的二进制矩阵表示。
+
+
+
+\subsection{normalize}\label{normalize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.utils.normalize(x, axis}\OperatorTok{=-}\DecValTok{1}\NormalTok{, order}\OperatorTok{=}\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+标准化一个 Numpy 数组。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 需要标准化的 Numpy 数组。
+\item
+  \textbf{axis}: 需要标准化的轴。
+\item
+  \textbf{order}: 标准化顺序(例如，2 表示 L2 规范化)。
+\end{itemize}
+
+\textbf{Returns}
+
+数组的标准化副本。
+
+
+
+\subsection{get\_file}\label{get-file}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.utils.get_file(fname, origin, untar}\OperatorTok{=}\VariableTok{False}\NormalTok{, md5_hash}\OperatorTok{=}\VariableTok{None}\NormalTok{, file_hash}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{cache_subdir}\OperatorTok{=}\StringTok{'datasets'}\NormalTok{, hash_algorithm}\OperatorTok{=}\StringTok{'auto'}\NormalTok{, extract}\OperatorTok{=}\VariableTok{False}, \\
+\hspace{3cm}\NormalTok{archive_format}\OperatorTok{=}\StringTok{'auto'}\NormalTok{, cache_dir}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+从一个 URL 下载文件，如果它不存在缓存中。
+
+默认情况下，URL \texttt{origin}处的文件 被下载到缓存目录
+\texttt{\textasciitilde{}/.keras} 中， 放在缓存子目录 \texttt{datasets}中，并命名为
+\texttt{fname}。 文件 \texttt{example.txt} 的最终位置为
+\texttt{\textasciitilde{}/.keras/datasets/example.txt}。
+
+tar, tar.gz, tar.bz, 以及 zip 格式的文件也可以被解压。
+传递一个哈希值将在下载后校验文件。 命令行程序 \texttt{shasum} 和
+\texttt{sha256sum} 可以计算哈希。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{fname}: 文件名。如果指定了绝对路径
+  \texttt{/path/to/file.txt}， 那么文件将会保存到那个路径。
+\item
+  \textbf{origin}: 文件的原始 URL。
+\item
+  \textbf{untar}: 由于使用 'extract' 而已被弃用。
+  布尔值，是否需要解压文件。
+\item
+  \textbf{md5\_hash}: 由于使用 'file\_hash' 而已被弃用。 用于校验的 md5
+  哈希值。
+\item
+  \textbf{file\_hash}: 下载后的文件的期望哈希字符串。 支持 sha256 和 md5
+  两个哈希算法。
+\item
+  \textbf{cache\_subdir}: 在 Keras 缓存目录下的保存文件的子目录。
+  如果指定了绝对路径 \texttt{/path/to/folder}，则文件将被保存在该位置。
+\item
+  \textbf{hash\_algorithm}: 选择哈希算法来校验文件。 可选的有 'md5',
+  'sha256', 以及 'auto'。 默认的 'auto' 将自动检测所使用的哈希算法。
+\item
+  \textbf{extract}: True 的话会尝试将解压缩存档文件，如tar或zip。
+\item
+  \textbf{archive\_format}: 尝试提取文件的存档格式。 可选的有 'auto',
+  'tar', 'zip', 以及 None。 'tar' 包含 tar, tar.gz, 和 tar.bz 文件。
+  默认 'auto' 为 {[}'tar', 'zip'{]}。 None 或
+  空列表将返回未找到任何匹配。 ke xu az z'auto', 'tar', 'zip', and None.
+\item
+  \textbf{cache\_dir}: 存储缓存文件的位置，为 None 时默认为
+  \hyperref[where-is-the-keras-configuration-file-stored]{Keras
+  目录}.
+\end{itemize}
+
+\textbf{返回}
+
+下载的文件的路径。
+
+
+
+\subsection{print\_summary}\label{print-summary}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.utils.print_summary(model, line_length}\OperatorTok{=}\VariableTok{None}\NormalTok{, positions}\OperatorTok{=}\VariableTok{None}\NormalTok{, print_fn}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+打印模型概况。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{model}: Keras 模型实例。
+\item
+  \textbf{line\_length}: 打印的每行的总长度
+  (例如，设置此项以使其显示适应不同的终端窗口大小)。
+\item
+  \textbf{positions}: 每行中日志元素的相对或绝对位置。
+  如果未提供，默认为 \texttt{{[}.33,\ .55,\ .67,\ 1.{]}}。
+\item
+  \textbf{print\_fn}: 需要使用的打印函数。 它将在每一行概述时调用。
+  您可以将其设置为自定义函数以捕获字符串概述。 默认为 \texttt{print}
+  (打印到标准输出)。
+\end{itemize}
+
+
+
+\subsection{plot\_model}\label{plotux5fmodel}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.utils.plot_model(model, to_file}\OperatorTok{=}\StringTok{'model.png'}\NormalTok{, show_shapes}\OperatorTok{=}\VariableTok{False}, \\
+\hspace{3cm}\NormalTok{show_layer_names}\OperatorTok{=}\VariableTok{True}\NormalTok{, rankdir}\OperatorTok{=}\StringTok{'TB'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+将 Keras 模型转换为 dot 格式并保存到文件中。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{model}: 一个 Keras 模型实例。
+\item
+  \textbf{to\_file}: 绘制图像的文件名。
+\item
+  \textbf{show\_shapes}: 是否显示尺寸信息。
+\item
+  \textbf{show\_layer\_names}: 是否显示层的名称。
+\item
+  \textbf{rankdir}: 传递给 PyDot 的 \texttt{rankdir} 参数，
+  一个指定绘图格式的字符串： 'TB' 创建一个垂直绘图； 'LR'
+  创建一个水平绘图。
+\end{itemize}
+
+
+
+\subsection{multi\_gpu\_model}\label{multi-gpu-model}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.utils.multi_gpu_model(model, gpus)}
+\end{Highlighting}
+\end{Shaded}
+
+将模型复制到不同的 GPU 上。
+
+具体来说，该功能实现了单机多 GPU 数据并行性。 它的工作原理如下：
+
+\begin{itemize}
+\tightlist
+\item
+  将模型的输入分成多个子批次。
+\item
+  在每个子批次上应用模型副本。 每个模型副本都在专用 GPU 上执行。
+\item
+  将结果（在 CPU 上）连接成一个大批量。
+\end{itemize}
+
+例如， 如果你的 \texttt{batch\_size} 是 64，且你使用 \texttt{gpus=2}，
+那么我们将把输入分为两个 32 个样本的子批次， 在 1 个 GPU 上处理 1
+个子批次，然后返回完整批次的 64 个处理过的样本。
+
+这实现了多达 8 个 GPU 的准线性加速。
+
+此功能目前仅适用于 TensorFlow 后端。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{model}: 一个 Keras 模型实例。为了避免OOM错误，该模型可以建立在
+  CPU 上， 详见下面的使用样例。
+\item
+  \textbf{gpus}: 整数 \textgreater{}= 2 或整数列表，创建模型副本的 GPU
+  数量， 或 GPU ID 的列表。
+\end{itemize}
+
+\textbf{返回}
+
+一个 Keras \texttt{Model} 实例，它可以像初始 \texttt{model}
+参数一样使用，但它将工作负载分布在多个 GPU 上。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{import} \NormalTok{tensorflow }\ImportTok{as} \NormalTok{tf}
+\ImportTok{from} \NormalTok{keras.applications }\ImportTok{import} \NormalTok{Xception}
+\ImportTok{from} \NormalTok{keras.utils }\ImportTok{import} \NormalTok{multi_gpu_model}
+\ImportTok{import} \NormalTok{numpy }\ImportTok{as} \NormalTok{np}
+
+\NormalTok{num_samples }\OperatorTok{=} \DecValTok{1000}
+\NormalTok{height }\OperatorTok{=} \DecValTok{224}
+\NormalTok{width }\OperatorTok{=} \DecValTok{224}
+\NormalTok{num_classes }\OperatorTok{=} \DecValTok{1000}
+
+\CommentTok{# 实例化基础模型（或「模板」模型）。}
+\CommentTok{# 我们建议在 CPU 设备范围内执行此操作，}
+\CommentTok{# 以便让模型的权值托管在 CPU 内存上。}
+\CommentTok{# 否则，他们可能会最终托管在 GPU 上，}
+\CommentTok{# 这会使权值共享变得复杂。}
+\ControlFlowTok{with} \NormalTok{tf.device(}\StringTok{'/cpu:0'}\NormalTok{):}
+    \NormalTok{model }\OperatorTok{=} \NormalTok{Xception(weights}\OperatorTok{=}\VariableTok{None}\NormalTok{,}
+                     \NormalTok{input_shape}\OperatorTok{=}\NormalTok{(height, width, }\DecValTok{3}\NormalTok{),}
+                     \NormalTok{classes}\OperatorTok{=}\NormalTok{num_classes)}
+
+\CommentTok{# 将模型复制到 8 个 GPU 上。}
+\CommentTok{# 这假定你的机器有 8 个可用的 GPU。}
+\NormalTok{parallel_model }\OperatorTok{=} \NormalTok{multi_gpu_model(model, gpus}\OperatorTok{=}\DecValTok{8}\NormalTok{)}
+\NormalTok{parallel_model.}\BuiltInTok{compile}\NormalTok{(loss}\OperatorTok{=}\StringTok{'categorical_crossentropy'}\NormalTok{,}
+                       \NormalTok{optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{)}
+
+\CommentTok{# 生成虚拟数据。}
+\NormalTok{x }\OperatorTok{=} \NormalTok{np.random.random((num_samples, height, width, }\DecValTok{3}\NormalTok{))}
+\NormalTok{y }\OperatorTok{=} \NormalTok{np.random.random((num_samples, num_classes))}
+
+\CommentTok{# 这个 `fit` 调用将分布在 8 个 GPU 上。}
+\CommentTok{# 由于 批大小为 256，每个 GPU 将处理 32 个样本。}
+\NormalTok{parallel_model.fit(x, y, epochs}\OperatorTok{=}\DecValTok{20}\NormalTok{, batch_size}\OperatorTok{=}\DecValTok{256}\NormalTok{)}
+
+\CommentTok{# 通过模板模型（共享相同的权值）保存模型：}
+\NormalTok{model.save(}\StringTok{'my_model.h5'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{关于模型保存}
+
+要保存多 GPU 模型，请通过模板模型（传递给 multi\_gpu\_model 的参数）调用
+.save(fname) 或 .save\_weights(fname) 以进行存储，而不是通过
+multi\_gpu\_model 返回的模型。
+
+\newpage

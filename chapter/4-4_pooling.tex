@@ -1,0 +1,496 @@
+\subsection{池化层 Pooling}
+\subsubsection{MaxPooling1D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/pooling.py\#L57}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.MaxPooling1D(pool_size}\OperatorTok{=}\DecValTok{2}\NormalTok{, strides}\OperatorTok{=}\VariableTok{None}\NormalTok{, padding}\OperatorTok{=}\StringTok{'valid'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+对于时序数据的最大池化。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{pool\_size}: 整数，最大池化的窗口大小。
+\item
+  \textbf{strides}: 整数，或者是 \texttt{None}。作为缩小比例的因数。
+  例如，2 会使得输入张量缩小一半。 如果是 \texttt{None}，那么默认值是
+  \texttt{pool\_size}。
+\item
+  \textbf{padding}: \texttt{"valid"} 或者 \texttt{"same"}
+  （区分大小写）。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+尺寸是 \texttt{(batch\_size,\ steps,\ features)} 的 3D 张量。
+
+\textbf{输出尺寸}
+
+尺寸是 \texttt{(batch\_size,\ downsampled\_steps,\ features)} 的 3D
+张量。
+
+
+
+
+\subsubsection{MaxPooling2D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/pooling.py\#L170}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.MaxPooling2D(pool_size}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{), strides}\OperatorTok{=}\VariableTok{None}\NormalTok{, padding}\OperatorTok{=}\StringTok{'valid'},\\
+\hspace{4cm}\NormalTok{data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+对于空域数据的最大池化。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{pool\_size}: 整数，或者 2
+  个整数元组，（垂直方向，水平方向）缩小比例的因数。（2，2）会把输入张量的两个维度都缩小一半。
+  如果只使用一个整数，那么两个维度都会使用同样的窗口长度。
+\item
+  \textbf{strides}: 整数，整数元组或者是 \texttt{None}。 步长值。 如果是
+  \texttt{None}，那么默认值是 \texttt{pool\_size}。
+\item
+  \textbf{padding}: \texttt{"valid"} 或者 \texttt{"same"}
+  （区分大小写）。
+\item
+  \textbf{data\_format}: 一个字符串，\texttt{channels\_last}
+  （默认值）或者 \texttt{channels\_first}。 输入张量中的维度顺序。
+  \texttt{channels\_last} 代表尺寸是
+  \texttt{(batch,\ height,\ width,\ channels)} 的输入张量，而
+  \texttt{channels\_first} 代表尺寸是
+  \texttt{(batch,\ channels,\ height,\ width)} 的输入张量。 默认值根据
+  Keras 配置文件 \texttt{\textasciitilde{}/.keras/keras.json} 中的
+  \texttt{image\_data\_format} 值来设置。
+  如果还没有设置过，那么默认值就是 "channels\_last"。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_last\textquotesingle{}}:
+  尺寸是 \texttt{(batch\_size,\ rows,\ cols,\ channels)} 的 4D 张量
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_first\textquotesingle{}}:
+  尺寸是 \texttt{(batch\_size,\ channels,\ rows,\ cols)} 的 4D 张量
+\end{itemize}
+
+\textbf{输出尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_last\textquotesingle{}}:
+  尺寸是 \texttt{(batch\_size,\ pooled\_rows,\ pooled\_cols,\ channels)}
+  的 4D 张量
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_first\textquotesingle{}}:
+  尺寸是 \texttt{(batch\_size,\ channels,\ pooled\_rows,\ pooled\_cols)}
+  的 4D 张量
+\end{itemize}
+
+
+
+
+\subsubsection{MaxPooling3D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/pooling.py\#L339}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.MaxPooling3D(pool_size}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{), strides}\OperatorTok{=}\VariableTok{None}\NormalTok{, padding}\OperatorTok{=}\StringTok{'valid'},\\
+\hspace{4cm}\NormalTok{data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+对于 3D（空域，或时空域）数据的最大池化。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{pool\_size}: 3 个整数的元组，缩小（维度 1，维度 2，维度
+  3）比例的因数。 (2, 2, 2) 会把 3D 输入张量的每个维度缩小一半。
+\item
+  \textbf{strides}: 3 个整数的元组，或者是 \texttt{None}。步长值。
+\item
+  \textbf{padding}: \texttt{"valid"} 或者
+  \texttt{"same"}（区分大小写）。
+\item
+  \textbf{data\_format}: 一个字符串，\texttt{channels\_last}
+  （默认值）或者 \texttt{channels\_first}。 输入张量中的维度顺序。
+  \texttt{channels\_last} 代表尺寸是
+  \texttt{(batch,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3,\ channels)}
+  的输入张量， 而 \texttt{channels\_first} 代表尺寸是
+  \texttt{(batch,\ channels,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3)}
+  的输入张量。 默认值根据 Keras 配置文件
+  \texttt{\textasciitilde{}/.keras/keras.json} 中的
+  \texttt{image\_data\_format} 值来设置。
+  如果还没有设置过，那么默认值就是 "channels\_last"。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_last\textquotesingle{}}:
+  尺寸是
+  \texttt{(batch\_size,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3,\ channels)}
+  的 5D 张量
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_first\textquotesingle{}}:
+  尺寸是
+  \texttt{(batch\_size,\ channels,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3)}
+  的 5D 张量
+\end{itemize}
+
+\textbf{输出尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_last\textquotesingle{}}:
+  尺寸是
+  \texttt{(batch\_size,\ pooled\_dim1,\ pooled\_dim2,\ pooled\_dim3,\ channels)}
+  的 5D 张量
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_first\textquotesingle{}}:
+  尺寸是
+  \texttt{(batch\_size,\ channels,\ pooled\_dim1,\ pooled\_dim2,\ pooled\_dim3)}
+  的 5D 张量
+\end{itemize}
+
+
+
+\subsubsection{AveragePooling1D  {\href{https://github.com/keras-team/keras/blob/master/keras/layers/pooling.py\#L87}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.AveragePooling1D(pool_size}\OperatorTok{=}\DecValTok{2}\NormalTok{, strides}\OperatorTok{=}\VariableTok{None}\NormalTok{, padding}\OperatorTok{=}\StringTok{'valid'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+对于时序数据的平均池化。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{pool\_size}: 整数，平均池化的窗口大小。
+\item
+  \textbf{strides}: 整数，或者是 \texttt{None}。作为缩小比例的因数。
+  例如，2 会使得输入张量缩小一半。 如果是 \texttt{None}，那么默认值是
+  \texttt{pool\_size}。
+\item
+  \textbf{padding}: \texttt{"valid"} 或者 \texttt{"same"}
+  （区分大小写）。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+尺寸是 \texttt{(batch\_size,\ steps,\ features)} 的 3D 张量。
+
+\textbf{输出尺寸}
+
+尺寸是 \texttt{(batch\_size,\ downsampled\_steps,\ features)} 的 3D
+张量。
+
+
+
+
+\subsubsection{AveragePooling2D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/pooling.py\#L225}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.AveragePooling2D(pool_size}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{), strides}\OperatorTok{=}\VariableTok{None}\NormalTok{, padding}\OperatorTok{=}\StringTok{'valid'},\\
+\hspace{4cm}\NormalTok{data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+对于空域数据的平均池化。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{pool\_size}: 整数，或者 2
+  个整数元组，（垂直方向，水平方向）缩小比例的因数。（2，2）会把输入张量的两个维度都缩小一半。
+  如果只使用一个整数，那么两个维度都会使用同样的窗口长度。
+\item
+  \textbf{strides}: 整数，整数元组或者是 \texttt{None}。 步长值。 如果是
+  \texttt{None}，那么默认值是 \texttt{pool\_size}。
+\item
+  \textbf{padding}: \texttt{"valid"} 或者 \texttt{"same"}
+  （区分大小写）。
+\item
+  \textbf{data\_format}: 一个字符串，\texttt{channels\_last}
+  （默认值）或者 \texttt{channels\_first}。 输入张量中的维度顺序。
+  \texttt{channels\_last} 代表尺寸是
+  \texttt{(batch,\ height,\ width,\ channels)} 的输入张量，而
+  \texttt{channels\_first} 代表尺寸是
+  \texttt{(batch,\ channels,\ height,\ width)} 的输入张量。 默认值根据
+  Keras 配置文件 \texttt{\textasciitilde{}/.keras/keras.json} 中的
+  \texttt{image\_data\_format} 值来设置。
+  如果还没有设置过，那么默认值就是 "channels\_last"。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_last\textquotesingle{}}:
+  尺寸是 \texttt{(batch\_size,\ rows,\ cols,\ channels)} 的 4D 张量
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_first\textquotesingle{}}:
+  尺寸是 \texttt{(batch\_size,\ channels,\ rows,\ cols)} 的 4D 张量
+\end{itemize}
+
+\textbf{输出尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_last\textquotesingle{}}:
+  尺寸是 \texttt{(batch\_size,\ pooled\_rows,\ pooled\_cols,\ channels)}
+  的 4D 张量
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_first\textquotesingle{}}:
+  尺寸是 \texttt{(batch\_size,\ channels,\ pooled\_rows,\ pooled\_cols)}
+  的 4D 张量
+\end{itemize}
+
+
+
+
+\subsubsection{AveragePooling3D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/pooling.py\#L389}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.AveragePooling3D(pool_size}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{), strides}\OperatorTok{=}\VariableTok{None}\NormalTok{, padding}\OperatorTok{=}\StringTok{'valid'},\\
+\hspace{4cm}\NormalTok{data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+对于 3D （空域，或者时空域）数据的平均池化。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{pool\_size}: 3 个整数的元组，缩小（维度 1，维度 2，维度
+  3）比例的因数。 (2, 2, 2) 会把 3D 输入张量的每个维度缩小一半。
+\item
+  \textbf{strides}: 3 个整数的元组，或者是 \texttt{None}。步长值。
+\item
+  \textbf{padding}: \texttt{"valid"} 或者
+  \texttt{"same"}（区分大小写）。
+\item
+  \textbf{data\_format}: 一个字符串，\texttt{channels\_last}
+  （默认值）或者 \texttt{channels\_first}。 输入张量中的维度顺序。
+  \texttt{channels\_last} 代表尺寸是
+  \texttt{(batch,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3,\ channels)}
+  的输入张量， 而 \texttt{channels\_first} 代表尺寸是
+  \texttt{(batch,\ channels,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3)}
+  的输入张量。 默认值根据 Keras 配置文件
+  \texttt{\textasciitilde{}/.keras/keras.json} 中的
+  \texttt{image\_data\_format} 值来设置。
+  如果还没有设置过，那么默认值就是 "channels\_last"。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_last\textquotesingle{}}:
+  尺寸是
+  \texttt{(batch\_size,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3,\ channels)}
+  的 5D 张量
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_first\textquotesingle{}}:
+  尺寸是
+  \texttt{(batch\_size,\ channels,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3)}
+  的 5D 张量
+\end{itemize}
+
+\textbf{输出尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_last\textquotesingle{}}:
+  尺寸是
+  \texttt{(batch\_size,\ pooled\_dim1,\ pooled\_dim2,\ pooled\_dim3,\ channels)}
+  的 5D 张量
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_first\textquotesingle{}}:
+  尺寸是
+  \texttt{(batch\_size,\ channels,\ pooled\_dim1,\ pooled\_dim2,\ pooled\_dim3)}
+  的 5D 张量
+\end{itemize}
+
+
+
+
+\subsubsection{GlobalMaxPooling1D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/pooling.py\#L470}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.GlobalMaxPooling1D()}
+\end{Highlighting}
+\end{Shaded}
+
+对于时序数据的全局最大池化。
+
+\textbf{输入尺寸}
+
+尺寸是 \texttt{(batch\_size,\ steps,\ features)} 的 3D 张量。
+
+\textbf{输出尺寸}
+
+尺寸是 \texttt{(batch\_size,\ features)} 的 2D 张量。
+
+
+
+
+\subsubsection{GlobalAveragePooling1D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/pooling.py\#L455}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.GlobalAveragePooling1D()}
+\end{Highlighting}
+\end{Shaded}
+
+对于时序数据的全局平均池化。
+
+\textbf{输入尺寸}
+
+尺寸是 \texttt{(batch\_size,\ steps,\ features)} 的 3D 张量。
+
+\textbf{输出尺寸}
+
+尺寸是 \texttt{(batch\_size,\ features)} 的 2D 张量。
+
+
+
+
+\subsubsection{GlobalMaxPooling2D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/pooling.py\#L545}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.GlobalMaxPooling2D(data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+对于空域数据的全局最大池化。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{data\_format}: 一个字符串，\texttt{channels\_last}
+  （默认值）或者 \texttt{channels\_first}。 输入张量中的维度顺序。
+  \texttt{channels\_last} 代表尺寸是
+  \texttt{(batch,\ height,\ width,\ channels)} 的输入张量，而
+  \texttt{channels\_first} 代表尺寸是
+  \texttt{(batch,\ channels,\ height,\ width)} 的输入张量。 默认值根据
+  Keras 配置文件 \texttt{\textasciitilde{}/.keras/keras.json} 中的
+  \texttt{image\_data\_format} 值来设置。
+  如果还没有设置过，那么默认值就是 "channels\_last"。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_last\textquotesingle{}}:
+  尺寸是 \texttt{(batch\_size,\ rows,\ cols,\ channels)} 的 4D 张量
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_first\textquotesingle{}}:
+  尺寸是 \texttt{(batch\_size,\ channels,\ rows,\ cols)} 的 4D 张量
+\end{itemize}
+
+\textbf{输出尺寸}
+
+尺寸是 \texttt{(batch\_size,\ channels)} 的 2D 张量
+
+
+\subsubsection{GlobalAveragePooling2D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/pooling.py\#L510}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.GlobalAveragePooling2D(data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+对于空域数据的全局平均池化。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{data\_format}: 一个字符串，\texttt{channels\_last}
+  （默认值）或者 \texttt{channels\_first}。 输入张量中的维度顺序。
+  \texttt{channels\_last} 代表尺寸是
+  \texttt{(batch,\ height,\ width,\ channels)} 的输入张量，而
+  \texttt{channels\_first} 代表尺寸是
+  \texttt{(batch,\ channels,\ height,\ width)} 的输入张量。 默认值根据
+  Keras 配置文件 \texttt{\textasciitilde{}/.keras/keras.json} 中的
+  \texttt{image\_data\_format} 值来设置。
+  如果还没有设置过，那么默认值就是 "channels\_last"。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_last\textquotesingle{}}:
+  尺寸是 \texttt{(batch\_size,\ rows,\ cols,\ channels)} 的 4D 张量
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_first\textquotesingle{}}:
+  尺寸是 \texttt{(batch\_size,\ channels,\ rows,\ cols)} 的 4D 张量
+\end{itemize}
+
+\textbf{输出尺寸}
+
+尺寸是 \texttt{(batch\_size,\ channels)} 的 2D 张量
+
+\newpage

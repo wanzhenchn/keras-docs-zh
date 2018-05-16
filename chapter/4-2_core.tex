@@ -1,0 +1,530 @@
+\subsection{核心网络层}
+\subsubsection{Dense {\href{https://github.com/keras-team/keras/blob/master/keras/layers/core.py\#L743}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Dense(units, activation}\OperatorTok{=}\VariableTok{None}\NormalTok{, use_bias}\OperatorTok{=}\VariableTok{True}, \\
+\hspace{3.5cm}\NormalTok{kernel_initializer}\OperatorTok{=}\StringTok{'glorot_uniform'}\NormalTok{, bias_initializer}\OperatorTok{=}\StringTok{'zeros'}, \\
+\hspace{3.5cm}\NormalTok{kernel_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3.5cm}\NormalTok{activity_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, kernel_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+就是普通的全连接层。
+
+\texttt{Dense} 实现以下操作：
+\texttt{output\ =\ activation(dot(input,\ kernel)\ +\ bias)} 其中
+\texttt{activation} 是按逐个元素计算的激活函数，\texttt{kernel}
+是由网络层创建的权值矩阵，以及 \texttt{bias} 是其创建的偏置向量 (只在
+\texttt{use\_bias} 为 \texttt{True} 时才有用)。
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{注意}: 如果该层的输入的秩大于2，那么它首先被展平然后 再计算与
+  \texttt{kernel} 的点乘。
+\end{itemize}
+
+\textbf{例}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 作为 Sequential 模型的第一层}
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Dense(}\DecValTok{32}\NormalTok{, input_shape}\OperatorTok{=}\NormalTok{(}\DecValTok{16}\NormalTok{,)))}
+\CommentTok{# 现在模型就会以尺寸为 (*, 16) 的数组作为输入，}
+\CommentTok{# 其输出数组的尺寸为 (*, 32)}
+
+\CommentTok{# 在第一层之后，你就不再需要指定输入的尺寸了：}
+\NormalTok{model.add(Dense(}\DecValTok{32}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{units}: 正整数，输出空间维度。
+\item
+  \textbf{activation}: 激活函数 (详见
+  \hyperref[activations]{activations})。 若不指定，则不使用激活函数
+  (即， ``线性''激活: \texttt{a(x)\ =\ x})。
+\item
+  \textbf{use\_bias}: 布尔值，该层是否使用偏置向量。
+\item
+  \textbf{kernel\_initializer}: \texttt{kernel} 权值矩阵的初始化器 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{bias\_initializer}: 偏置向量的初始化器 (see
+   \hyperref[initializers]{initializers}).
+\item
+  \textbf{kernel\_regularizer}: 运用到 \texttt{kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{bias\_regularizer}: 运用到偏置向的的正则化函数 (详见
+  \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{activity\_regularizer}: 运用到层的输出的正则化函数 (它的
+  ``activation")。 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{kernel\_constraint}: 运用到 \texttt{kernel} 权值矩阵的约束函数
+  (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{bias\_constraint}: 运用到偏置向量的约束函数 (详见
+  \hyperref[constraints]{constraints})。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+nD 张量，尺寸: \texttt{(batch\_size,\ ...,\ input\_dim)}。
+最常见的情况是一个尺寸为 \texttt{(batch\_size,\ input\_dim)} 的 2D
+输入。
+
+\textbf{输出尺寸}
+
+nD 张量，尺寸: \texttt{(batch\_size,\ ...,\ units)}。 例如，对于尺寸为
+\texttt{(batch\_size,\ input\_dim)} 的 2D 输入， 输出的尺寸为
+\texttt{(batch\_size,\ units)}。
+
+
+
+
+\subsubsection{Activation {\href{https://github.com/keras-team/keras/blob/master/keras/layers/core.py\#L280}{{[}source{]}}}}
+
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Activation(activation)}
+\end{Highlighting}
+\end{Shaded}
+
+将激活函数应用于输出。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{activation}: 要使用的激活函数的名称 (详见:
+  hyperref[activations]{activations})， 或者选择一个 Theano 或
+  TensorFlow 操作。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+任意尺寸。 当使用此层作为模型中的第一层时， 使用参数
+\texttt{input\_shape} （整数元组，不包括样本数的轴）。
+
+\textbf{输出尺寸}
+
+与输入相同。
+
+
+
+\subsubsection{Dropout {\href{https://github.com/keras-team/keras/blob/master/keras/layers/core.py\#L78}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Dropout(rate, noise_shape}\OperatorTok{=}\VariableTok{None}\NormalTok{, seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+将 Dropout 应用于输入。
+
+Dropout 包括在训练中每次更新时， 将输入单元的按比率随机设置为 0，
+这有助于防止过拟合。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{rate}: 在 0 和 1 之间浮动。需要丢弃的输入比例。
+\item
+  \textbf{noise\_shape}: 1D 整数张量， 表示将与输入相乘的二进制 dropout
+  掩层的形状。 例如，如果你的输入尺寸为
+  \texttt{(batch\_size,\ timesteps,\ features)}，然后 你希望 dropout
+  掩层在所有时间步都是一样的， 你可以使用
+  \texttt{noise\_shape=(batch\_size,\ 1,\ features)}。
+\item
+  \textbf{seed}: 一个作为随机种子的 Python 整数。
+\end{itemize}
+
+\textbf{参考文献}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{http://www.cs.toronto.edu/~rsalakhu/papers/srivastava14a.pdf}{Dropout:
+  A Simple Way to Prevent Neural Networks from Overfitting}
+\end{itemize}
+
+
+
+
+\subsubsection{Flatten {\href{https://github.com/keras-team/keras/blob/master/keras/layers/core.py\#L465}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Flatten()}
+\end{Highlighting}
+\end{Shaded}
+
+将输入展平。不影响批量大小。
+
+\textbf{例}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Conv2D(}\DecValTok{64}\NormalTok{, }\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{,}
+                 \NormalTok{border_mode}\OperatorTok{=}\StringTok{'same'}\NormalTok{,}
+                 \NormalTok{input_shape}\OperatorTok{=}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{32}\NormalTok{, }\DecValTok{32}\NormalTok{)))}
+\CommentTok{# 现在：model.output_shape == (None, 64, 32, 32)}
+
+\NormalTok{model.add(Flatten())}
+\CommentTok{# 现在：model.output_shape == (None, 65536)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\subsubsection{Input {\href{https://github.com/keras-team/keras/blob/master/keras/engine/topology.py\#L1391}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.engine.topology.Input()}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{Input()} 用于实例化 Keras 张量。
+
+Keras 张量是底层后端(Theano, TensorFlow or CNTK)
+的张量对象，我们增加了一些特性，使得能够通过了解模型的输入
+和输出来构建Keras模型。
+
+例如，如果 a, b 和 c 都是 Keras 张量， 那么以下操作是可行的：
+\texttt{model\ =\ Model(input={[}a,\ b{]},\ output=c)}
+
+添加的 Keras 属性是： - \textbf{\texttt{\_keras\_shape}}: 通过
+Keras端的尺寸推理 进行传播的整数尺寸元组。 -
+\textbf{\texttt{\_keras\_history}}: 应用于张量的最后一层。
+整个网络层计算图可以递归地从该层中检索。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{shape}: 一个尺寸元组（整数），不包含批量大小。A shape tuple
+  (integer), not including the batch size. 例如，\texttt{shape=(32,)}
+  表明期望的输入是按批次的 32 维向量。
+\item
+  \textbf{batch\_shape}: 一个尺寸元组（整数），包含批量大小。
+  例如，\texttt{batch\_shape=(10,\ 32)} 表明期望的输入是 10 个 32
+  维向量。 \texttt{batch\_shape=(None,\ 32)} 表明任意批次大小的 32
+  维向量。
+\item
+  \textbf{name}: 一个可选的层的名称的字符串。
+  在一个模型中应该是唯一的（不可以重用一个名字两次）。
+  如未提供，将自动生成。
+\item
+  \textbf{dtype}: 输入所期望的数据类型，字符串表示 (\texttt{float32},
+  \texttt{float64}, \texttt{int32}...)
+\item
+  \textbf{sparse}: 一个布尔值，指明需要创建的占位符是否是稀疏的。
+\item
+  \textbf{tensor}: 可选的可封装到 \texttt{Input} 层的现有张量。
+  如果设定了，那么这个层将不会创建占位符张量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+\textbf{例}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 这是 Keras 中的一个逻辑回归}
+\NormalTok{x }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{32}\NormalTok{,))}
+\NormalTok{y }\OperatorTok{=} \NormalTok{Dense(}\DecValTok{16}\NormalTok{, activation}\OperatorTok{=}\StringTok{'softmax'}\NormalTok{)(x)}
+\NormalTok{model }\OperatorTok{=} \NormalTok{Model(x, y)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\subsubsection{Reshape {\href{https://github.com/keras-team/keras/blob/master/keras/layers/core.py\#L314}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Reshape(target_shape)}
+\end{Highlighting}
+\end{Shaded}
+
+将输入重新调整为特定的尺寸。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{target\_shape}: 目标尺寸。整数元组。 不包含表示批量的轴。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+任意，尽管输入尺寸中的所有维度必须是固定的。
+当使用此层作为模型中的第一层时， 使用参数 \texttt{input\_shape}
+（整数元组，不包括样本数的轴）。
+
+\textbf{输出尺寸}
+
+\texttt{(batch\_size,)\ +\ target\_shape}
+
+\textbf{例}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 作为 Sequential 模型的第一层}
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Reshape((}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{), input_shape}\OperatorTok{=}\NormalTok{(}\DecValTok{12}\NormalTok{,)))}
+\CommentTok{# 现在：model.output_shape == (None, 3, 4)}
+\CommentTok{# 注意： `None` 是批表示的维度}
+
+\CommentTok{# 作为 Sequential 模型的中间层}
+\NormalTok{model.add(Reshape((}\DecValTok{6}\NormalTok{, }\DecValTok{2}\NormalTok{)))}
+\CommentTok{# 现在： model.output_shape == (None, 6, 2)}
+
+\CommentTok{# 还支持使用 `-1` 表示维度的尺寸推断}
+\NormalTok{model.add(Reshape((}\OperatorTok{-}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{)))}
+\CommentTok{# 现在： model.output_shape == (None, 3, 2, 2)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\subsubsection{Permute {\href{https://github.com/keras-team/keras/blob/master/keras/layers/core.py\#L413}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Permute(dims)}
+\end{Highlighting}
+\end{Shaded}
+
+根据给定的模式置换输入的维度。
+
+在某些场景下很有用，例如将 RNN 和 CNN 连接在一起。
+
+\textbf{例}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Permute((}\DecValTok{2}\NormalTok{, }\DecValTok{1}\NormalTok{), input_shape}\OperatorTok{=}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{64}\NormalTok{)))}
+\CommentTok{# 现在： model.output_shape == (None, 64, 10)}
+\CommentTok{# 注意： `None` 是批表示的维度}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{dims}: 整数元组。置换模式，不包含样本维度。 索引从 1 开始。
+  例如, \texttt{(2,\ 1)} 置换输入的第一和第二个维度。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+任意。当使用此层作为模型中的第一层时， 使用参数 \texttt{input\_shape}
+（整数元组，不包括样本数的轴）。
+
+\textbf{输出尺寸}
+
+与输入尺寸相同，但是维度根据指定的模式重新排列。
+
+
+
+\subsubsection{RepeatVector {\href{https://github.com/keras-team/keras/blob/master/keras/layers/core.py\#L500}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.RepeatVector(n)}
+\end{Highlighting}
+\end{Shaded}
+
+将输入重复 n 次。
+
+\textbf{例}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Dense(}\DecValTok{32}\NormalTok{, input_dim}\OperatorTok{=}\DecValTok{32}\NormalTok{))}
+\CommentTok{# 现在： model.output_shape == (None, 32)}
+\CommentTok{# 注意： `None` 是批表示的维度}
+
+\NormalTok{model.add(RepeatVector(}\DecValTok{3}\NormalTok{))}
+\CommentTok{# 现在： model.output_shape == (None, 3, 32)}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{n}: 整数，重复次数。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+2D 张量，尺寸为 \texttt{(num\_samples,\ features)}。
+
+\textbf{输出尺寸}
+
+3D 张量，尺寸为 \texttt{(num\_samples,\ n,\ features)}。
+
+\subsubsection{Lambda {\href{https://github.com/keras-team/keras/blob/master/keras/layers/core.py\#L542}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Lambda(function, output_shape}\OperatorTok{=}\VariableTok{None}\NormalTok{, mask}\OperatorTok{=}\VariableTok{None}\NormalTok{, arguments}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+将任意表达式封装为 \texttt{Layer} 对象。
+
+\textbf{例}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 添加一个 x -> x^2 层}
+\NormalTok{model.add(Lambda(}\KeywordTok{lambda} \NormalTok{x: x }\OperatorTok{**} \DecValTok{2}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 添加一个网络层，返回输入的正数部分}
+\CommentTok{# 与负数部分的反面的连接}
+
+\KeywordTok{def} \NormalTok{antirectifier(x):}
+    \NormalTok{x }\OperatorTok{-=} \NormalTok{K.mean(x, axis}\OperatorTok{=}\DecValTok{1}\NormalTok{, keepdims}\OperatorTok{=}\VariableTok{True}\NormalTok{)}
+    \NormalTok{x }\OperatorTok{=} \NormalTok{K.l2_normalize(x, axis}\OperatorTok{=}\DecValTok{1}\NormalTok{)}
+    \NormalTok{pos }\OperatorTok{=} \NormalTok{K.relu(x)}
+    \NormalTok{neg }\OperatorTok{=} \NormalTok{K.relu(}\OperatorTok{-}\NormalTok{x)}
+    \ControlFlowTok{return} \NormalTok{K.concatenate([pos, neg], axis}\OperatorTok{=}\DecValTok{1}\NormalTok{)}
+
+\KeywordTok{def} \NormalTok{antirectifier_output_shape(input_shape):}
+    \NormalTok{shape }\OperatorTok{=} \BuiltInTok{list}\NormalTok{(input_shape)}
+    \ControlFlowTok{assert} \BuiltInTok{len}\NormalTok{(shape) }\OperatorTok{==} \DecValTok{2}  \CommentTok{# only valid for 2D tensors}
+    \NormalTok{shape[}\OperatorTok{-}\DecValTok{1}\NormalTok{] }\OperatorTok{*=} \DecValTok{2}
+    \ControlFlowTok{return} \BuiltInTok{tuple}\NormalTok{(shape)}
+
+\NormalTok{model.add(Lambda(antirectifier,}
+                 \NormalTok{output_shape}\OperatorTok{=}\NormalTok{antirectifier_output_shape))}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{function}: 需要封装的函数。 将输入张量作为第一个参数。
+\item
+  \textbf{output\_shape}: 预期的函数输出尺寸。 只在使用 Theano
+  时有意义。 可以是元组或者函数。 如果是元组，它只指定第一个维度；
+  样本维度假设与输入相同：
+  \texttt{output\_shape\ =\ (input\_shape{[}0{]},\ )\ +\ output\_shape}
+  或者，输入是 \texttt{None} 且样本维度也是 \texttt{None}：
+  \texttt{output\_shape\ =\ (None,\ )\ +\ output\_shape}
+  如果是函数，它指定整个尺寸为输入尺寸的一个函数：
+  \texttt{output\_shape\ =\ f(input\_shape)}
+\item
+  \textbf{arguments}: 可选的需要传递给函数的关键字参数。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+任意。当使用此层作为模型中的第一层时， 使用参数 \texttt{input\_shape}
+（整数元组，不包括样本数的轴）。
+
+\textbf{输出尺寸}
+
+由 \texttt{output\_shape} 参数指定 (或者在使用 TensorFlow
+时，自动推理得到)。
+
+
+\subsubsection{ActivityRegularization {\href{https://github.com/keras-team/keras/blob/master/keras/layers/core.py\#L886}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.ActivityRegularization(l1}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, l2}\OperatorTok{=}\FloatTok{0.0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+网络层，对基于代价函数的输入活动应用一个更新。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{l1}: L1 正则化因子 (正数浮点型)。
+\item
+  \textbf{l2}: L2 正则化因子 (正数浮点型)。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+任意。当使用此层作为模型中的第一层时， 使用参数 \texttt{input\_shape}
+（整数元组，不包括样本数的轴）。
+
+\textbf{输出尺寸}
+
+与输入相同。
+
+
+\subsubsection{Masking {\href{https://github.com/keras-team/keras/blob/master/keras/layers/core.py\#L28}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Masking(mask_value}\OperatorTok{=}\FloatTok{0.0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+使用覆盖值覆盖序列，以跳过时间步。
+
+对于输入张量的每一个时间步（张量的第一个维度），
+如果所有时间步中输入张量的值与 \texttt{mask\_value} 相等，
+那么这个时间步将在所有下游层被覆盖 (跳过) （只要它们支持覆盖）。
+
+如果任何下游层不支持覆盖但仍然收到此类输入覆盖信息，会引发异常。
+
+\textbf{例}
+
+考虑将要喂入一个 LSTM 层的 Numpy 矩阵~\texttt{x}， 尺寸为
+\texttt{(samples,\ timesteps,\ features)}。 你想要覆盖时间步 \#3 和
+\#5，因为你缺乏这几个 时间步的数据。你可以：
+
+\begin{itemize}
+\tightlist
+\item
+  设置 \texttt{x{[}:,\ 3,\ :{]}\ =\ 0.} 以及
+  \texttt{x{[}:,\ 5,\ :{]}\ =\ 0.}
+\item
+  在 LSTM 层之前，插入一个 \texttt{mask\_value=0} 的~\texttt{Masking}
+  层：
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Masking(mask_value}\OperatorTok{=}\DecValTok{0}\NormalTok{., input_shape}\OperatorTok{=}\NormalTok{(timesteps, features)))}
+\NormalTok{model.add(LSTM(}\DecValTok{32}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+\newpage

@@ -1,0 +1,502 @@
+\section{初始化 Initializers}
+\subsection{初始化器的用法}\label{initializers}
+
+初始化定义了设置 Keras 各层权重随机初始值的方法。
+
+用来将初始化器传入 Keras 层的参数名取决于具体的层。通常关键字为
+\texttt{kernel\_initializer} 和 \texttt{bias\_initializer}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model.add(Dense(}\DecValTok{64}\NormalTok{,}
+                \NormalTok{kernel_initializer}\OperatorTok{=}\StringTok{'random_uniform'}\NormalTok{,}
+                \NormalTok{bias_initializer}\OperatorTok{=}\StringTok{'zeros'}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{可用的初始化器}\label{ux53efux7528ux7684ux521dux59cbux5316ux5668}
+
+下面这些是可用的内置初始化器，是 \texttt{keras.initializers}
+模块的一部分:
+
+
+\subsubsection{Initializer {\href{https://github.com/keras-team/keras/blob/master/keras/initializers.py\#L14}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.initializers.Initializer()}
+\end{Highlighting}
+\end{Shaded}
+
+初始化器基类：所有初始化器继承这个类。
+
+
+
+
+\subsubsection{Zeros {\href{https://github.com/keras-team/keras/blob/master/keras/initializers.py\#L33}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.initializers.Zeros()}
+\end{Highlighting}
+\end{Shaded}
+
+将张量初始值设为 0 的初始化器。
+
+
+
+
+\subsubsection{Ones {\href{https://github.com/keras-team/keras/blob/master/keras/initializers.py\#L41}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.initializers.Ones()}
+\end{Highlighting}
+\end{Shaded}
+
+将张量初始值设为1的初始化器。
+
+
+
+
+\subsubsection{Constant {\href{https://github.com/keras-team/keras/blob/master/keras/initializers.py\#L49}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.initializers.Constant(value}\OperatorTok{=}\DecValTok{0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+将张量初始值设为一个常数的初始化器。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{value}: 浮点数，生成的张量的值。
+\end{itemize}
+
+
+
+
+\subsubsection{RandomNormal {\href{https://github.com/keras-team/keras/blob/master/keras/initializers.py\#L66}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.initializers.RandomNormal(mean}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, stddev}\OperatorTok{=}\FloatTok{0.05}\NormalTok{, seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+按照正态分布生成随机张量的初始化器。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{mean}: 一个 Python
+  标量或者一个标量张量。要生成的随机值的平均数。
+\item
+  \textbf{stddev}: 一个 Python
+  标量或者一个标量张量。要生成的随机值的标准差。
+\item
+  \textbf{seed}: 一个 Python 整数。用于设置随机数种子。
+\end{itemize}
+
+
+
+
+\subsubsection{RandomUniform {\href{https://github.com/keras-team/keras/blob/master/keras/initializers.py\#L94}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.initializers.RandomUniform(minval}\OperatorTok{=-}\FloatTok{0.05}\NormalTok{, maxval}\OperatorTok{=}\FloatTok{0.05}\NormalTok{, seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+按照均匀分布生成随机张量的初始化器。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{minval}: 一个 Python
+  标量或者一个标量张量。要生成的随机值的范围下限。
+\item
+  \textbf{maxval}: 一个 Python
+  标量或者一个标量张量。要生成的随机值的范围下限。默认为浮点类型的 1。
+\item
+  \textbf{seed}: 一个 Python 整数。用于设置随机数种子。
+\end{itemize}
+
+
+
+
+\subsubsection{TruncatedNormal {\href{https://github.com/keras-team/keras/blob/master/keras/initializers.py\#L122}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.initializers.TruncatedNormal(mean}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, stddev}\OperatorTok{=}\FloatTok{0.05}\NormalTok{, seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+按照截尾正态分布生成随机张量的初始化器。
+
+生成的随机值与 \texttt{RandomNormal}
+生成的类似，但是在距离平均值两个标准差之外的随机值将被丢弃并重新生成。这是用来生成神经网络权重和滤波器的推荐初始化器。
+
+\textbf{Arguments}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{mean}: 一个 Python
+  标量或者一个标量张量。要生成的随机值的平均数。
+\item
+  \textbf{stddev}: 一个 Python
+  标量或者一个标量张量。要生成的随机值的标准差。
+\item
+  \textbf{seed}: 一个 Python 整数。用于设置随机数种子。
+\end{itemize}
+
+
+
+
+\subsubsection{VarianceScaling {\href{https://github.com/keras-team/keras/blob/master/keras/initializers.py\#L155}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.initializers.VarianceScaling(scale}\OperatorTok{=}\FloatTok{1.0}\NormalTok{, mode}\OperatorTok{=}\StringTok{'fan_in'}\NormalTok{, distribution}\OperatorTok{=}\StringTok{'normal'},\\
+\hspace{3cm}\NormalTok{seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+初始化器能够根据权值的尺寸调整其规模。
+
+使用 \texttt{distribution="normal"} 时，样本是从一个以 0
+为中心的截断正态分布中抽取的，\texttt{stddev\ =\ sqrt(scale\ /\ n)}，其中
+n 是：
+
+\begin{itemize}
+\tightlist
+\item
+  权值张量中输入单元的数量，如果 mode = "fan\_in"。
+\item
+  输出单元的数量，如果 mode = "fan\_out"。
+\item
+  输入和输出单位数量的平均数，如果 mode = "fan\_avg"。
+\end{itemize}
+
+使用 \texttt{distribution="uniform"} 时，样本是从 {[}-limit，limit{]}
+内的均匀分布中抽取的，其中 \texttt{limit\ =\ sqrt(3\ *\ scale\ /\ n)}。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{scale}: 缩放因子（正浮点数）。
+\item
+  \textbf{mode}: "fan\_in", "fan\_out", "fan\_avg" 之一。
+\item
+  \textbf{distribution}: 使用的随机分布。"normal", "uniform" 之一。
+\item
+  \textbf{seed}: 一个 Python 整数。作为随机发生器的种子。
+\end{itemize}
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 "scale", mode" 或 "distribution" 参数无效。
+\end{itemize}
+
+
+
+
+\subsubsection{Orthogonal {\href{https://github.com/keras-team/keras/blob/master/keras/initializers.py\#L228}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.initializers.Orthogonal(gain}\OperatorTok{=}\FloatTok{1.0}\NormalTok{, seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+生成一个随机正交矩阵的初始化器。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{gain}: 适用于正交矩阵的乘法因子。
+\item
+  \textbf{seed}: 一个 Python 整数。作为随机发生器的种子。
+\end{itemize}
+
+\textbf{参考文献}
+
+Saxe et al., http://arxiv.org/abs/1312.6120
+
+
+
+
+\subsubsection{Identity {\href{https://github.com/keras-team/keras/blob/master/keras/initializers.py\#L265}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.initializers.Identity(gain}\OperatorTok{=}\FloatTok{1.0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+生成单位矩阵的初始化器。
+
+仅用于 2D 方阵。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{gain}: 适用于单位矩阵的乘法因子。
+\end{itemize}
+
+
+
+\subsubsection{lecun\_uniform}\label{lecunux5funiform}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lecun_uniform(seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+LeCun 均匀初始化器。
+
+它从 {[}-limit，limit{]} 中的均匀分布中抽取样本， 其中 \texttt{limit} 是
+\texttt{sqrt(3\ /\ fan\_in)}， \texttt{fan\_in}
+是权值张量中的输入单位的数量。
+
+\textbf{Arguments}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{seed}: 一个 Python 整数。作为随机发生器的种子。
+\end{itemize}
+
+\textbf{Returns}
+
+一个初始化器。
+
+\textbf{参考文献}
+
+LeCun 98, Efficient Backprop, -
+\textbf{http}://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf
+
+
+
+\subsubsection{glorot\_normal}\label{glorotux5fnormal}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{glorot_normal(seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Glorot 正态分布初始化器，也称为 Xavier 正态分布初始化器。
+
+它从以 0 为中心，标准差为
+\texttt{stddev\ =\ sqrt(2\ /\ (fan\_in\ +\ fan\_out))}
+的截断正态分布中抽取样本， 其中 \texttt{fan\_in}
+是权值张量中的输入单位的数量， \texttt{fan\_out}
+是权值张量中的输出单位的数量。
+
+\textbf{Arguments}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{seed}: 一个 Python 整数。作为随机发生器的种子。
+\end{itemize}
+
+\textbf{Returns}
+
+一个初始化器。
+
+\textbf{参考文献}
+
+Glorot \& Bengio, AISTATS 2010 -
+\textbf{http}://jmlr.org/proceedings/papers/v9/glorot10a/glorot10a.pdf
+
+
+
+\subsubsection{glorot\_uniform}\label{glorotux5funiform}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{glorot_uniform(seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Glorot 均匀分布初始化器，也称为 Xavier 均匀分布初始化器。
+
+它从 {[}-limit，limit{]} 中的均匀分布中抽取样本， 其中 \texttt{limit} 是
+\texttt{sqrt(6\ /\ (fan\_in\ +\ fan\_out))}， \texttt{fan\_in}
+是权值张量中的输入单位的数量， \texttt{fan\_out}
+是权值张量中的输出单位的数量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{seed}: 一个 Python 整数。作为随机发生器的种子。
+\end{itemize}
+
+\textbf{返回}
+
+一个初始化器。
+
+\textbf{参考文献}
+
+Glorot \& Bengio, AISTATS 2010 -
+\textbf{http}://jmlr.org/proceedings/papers/v9/glorot10a/glorot10a.pdf
+
+
+
+\subsubsection{he\_normal}\label{heux5fnormal}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{he_normal(seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+He 正态分布初始化器。
+
+它从以 0 为中心，标准差为 \texttt{stddev\ =\ sqrt(2\ /\ fan\_in)}
+的截断正态分布中抽取样本， 其中 \texttt{fan\_in}
+是权值张量中的输入单位的数量，
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{seed}: 一个 Python 整数。作为随机发生器的种子。
+\end{itemize}
+
+\textbf{返回}
+
+一个初始化器。
+
+\textbf{参考文献}
+
+He et al., http://arxiv.org/abs/1502.01852
+
+
+
+\subsubsection{lecun\_normal}\label{lecunux5fnormal}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lecun_normal(seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+LeCun 正态分布初始化器。
+
+它从以 0 为中心，标准差为 \texttt{stddev\ =\ sqrt(1\ /\ fan\_in)}
+的截断正态分布中抽取样本， 其中 \texttt{fan\_in}
+是权值张量中的输入单位的数量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{seed}: 一个 Python 整数。作为随机发生器的种子。
+\end{itemize}
+
+\textbf{返回}
+
+一个初始化器。
+
+\textbf{参考文献}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://arxiv.org/abs/1706.02515}{Self-Normalizing Neural
+  Networks}
+\item
+  \href{http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf}{Efficient
+  Backprop}
+\end{itemize}
+
+
+
+\subsubsection{he\_uniform}\label{heux5funiform}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{he_uniform(seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+He 均匀方差缩放初始化器。
+
+它从 {[}-limit，limit{]} 中的均匀分布中抽取样本， 其中 \texttt{limit} 是
+\texttt{sqrt(6\ /\ fan\_in)}， 其中 \texttt{fan\_in}
+是权值张量中的输入单位的数量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{seed}: 一个 Python 整数。作为随机发生器的种子。
+\end{itemize}
+
+\textbf{返回}
+
+一个初始化器。
+
+\textbf{参考文献}
+
+He et al., http://arxiv.org/abs/1502.01852
+
+一个初始化器可以作为一个字符串传递（必须匹配上面的一个可用的初始化器），或者作为一个可调用函数传递：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{initializers}
+
+\NormalTok{model.add(Dense(}\DecValTok{64}\NormalTok{, kernel_initializer}\OperatorTok{=}\NormalTok{initializers.random_normal(stddev}\OperatorTok{=}\FloatTok{0.01}\NormalTok{)))}
+
+\CommentTok{# 同样有效;将使用默认参数。}
+\NormalTok{model.add(Dense(}\DecValTok{64}\NormalTok{, kernel_initializer}\OperatorTok{=}\StringTok{'random_normal'}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{使用自定义初始化器}\label{ux4f7fux7528ux81eaux5b9aux4e49ux521dux59cbux5316ux5668}
+
+如果传递一个自定义的可调用函数，那么它必须使用参数
+\texttt{shape}（需要初始化的变量的尺寸）和 \texttt{dtype}（数据类型）：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+
+\KeywordTok{def} \NormalTok{my_init(shape, dtype}\OperatorTok{=}\VariableTok{None}\NormalTok{):}
+    \ControlFlowTok{return} \NormalTok{K.random_normal(shape, dtype}\OperatorTok{=}\NormalTok{dtype)}
+
+\NormalTok{model.add(Dense(}\DecValTok{64}\NormalTok{, kernel_initializer}\OperatorTok{=}\NormalTok{my_init))}
+\end{Highlighting}
+\end{Shaded}
+
+\newpage

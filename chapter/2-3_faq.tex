@@ -1,0 +1,810 @@
+\subsection{Keras FAQ: 常见问题解答}\label{keras-faq}
+
+\subsubsection{Keras FAQ: 常见问题解答}
+\begin{itemize}
+\tightlist
+\item
+    \hyperref[how-should-i-cite-keras]{如何引用 Keras?}
+\item
+    \hyperref[how-can-i-run-keras-on-gpu]{如何在 GPU 上运行 Keras?}
+\item
+    \hyperref[how-can-i-run-a-keras-model-on-multiple-gpus]{如何在多 GPU 上运行 Keras 模型?}
+\item
+    \hyperref[what-does-sample-batch-epoch-mean]{``sample'', ``batch'', ``epoch'' 分别是什么？}
+\item
+    \hyperref[how-can-i-save-a-keras-model]{如何保存 Keras 模型？}
+\item
+    \hyperref[why-is-the-training-loss-much-higher-than-the-testing-loss]{为什么训练误差比测试误差高很多？}
+\item
+    \hyperref[how-can-i-obtain-the-output-of-an-intermediate-layer]{如何获取中间层的输出？}
+\item
+    \hyperref[how-can-i-use-keras-with-datasets-that-dont-fit-in-memory]{如何用 Keras 处理超过内存的数据集？}
+\item
+    \hyperref[how-can-i-interrupt-training-when-the-validation-loss-isnt-decreasing-anymore]{在验证集的误差不再下降时，如何中断训练？}
+\item
+    \hyperref[how-is-the-validation-split-computed]{验证集划分是如何计算的？}
+\item
+    \hyperref[is-the-data-shuffled-during-training]{在训练过程中数据是否会混洗？}
+\item
+    \hyperref[how-can-i-record-the-training-validation-loss-accuracy-at-each-epoch]{如何在每个 epoch 后记录训练集和验证集的误差和准确率？}
+\item
+    \hyperref[how-can-i-freeze-keras-layers]{如何「冻结」网络层？}
+\item
+    \hyperref[how-can-i-use-stateful-rnns]{如何使用有状态 RNN (stateful RNNs)?}
+\item
+    \hyperref[how-can-i-remove-a-layer-from-a-sequential-model]{如何从 Sequential 模型中移除一个层？}
+\item
+    \hyperref[how-can-i-use-pre-trained-models-in-keras]{如何在 Keras 中使用预训练的模型？}
+\item
+    \hyperref[how-can-i-use-hdf5-inputs-with-keras]{如何在 Keras 中使用 HDF5 输入？}
+\item
+    \hyperref[where-is-the-keras-configuration-file-stored]{Keras 配置文件保存在哪里？}
+\item
+    \hyperref[how-can-i-obtain-reproducible-results-using-keras-during-development]{如何在 Keras 开发过程中获取可复现的结果？}
+\end{itemize}
+
+
+
+\subsubsection{如何引用 Keras?}\label{how-should-i-cite-keras}
+
+如果 Keras 有助于您的研究，请在你的出版物中引用它。以下是 BibTeX
+条目引用的示例：
+
+\begin{verbatim}
+@misc{chollet2015keras,
+  title={Keras},
+  author={Chollet, Fran\c{c}ois and others},
+  year={2015},
+  publisher={GitHub},
+  howpublished={\url{https://github.com/keras-team/keras}},
+}
+\end{verbatim}
+
+
+
+\subsubsection{如何在 GPU 上运行
+Keras?}\label{how-can-i-run-keras-on-gpu}
+
+如果你以 TensorFlow 或 CNTK
+后端运行，只要检测到任何可用的GPU，那么代码将自动在GPU上运行。
+
+如果你以 Theano 后端运行，则可以使用以下方法之一：
+
+\textbf{方法 1}: 使用 Theano flags。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{THEANO_FLAGS=}\NormalTok{device=}\KeywordTok{gpu}\NormalTok{,floatX=float32 python my_keras_script.py}
+\end{Highlighting}
+\end{Shaded}
+
+"gpu" 可能需要根据你的设备标识符（例如gpu0，gpu1等）进行更改。
+
+\textbf{方法 2}: 创建 \texttt{.theanorc}:
+\href{http://deeplearning.net/software/theano/library/config.html}{指导教程}
+
+\textbf{方法 3}: 在代码的开头手动设置 \texttt{theano.config.device},
+\texttt{theano.config.floatX}：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{import} \NormalTok{theano}
+\NormalTok{theano.config.device }\OperatorTok{=} \StringTok{'gpu'}
+\NormalTok{theano.config.floatX }\OperatorTok{=} \StringTok{'float32'}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{如何在多 GPU 上运行 Keras
+模型?}\label{how-can-i-run-a-keras-model-on-multiple-gpus}
+
+我们建议使用 TensorFlow 后端。有两种方法可在多个 GPU
+上运行单个模型：数据并行和设备并行。
+
+在大多数情况下，你最需要的是数据并行。
+
+\paragraph{数据并行}\label{ux6570ux636eux5e76ux884c}
+
+数据并行包括在每个设备上复制一次目标模型，并使用每个模型副本处理不同部分的输入数据。Keras
+有一个内置的实用函数
+\texttt{keras.utils.multi\_gpu\_model}，它可以生成任何模型的数据并行版本，在多达
+8 个 GPU 上实现准线性加速。
+
+有关更多信息，请参阅 \hyperref[multi-gpu-model]{multi\_gpu\_model}
+的文档。这里是一个简单的例子：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.utils }\ImportTok{import} \NormalTok{multi_gpu_model}
+
+\CommentTok{# 将 `model` 复制到 8 个 GPU 上。}
+\CommentTok{# 假定你的机器有 8 个可用的 GPU。}
+\NormalTok{parallel_model }\OperatorTok{=} \NormalTok{multi_gpu_model(model, gpus}\OperatorTok{=}\DecValTok{8}\NormalTok{)}
+\NormalTok{parallel_model.}\BuiltInTok{compile}\NormalTok{(loss}\OperatorTok{=}\StringTok{'categorical_crossentropy'}\NormalTok{,}
+                       \NormalTok{optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{)}
+
+\CommentTok{# 这个 `fit` 调用将分布在 8 个 GPU 上。}
+\CommentTok{# 由于 batch size 为 256，每个 GPU 将处理 32 个样本。}
+\NormalTok{parallel_model.fit(x, y, epochs}\OperatorTok{=}\DecValTok{20}\NormalTok{, batch_size}\OperatorTok{=}\DecValTok{256}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\paragraph{设备并行}
+
+设备并行性包括在不同设备上运行同一模型的不同部分。对于具有并行体系结构的模型，例如有两个分支的模型，这种方式很合适。
+
+这种并行可以通过使用 TensorFlow device scopes
+来实现。这里是一个简单的例子：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 模型中共享的 LSTM 用于并行编码两个不同的序列}
+\NormalTok{input_a }\OperatorTok{=} \NormalTok{keras.Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{140}\NormalTok{, }\DecValTok{256}\NormalTok{))}
+\NormalTok{input_b }\OperatorTok{=} \NormalTok{keras.Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{140}\NormalTok{, }\DecValTok{256}\NormalTok{))}
+
+\NormalTok{shared_lstm }\OperatorTok{=} \NormalTok{keras.layers.LSTM(}\DecValTok{64}\NormalTok{)}
+
+\CommentTok{# 在一个 GPU 上处理第一个序列}
+\ControlFlowTok{with} \NormalTok{tf.device_scope(}\StringTok{'/gpu:0'}\NormalTok{):}
+    \NormalTok{encoded_a }\OperatorTok{=} \NormalTok{shared_lstm(tweet_a)}
+\CommentTok{# 在另一个 GPU上 处理下一个序列}
+\ControlFlowTok{with} \NormalTok{tf.device_scope(}\StringTok{'/gpu:1'}\NormalTok{):}
+    \NormalTok{encoded_b }\OperatorTok{=} \NormalTok{shared_lstm(tweet_b)}
+
+\CommentTok{# 在 CPU 上连接结果}
+\ControlFlowTok{with} \NormalTok{tf.device_scope(}\StringTok{'/cpu:0'}\NormalTok{):}
+    \NormalTok{merged_vector }\OperatorTok{=} \NormalTok{keras.layers.concatenate([encoded_a, encoded_b],}
+                                             \NormalTok{axis}\OperatorTok{=-}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{``sample'', ``batch'', ``epoch'' 分别是什么？}\label{what-does-sample-batch-epoch-mean}
+
+为了正确地使用 Keras，以下是必须了解和理解的一些常见定义：
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Sample}: 样本，数据集中的一个元素，一条数据。
+\item
+  \emph{例1:} 在卷积神经网络中，一张图像是一个样本。
+\item
+  \emph{例2:} 在语音识别模型中，一段音频是一个样本。
+\item
+  \textbf{Batch}: 批，含有 \emph{N} 个样本的集合。每一个 batch
+  的样本都是独立并行处理的。在训练时，一个 batch
+  的结果只会用来更新一次模型。 ~- 一个 \textbf{batch}
+  的样本通常比单个输入更接近于总体输入数据的分布，batch
+  越大就越近似。然而，每个 batch
+  将花费更长的时间来处理，并且仍然只更新模型一次。在推理（评估/预测）时，建议条件允许的情况下选择一个尽可能大的
+  batch，（因为较大的 batch 通常评估/预测的速度会更快）。
+\item
+  \textbf{Epoch}: 轮次，通常被定义为
+  「在整个数据集上的一轮迭代」，用于训练的不同的阶段，这有利于记录和定期评估。
+\item
+  当在 Keras 模型的 \texttt{fit} 方法中使用 \texttt{evaluation\_data} 或
+  \texttt{evaluation\_split} 时，评估将在每个 \textbf{epoch}
+  结束时运行。
+\item
+  在 Keras 中，可以添加专门的用于在 epoch 结束时运行的
+  \hyperref[callbacks]{callbacks回调}。例如学习率变化和模型检查点（保存）。
+\end{itemize}
+
+
+
+\subsubsection{如何保存 Keras
+模型？}\label{how-can-i-save-a-keras-model}
+
+\paragraph{保存/加载整个模型（结构 + 权重 +
+优化器状态）}\label{ux4fddux5b58ux52a0ux8f7dux6574ux4e2aux6a21ux578bux7ed3ux6784-ux6743ux91cd-ux4f18ux5316ux5668ux72b6ux6001}
+
+\emph{不建议使用 pickle 或 cPickle 来保存 Keras 模型。}
+
+你可以使用 \texttt{model.save(filepath)} 将 Keras 模型保存到单个 HDF5
+文件中，该文件将包含：
+
+\begin{itemize}
+\tightlist
+\item
+  模型的结构，允许重新创建模型
+\item
+  模型的权重
+\item
+  训练配置项（损失函数，优化器）
+\item
+  优化器状态，允许准确地从你上次结束的地方继续训练。
+\end{itemize}
+
+你可以使用 \texttt{keras.models.load\_model(filepath)}
+重新实例化模型。\texttt{load\_model}
+还将负责使用保存的训练配置项来编译模型（除非模型从未编译过）。
+
+例子：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{load_model}
+
+\NormalTok{model.save(}\StringTok{'my_model.h5'}\NormalTok{)  }\CommentTok{# 创建 HDF5 文件 'my_model.h5'}
+\KeywordTok{del} \NormalTok{model  }\CommentTok{# 删除现有模型}
+
+\CommentTok{# 返回一个编译好的模型}
+\CommentTok{# 与之前那个相同}
+\NormalTok{model }\OperatorTok{=} \NormalTok{load_model(}\StringTok{'my_model.h5'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\paragraph{只保存/加载
+模型的结构}\label{ux53eaux4fddux5b58ux52a0ux8f7d-ux6a21ux578bux7684ux7ed3ux6784}
+
+如果您只需要保存模型的结构，而非其权重或训练配置项，则可以执行以下操作：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 保存为 JSON}
+\NormalTok{json_string }\OperatorTok{=} \NormalTok{model.to_json()}
+
+\CommentTok{# 保存为 YAML}
+\NormalTok{yaml_string }\OperatorTok{=} \NormalTok{model.to_yaml()}
+\end{Highlighting}
+\end{Shaded}
+
+生成的 JSON/YAML 文件是人类可读的，如果需要还可以手动编辑。
+
+你可以从这些数据建立一个新的模型：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 从 JSON 重建模型：}
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{model_from_json}
+\NormalTok{model }\OperatorTok{=} \NormalTok{model_from_json(json_string)}
+
+\CommentTok{# 从 YAML 重建模型：}
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{model_from_yaml}
+\NormalTok{model }\OperatorTok{=} \NormalTok{model_from_yaml(yaml_string)}
+\end{Highlighting}
+\end{Shaded}
+
+\paragraph{只保存/加载
+模型的权重}\label{ux53eaux4fddux5b58ux52a0ux8f7d-ux6a21ux578bux7684ux6743ux91cd}
+
+如果您只需要 \textbf{模型的权重}，可以使用下面的代码以 HDF5
+格式进行保存。
+
+请注意，我们首先需要安装 HDF5 和 Python 库 h5py，它们不包含在 Keras 中。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model.save_weights(}\StringTok{'my_model_weights.h5'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+假设你有用于实例化模型的代码，则可以将保存的权重加载到具有相同结构的模型中：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model.load_weights(}\StringTok{'my_model_weights.h5'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+如果你需要将权重加载到不同的结构（有一些共同层）的模型中，例如微调或迁移学习，则可以按层的名字来加载权重：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model.load_weights(}\StringTok{'my_model_weights.h5'}\NormalTok{, by_name}\OperatorTok{=}\VariableTok{True}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+例如：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{"""}
+\CommentTok{假设原始模型如下所示：}
+\CommentTok{    model = Sequential()}
+\CommentTok{    model.add(Dense(2, input_dim=3, name='dense_1'))}
+\CommentTok{    model.add(Dense(3, name='dense_2'))}
+\CommentTok{    ...}
+\CommentTok{    model.save_weights(fname)}
+\CommentTok{"""}
+
+\CommentTok{# 新模型}
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Dense(}\DecValTok{2}\NormalTok{, input_dim}\OperatorTok{=}\DecValTok{3}\NormalTok{, name}\OperatorTok{=}\StringTok{'dense_1'}\NormalTok{))  }\CommentTok{# 将被加载}
+\NormalTok{model.add(Dense(}\DecValTok{10}\NormalTok{, name}\OperatorTok{=}\StringTok{'new_dense'}\NormalTok{))  }\CommentTok{# 将不被加载}
+
+\CommentTok{# 从第一个模型加载权重；只会影响第一层，dense_1}
+\NormalTok{model.load_weights(fname, by_name}\OperatorTok{=}\VariableTok{True}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\paragraph{处理已保存模型中的自定义层（或其他自定义对象）}\label{ux5904ux7406ux5df2ux4fddux5b58ux6a21ux578bux4e2dux7684ux81eaux5b9aux4e49ux5c42ux6216ux5176ux4ed6ux81eaux5b9aux4e49ux5bf9ux8c61}
+
+如果要加载的模型包含自定义层或其他自定义类或函数，则可以通过
+\texttt{custom\_objects} 参数将它们传递给加载机制：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{load_model}
+\CommentTok{# 假设你的模型包含一个 AttentionLayer 类的实例}
+\NormalTok{model }\OperatorTok{=} \NormalTok{load_model(}\StringTok{'my_model.h5'}\NormalTok{, custom_objects}\OperatorTok{=}\NormalTok{\{}\StringTok{'AttentionLayer'}\NormalTok{: AttentionLayer\})}
+\end{Highlighting}
+\end{Shaded}
+
+或者，你可以使用
+\hyperref[customobjectscope]{自定义对象作用域}：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.utils }\ImportTok{import} \NormalTok{CustomObjectScope}
+
+\ControlFlowTok{with} \NormalTok{CustomObjectScope(\{}\StringTok{'AttentionLayer'}\NormalTok{: AttentionLayer\}):}
+    \NormalTok{model }\OperatorTok{=} \NormalTok{load_model(}\StringTok{'my_model.h5'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+自定义对象的处理与 \texttt{load\_model}, \texttt{model\_from\_json},
+\texttt{model\_from\_yaml} 的工作方式相同：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{model_from_json}
+\NormalTok{model }\OperatorTok{=} \NormalTok{model_from_json(json_string, custom_objects}\OperatorTok{=}\NormalTok{\{}\StringTok{'AttentionLayer'}\NormalTok{: AttentionLayer\})}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{为什么训练误差比测试误差高很多？}\label{why-is-the-training-loss-much-higher-than-the-testing-loss}
+
+Keras 模型有两种模式：训练和测试。正则化机制，如 Dropout 和 L1/L2
+权重正则化，在测试时是关闭的。
+
+此外，训练误差是每批训练数据的平均误差。由于你的模型是随着时间而变化的，一个
+epoch
+中的第一批数据的误差通常比最后一批的要高。另一方面，测试误差是模型在一个
+epoch 训练完后计算的，因而误差较小。
+
+
+
+\subsubsection{如何获取中间层的输出？}\label{how-can-i-obtain-the-output-of-an-intermediate-layer}
+
+一个简单的方法是创建一个新的模型来输出你所感兴趣的层：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{Model}
+
+\NormalTok{model }\OperatorTok{=} \NormalTok{...  }\CommentTok{# 创建原始模型}
+
+\NormalTok{layer_name }\OperatorTok{=} \StringTok{'my_layer'}
+\NormalTok{intermediate_layer_model }\OperatorTok{=} \NormalTok{Model(inputs}\OperatorTok{=}\NormalTok{model.}\BuiltInTok{input}\NormalTok{,}
+                                 \NormalTok{outputs}\OperatorTok{=}\NormalTok{model.get_layer(layer_name).output)}
+\NormalTok{intermediate_output }\OperatorTok{=} \NormalTok{intermediate_layer_model.predict(data)}
+\end{Highlighting}
+\end{Shaded}
+
+或者，你也可以构建一个 Keras
+函数，该函数将在给定输入的情况下返回某个层的输出，例如：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+
+\CommentTok{# 以 Sequential 模型为例}
+\NormalTok{get_3rd_layer_output }\OperatorTok{=} \NormalTok{K.function([model.layers[}\DecValTok{0}\NormalTok{].}\BuiltInTok{input}\NormalTok{],}
+                                  \NormalTok{[model.layers[}\DecValTok{3}\NormalTok{].output])}
+\NormalTok{layer_output }\OperatorTok{=} \NormalTok{get_3rd_layer_output([x])[}\DecValTok{0}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+同样，你可以直接建立一个 Theano 或 TensorFlow 函数。
+
+注意，如果你的模型在训练和测试阶段有不同的行为（例如，使用
+\texttt{Dropout}, \texttt{BatchNormalization}
+等），则需要将学习阶段标志传递给你的函数：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{get_3rd_layer_output }\OperatorTok{=} \NormalTok{K.function([model.layers[}\DecValTok{0}\NormalTok{].}\BuiltInTok{input}\NormalTok{, K.learning_phase()],}
+                                  \NormalTok{[model.layers[}\DecValTok{3}\NormalTok{].output])}
+
+\CommentTok{# 测试模式 = 0 时的输出}
+\NormalTok{layer_output }\OperatorTok{=} \NormalTok{get_3rd_layer_output([x, }\DecValTok{0}\NormalTok{])[}\DecValTok{0}\NormalTok{]}
+
+\CommentTok{# 测试模式 = 1 时的输出}
+\NormalTok{layer_output }\OperatorTok{=} \NormalTok{get_3rd_layer_output([x, }\DecValTok{1}\NormalTok{])[}\DecValTok{0}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{如何用 Keras
+处理超过内存的数据集？}\label{how-can-i-use-keras-with-datasets-that-dont-fit-in-memory}
+
+你可以使用 \texttt{model.train\_on\_batch(x，y)} 和
+\texttt{model.test\_on\_batch(x，y)} 进行批量训练与测试。请参阅
+\hyperref[sequential-api]{模型文档}。
+
+或者，你可以编写一个生成批处理训练数据的生成器，然后使用
+\texttt{model.fit\_generator(data\_generator，steps\_per\_epoch，epochs)}
+方法。
+
+你可以在
+\href{https://github.com/keras-team/keras/blob/master/examples/cifar10_cnn.py}{CIFAR10
+example} 中找到实践代码。
+
+
+
+\subsubsection{在验证集的误差不再下降时，如何中断训练？}\label{how-can-i-interrupt-training-when-the-validation-loss-isnt-decreasing-anymore}
+
+你可以使用 \texttt{EarlyStopping} 回调函数：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.callbacks }\ImportTok{import} \NormalTok{EarlyStopping}
+\NormalTok{early_stopping }\OperatorTok{=} \NormalTok{EarlyStopping(monitor}\OperatorTok{=}\StringTok{'val_loss'}\NormalTok{, patience}\OperatorTok{=}\DecValTok{2}\NormalTok{)}
+\NormalTok{model.fit(x, y, validation_split}\OperatorTok{=}\FloatTok{0.2}\NormalTok{, callbacks}\OperatorTok{=}\NormalTok{[early_stopping])}
+\end{Highlighting}
+\end{Shaded}
+
+更多信息请查看 \hyperref[callbacks]{callbacks 文档}。
+
+
+
+\subsubsection{验证集划分是如何计算的？}\label{how-is-the-validation-split-computed}
+
+如果您将 \texttt{model.fit} 中的 \texttt{validation\_split} 参数设置为
+0.1，那么使用的验证数据将是最后 10％ 的数据。如果设置为 0.25，就是最后
+25\%
+的数据。注意，在提取分割验证集之前，数据不会被混洗，因此验证集仅仅是传递的输入中最后一个
+x％ 的样本。
+
+所有 epoch 都使用相同的验证集（在同一个 \texttt{fit} 中调用）。
+
+
+
+\subsubsection{在训练过程中数据是否会混洗？}\label{is-the-data-shuffled-during-training}
+
+是的，如果 \texttt{model.fit}中的 \texttt{shuffle}参数设置为
+True（默认值），则训练数据将在每个 epoch 混洗。
+
+验证集永远不会混洗。
+
+
+
+\subsubsection{如何在每个 epoch
+后记录训练集和验证集的误差和准确率？}\label{how-can-i-record-the-training-validation-loss-accuracy-at-each-epoch}
+
+\texttt{model.fit} 方法返回一个 \texttt{History}
+回调，它具有包含连续误差的列表和其他度量的 \texttt{history} 属性。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{hist }\OperatorTok{=} \NormalTok{model.fit(x, y, validation_split}\OperatorTok{=}\FloatTok{0.2}\NormalTok{)}
+\BuiltInTok{print}\NormalTok{(hist.history)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{如何「冻结」网络层？}\label{how-can-i-freeze-keras-layers}
+
+「冻结」一个层意味着将其排除在训练之外，即其权重将永远不会更新。这在微调模型或使用固定的词向量进行文本输入中很有用。
+
+您可以将 \texttt{trainable}
+参数（布尔值）传递给一个层的构造器，以将该层设置为不可训练的：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{frozen_layer }\OperatorTok{=} \NormalTok{Dense(}\DecValTok{32}\NormalTok{, trainable}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+另外，可以在实例化之后将网络层的 \texttt{trainable} 属性设置为 True 或
+False。为了使之生效，在修改 \texttt{trainable}
+属性之后，需要在模型上调用 \texttt{compile()}。这是一个例子：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{x }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{32}\NormalTok{,))}
+\NormalTok{layer }\OperatorTok{=} \NormalTok{Dense(}\DecValTok{32}\NormalTok{)}
+\NormalTok{layer.trainable }\OperatorTok{=} \VariableTok{False}
+\NormalTok{y }\OperatorTok{=} \NormalTok{layer(x)}
+
+\NormalTok{frozen_model }\OperatorTok{=} \NormalTok{Model(x, y)}
+\CommentTok{# 在下面的模型中，训练期间不会更新层的权重}
+\NormalTok{frozen_model.}\BuiltInTok{compile}\NormalTok{(optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{, loss}\OperatorTok{=}\StringTok{'mse'}\NormalTok{)}
+
+\NormalTok{layer.trainable }\OperatorTok{=} \VariableTok{True}
+\NormalTok{trainable_model }\OperatorTok{=} \NormalTok{Model(x, y)}
+\CommentTok{# 使用这个模型，训练期间 `layer` 的权重将被更新}
+\CommentTok{# (这也会影响上面的模型，因为它使用了同一个网络层实例)}
+\NormalTok{trainable_model.}\BuiltInTok{compile}\NormalTok{(optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{, loss}\OperatorTok{=}\StringTok{'mse'}\NormalTok{)}
+
+\NormalTok{frozen_model.fit(data, labels)  }\CommentTok{# 这不会更新 `layer` 的权重}
+\NormalTok{trainable_model.fit(data, labels)  }\CommentTok{# 这会更新 `layer` 的权重}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{如何使用有状态 RNN (stateful
+RNNs)?}\label{how-can-i-use-stateful-rnns}
+
+使 RNN 具有状态意味着每批样品的状态将被重新用作下一批样品的初始状态。
+
+当使用有状态 RNN 时，假定：
+
+\begin{itemize}
+\tightlist
+\item
+  所有的批次都有相同数量的样本
+\item
+  如果 \texttt{x1} 和 \texttt{x2} 是连续批次的样本，则
+  \texttt{x2{[}i{]}} 是 \texttt{x1{[}i{]}} 的后续序列，对于每个
+  \texttt{i}。
+\end{itemize}
+
+要在 RNN 中使用状态，你需要:
+
+\begin{itemize}
+\tightlist
+\item
+  通过将 \texttt{batch\_size}
+  参数传递给模型的第一层来显式指定你正在使用的批大小。例如，对于 10
+  个时间步长的 32 样本的 batch，每个时间步长具有 16
+  个特征，\texttt{batch\_size\ =\ 32}。
+\item
+  在 RNN 层中设置 \texttt{stateful\ =\ True}。
+\item
+  在调用 \texttt{fit()} 时指定 \texttt{shuffle\ =\ False}。
+\end{itemize}
+
+重置累积状态：
+
+\begin{itemize}
+\tightlist
+\item
+  使用 \texttt{model.reset\_states()} 来重置模型中所有层的状态
+\item
+  使用 \texttt{layer.reset\_states()} 来重置指定有状态 RNN 层的状态
+\end{itemize}
+
+例子：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\NormalTok{x  }\CommentTok{# 输入数据，尺寸为 (32, 21, 16)}
+\CommentTok{# 将步长为 10 的序列输送到模型中}
+
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(LSTM(}\DecValTok{32}\NormalTok{, input_shape}\OperatorTok{=}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{16}\NormalTok{), batch_size}\OperatorTok{=}\DecValTok{32}\NormalTok{, stateful}\OperatorTok{=}\VariableTok{True}\NormalTok{))}
+\NormalTok{model.add(Dense(}\DecValTok{16}\NormalTok{, activation}\OperatorTok{=}\StringTok{'softmax'}\NormalTok{))}
+
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{, loss}\OperatorTok{=}\StringTok{'categorical_crossentropy'}\NormalTok{)}
+
+\CommentTok{# 训练网络，根据给定的前 10 个时间步，来预测第 11 个时间步：}
+\NormalTok{model.train_on_batch(x[:, :}\DecValTok{10}\NormalTok{, :], np.reshape(x[:, }\DecValTok{10}\NormalTok{, :], (}\DecValTok{32}\NormalTok{, }\DecValTok{16}\NormalTok{)))}
+
+\CommentTok{# 网络的状态已经改变。我们可以提供后续序列：}
+\NormalTok{model.train_on_batch(x[:, }\DecValTok{10}\NormalTok{:}\DecValTok{20}\NormalTok{, :], np.reshape(x[:, }\DecValTok{20}\NormalTok{, :], (}\DecValTok{32}\NormalTok{, }\DecValTok{16}\NormalTok{)))}
+
+\CommentTok{# 重置 LSTM 层的状态：}
+\NormalTok{model.reset_states()}
+
+\CommentTok{# 另一种重置方法：}
+\NormalTok{model.layers[}\DecValTok{0}\NormalTok{].reset_states()}
+\end{Highlighting}
+\end{Shaded}
+
+请注意，\texttt{predict}, \texttt{fit}, \texttt{train\_on\_batch},
+\texttt{predict\_classes} 等方法 \emph{全部}
+都会更新模型中有状态层的状态。这使你不仅可以进行有状态的训练，还可以进行有状态的预测。
+
+
+
+\subsubsection{如何从 Sequential
+模型中移除一个层？}\label{how-can-i-remove-a-layer-from-a-sequential-model}
+
+你可以通过调用 \texttt{.pop()} 来删除 \texttt{Sequential}
+模型中最后添加的层：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Dense(}\DecValTok{32}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{, input_dim}\OperatorTok{=}\DecValTok{784}\NormalTok{))}
+\NormalTok{model.add(Dense(}\DecValTok{32}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{))}
+
+\BuiltInTok{print}\NormalTok{(}\BuiltInTok{len}\NormalTok{(model.layers))  }\CommentTok{# "2"}
+
+\NormalTok{model.pop()}
+\BuiltInTok{print}\NormalTok{(}\BuiltInTok{len}\NormalTok{(model.layers))  }\CommentTok{# "1"}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{如何在 Keras
+中使用预训练的模型？}\label{how-can-i-use-pre-trained-models-in-keras}
+
+我们提供了以下图像分类模型的代码和预训练的权重：
+
+\begin{itemize}
+\tightlist
+\item
+  Xception
+\item
+  VGG16
+\item
+  VGG19
+\item
+  ResNet50
+\item
+  Inception v3
+\item
+  Inception-ResNet v2
+\item
+  MobileNet v1
+\end{itemize}
+
+它们可以使用 \texttt{keras.applications} 模块进行导入：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.applications.xception }\ImportTok{import} \NormalTok{Xception}
+\ImportTok{from} \NormalTok{keras.applications.vgg16 }\ImportTok{import} \NormalTok{VGG16}
+\ImportTok{from} \NormalTok{keras.applications.vgg19 }\ImportTok{import} \NormalTok{VGG19}
+\ImportTok{from} \NormalTok{keras.applications.resnet50 }\ImportTok{import} \NormalTok{ResNet50}
+\ImportTok{from} \NormalTok{keras.applications.inception_v3 }\ImportTok{import} \NormalTok{InceptionV3}
+\ImportTok{from} \NormalTok{keras.applications.inception_resnet_v2 }\ImportTok{import} \NormalTok{InceptionResNetV2}
+\ImportTok{from} \NormalTok{keras.applications.mobilenet }\ImportTok{import} \NormalTok{MobileNet}
+
+\NormalTok{model }\OperatorTok{=} \NormalTok{VGG16(weights}\OperatorTok{=}\StringTok{'imagenet'}\NormalTok{, include_top}\OperatorTok{=}\VariableTok{True}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+有关一些简单的用法示例，请参阅 \hyperref[applications]{应用模块的文档}。
+
+有关如何使用此类预训练的模型进行特征提取或微调的详细示例，请参阅
+\href{http://blog.keras.io/building-powerful-image-classification-models-using-very-little-data.html}{此博客文章}。
+
+VGG16 模型也是以下几个 Keras 示例脚本的基础：
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://github.com/keras-team/keras/blob/master/examples/neural_style_transfer.py}{Style
+  transfer}
+\item
+  \href{https://github.com/keras-team/keras/blob/master/examples/conv_filter_visualization.py}{Feature
+  visualization}
+\item
+  \href{https://github.com/keras-team/keras/blob/master/examples/deep_dream.py}{Deep
+  dream}
+\end{itemize}
+
+
+
+\subsubsection{如何在 Keras 中使用 HDF5
+输入？}\label{how-can-i-use-hdf5-inputs-with-keras}
+
+你可以使用 \texttt{keras.utils.io\_utils} 中的 \texttt{HDF5Matrix}
+类。有关详细信息，请参阅 \hyperref[HDF5Matrix]{HDF5Matrix文档}。
+
+你也可以直接使用 HDF5 数据集：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{import} \NormalTok{h5py}
+\ControlFlowTok{with} \NormalTok{h5py.File(}\StringTok{'input/file.hdf5'}\NormalTok{, }\StringTok{'r'}\NormalTok{) }\ImportTok{as} \NormalTok{f:}
+    \NormalTok{x_data }\OperatorTok{=} \NormalTok{f[}\StringTok{'x_data'}\NormalTok{]}
+    \NormalTok{model.predict(x_data)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{Keras
+配置文件保存在哪里？}\label{where-is-the-keras-configuration-file-stored}
+
+所有 Keras 数据存储的默认目录是：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{$HOME}\KeywordTok{/.keras/}
+\end{Highlighting}
+\end{Shaded}
+
+注意，Windows 用户应该将~\texttt{\$HOME} 替换为
+\texttt{％USERPROFILE％}。如果 Keras
+无法创建上述目录（例如，由于权限问题），则使用 \texttt{/tmp/.keras/}
+作为备份。
+
+Keras配置文件是存储在 \texttt{\$HOME/.keras/keras.json} 中的 JSON
+文件。默认的配置文件如下所示：
+
+\begin{verbatim}
+{
+    "image_data_format": "channels_last",
+    "epsilon": 1e-07,
+    "floatx": "float32",
+    "backend": "tensorflow"
+}
+\end{verbatim}
+
+它包含以下字段：
+
+\begin{itemize}
+\tightlist
+\item
+  图像处理层和实用程序所使用的默认值图像数据格式（\texttt{channel\_last}
+  或 \texttt{channels\_first}）。
+\item
+  用于防止在某些操作中被零除的 \texttt{epsilon} 模糊因子。
+\item
+  默认浮点数据类型。
+\item
+  默认后端。详见 \hyperref[keras-backend]{backend 文档}。
+\end{itemize}
+
+同样，缓存的数据集文件（如使用 \texttt{get\_file()}
+下载的文件）默认存储在 \texttt{\$HOME/.keras/datasets/} 中。
+
+
+
+\subsubsection{如何在 Keras
+开发过程中获取可复现的结果？}\label{how-can-i-obtain-reproducible-results-using-keras-during-development}
+
+在模型的开发过程中，能够在一次次的运行中获得可复现的结果，以确定性能的变化是来自模型还是数据集的变化，或者仅仅是一些新的随机样本点带来的结果，有时候是很有用处的。下面的代码片段提供了一个如何获得可复现结果的例子
+- 针对 Python 3 环境的 TensorFlow 后端。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{import} \NormalTok{numpy }\ImportTok{as} \NormalTok{np}
+\ImportTok{import} \NormalTok{tensorflow }\ImportTok{as} \NormalTok{tf}
+\ImportTok{import} \NormalTok{random }\ImportTok{as} \NormalTok{rn}
+
+\CommentTok{# 以下是 Python 3.2.3 以上所必需的，}
+\CommentTok{# 为了使某些基于散列的操作可复现。}
+\CommentTok{# https://docs.python.org/3.4/using/cmdline.html#envvar-PYTHONHASHSEED}
+\CommentTok{# https://github.com/keras-team/keras/issues/2280#issuecomment-306959926}
+
+\ImportTok{import} \NormalTok{os}
+\NormalTok{os.environ[}\StringTok{'PYTHONHASHSEED'}\NormalTok{] }\OperatorTok{=} \StringTok{'0'}
+
+\CommentTok{# 以下是 Numpy 在一个明确的初始状态生成固定随机数字所必需的。}
+
+\NormalTok{np.random.seed(}\DecValTok{42}\NormalTok{)}
+
+\CommentTok{# 以下是 Python 在一个明确的初始状态生成固定随机数字所必需的。}
+
+\NormalTok{rn.seed(}\DecValTok{12345}\NormalTok{)}
+
+\CommentTok{# 强制 TensorFlow 使用单线程。}
+\CommentTok{# 多线程是结果不可复现的一个潜在的来源。}
+\CommentTok{# 更多详情，见: https://stackoverflow.com/questions/42022950/which-seeds-have-to-be-set-where-to-realize-100-reproducibility-of-training-res}
+
+
+\NormalTok{session_conf }\OperatorTok{=} \NormalTok{tf.ConfigProto(intra_op_parallelism_threads}\OperatorTok{=}\DecValTok{1}\NormalTok{, inter_op_parallelism_threads}\OperatorTok{=}\DecValTok{1}\NormalTok{)}
+
+\ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+
+\CommentTok{# `tf.set_random_seed()` 将会以 TensorFlow 为后端，}
+\CommentTok{# 在一个明确的初始状态下生成固定随机数字。}
+\CommentTok{# 更多详情，见: https://www.tensorflow.org/api_docs/python/tf/set_random_seed}
+
+\NormalTok{tf.set_random_seed(}\DecValTok{1234}\NormalTok{)}
+
+\NormalTok{sess }\OperatorTok{=} \NormalTok{tf.Session(graph}\OperatorTok{=}\NormalTok{tf.get_default_graph(), config}\OperatorTok{=}\NormalTok{session_conf)}
+\NormalTok{K.set_session(sess)}
+
+\CommentTok{# 剩余代码 ...}
+\end{Highlighting}
+\end{Shaded}
+
+\newpage

@@ -1,0 +1,981 @@
+
+\section{预训练模型 Applications}\label{applications}
+
+Keras的应用模块（keras.applications）提供了带有预训练权值的深度学习模型，这些模型可以用来进行预测、特征提取和微调（fine-tuning）。
+
+当你初始化一个预训练模型时，会自动下载权值到
+\texttt{\textasciitilde{}/.keras/models/} 目录下。
+
+\subsection{可用的模型}\label{ux53efux7528ux7684ux6a21ux578b}
+
+\textbf{在 ImageNet
+上预训练过的用于图像分类的模型：}\label{ux5728-imagenet-ux4e0aux9884ux8badux7ec3ux8fc7ux7684ux7528ux4e8eux56feux50cfux5206ux7c7bux7684ux6a21ux578b}
+
+\begin{itemize}
+\tightlist
+\item
+  \hyperref[xception]{Xception}
+\item
+  \hyperref[vgg16]{VGG16}
+\item
+  \hyperref[vgg19]{VGG19}
+\item
+  \hyperref[resnet50]{EesNet50}
+\item
+  \hyperref[inceptionv3]{InceptionV3}
+\item
+  \hyperref[inceptionresnetv2]{InceptionResNetV2}
+\item
+  \hyperref[mobilenet]{MobileNet}
+\item
+  \hyperref[densenet]{DenseNet}
+\item
+  \hyperref[nasnet]{NASnet}
+\end{itemize}
+
+所有的这些模型（除了 Xception 和 MobileNet
+外）都兼容Theano和Tensorflow，并会自动按照位于
+\texttt{\textasciitilde{}/.keras/keras.json}
+的配置文件中设置的图像数据格式来构建模型。举个例子，如果你设置
+\texttt{image\_data\_format=channels\_last}，则加载的模型将按照
+TensorFlow
+的维度顺序来构造，即``高度-宽度-深度''（Height-Width-Depth）的顺序。
+
+Xception 模型仅适用于 TensorFlow，因为它依赖于 SeparableConvolution
+层。MobileNet 模型仅适用于 TensorFlow，因为它依赖于 DepthwiseConvolution
+层。
+
+
+
+\subsection{图像分类模型的示例代码}\label{ux56feux50cfux5206ux7c7bux6a21ux578bux7684ux793aux4f8bux4ee3ux7801}
+
+\subsubsection{使用 ResNet50 进行 ImageNet
+分类}\label{ux4f7fux7528-resnet50-ux8fdbux884c-imagenet-ux5206ux7c7b}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.applications.resnet50 }\ImportTok{import} \NormalTok{ResNet50}
+\ImportTok{from} \NormalTok{keras.preprocessing }\ImportTok{import} \NormalTok{image}
+\ImportTok{from} \NormalTok{keras.applications.resnet50 }\ImportTok{import} \NormalTok{preprocess_input, decode_predictions}
+\ImportTok{import} \NormalTok{numpy }\ImportTok{as} \NormalTok{np}
+
+\NormalTok{model }\OperatorTok{=} \NormalTok{ResNet50(weights}\OperatorTok{=}\StringTok{'imagenet'}\NormalTok{)}
+
+\NormalTok{img_path }\OperatorTok{=} \StringTok{'elephant.jpg'}
+\NormalTok{img }\OperatorTok{=} \NormalTok{image.load_img(img_path, target_size}\OperatorTok{=}\NormalTok{(}\DecValTok{224}\NormalTok{, }\DecValTok{224}\NormalTok{))}
+\NormalTok{x }\OperatorTok{=} \NormalTok{image.img_to_array(img)}
+\NormalTok{x }\OperatorTok{=} \NormalTok{np.expand_dims(x, axis}\OperatorTok{=}\DecValTok{0}\NormalTok{)}
+\NormalTok{x }\OperatorTok{=} \NormalTok{preprocess_input(x)}
+
+\NormalTok{preds }\OperatorTok{=} \NormalTok{model.predict(x)}
+\CommentTok{# decode the results into a list of tuples (class, description, probability)}
+\CommentTok{# (one such list for each sample in the batch)}
+\BuiltInTok{print}\NormalTok{(}\StringTok{'Predicted:'}\NormalTok{, decode_predictions(preds, top}\OperatorTok{=}\DecValTok{3}\NormalTok{)[}\DecValTok{0}\NormalTok{])}
+\CommentTok{# Predicted: [(u'n02504013', u'Indian_elephant', 0.82658225), (u'n01871265', u'tusker', 0.1122357), (u'n02504458', u'African_elephant', 0.061040461)]}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{使用 VGG16
+提取特征}\label{ux4f7fux7528-vgg16-ux63d0ux53d6ux7279ux5f81}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.applications.vgg16 }\ImportTok{import} \NormalTok{VGG16}
+\ImportTok{from} \NormalTok{keras.preprocessing }\ImportTok{import} \NormalTok{image}
+\ImportTok{from} \NormalTok{keras.applications.vgg16 }\ImportTok{import} \NormalTok{preprocess_input}
+\ImportTok{import} \NormalTok{numpy }\ImportTok{as} \NormalTok{np}
+
+\NormalTok{model }\OperatorTok{=} \NormalTok{VGG16(weights}\OperatorTok{=}\StringTok{'imagenet'}\NormalTok{, include_top}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+
+\NormalTok{img_path }\OperatorTok{=} \StringTok{'elephant.jpg'}
+\NormalTok{img }\OperatorTok{=} \NormalTok{image.load_img(img_path, target_size}\OperatorTok{=}\NormalTok{(}\DecValTok{224}\NormalTok{, }\DecValTok{224}\NormalTok{))}
+\NormalTok{x }\OperatorTok{=} \NormalTok{image.img_to_array(img)}
+\NormalTok{x }\OperatorTok{=} \NormalTok{np.expand_dims(x, axis}\OperatorTok{=}\DecValTok{0}\NormalTok{)}
+\NormalTok{x }\OperatorTok{=} \NormalTok{preprocess_input(x)}
+
+\NormalTok{features }\OperatorTok{=} \NormalTok{model.predict(x)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{从VGG19的任意中间层中抽取特征}\label{ux4ecevgg19ux7684ux4efbux610fux4e2dux95f4ux5c42ux4e2dux62bdux53d6ux7279ux5f81}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.applications.vgg19 }\ImportTok{import} \NormalTok{VGG19}
+\ImportTok{from} \NormalTok{keras.preprocessing }\ImportTok{import} \NormalTok{image}
+\ImportTok{from} \NormalTok{keras.applications.vgg19 }\ImportTok{import} \NormalTok{preprocess_input}
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{Model}
+\ImportTok{import} \NormalTok{numpy }\ImportTok{as} \NormalTok{np}
+
+\NormalTok{base_model }\OperatorTok{=} \NormalTok{VGG19(weights}\OperatorTok{=}\StringTok{'imagenet'}\NormalTok{)}
+\NormalTok{model }\OperatorTok{=} \NormalTok{Model(inputs}\OperatorTok{=}\NormalTok{base_model.}\BuiltInTok{input}\NormalTok{, outputs}\OperatorTok{=}\NormalTok{base_model.get_layer(}\StringTok{'block4_pool'}\NormalTok{).output)}
+
+\NormalTok{img_path }\OperatorTok{=} \StringTok{'elephant.jpg'}
+\NormalTok{img }\OperatorTok{=} \NormalTok{image.load_img(img_path, target_size}\OperatorTok{=}\NormalTok{(}\DecValTok{224}\NormalTok{, }\DecValTok{224}\NormalTok{))}
+\NormalTok{x }\OperatorTok{=} \NormalTok{image.img_to_array(img)}
+\NormalTok{x }\OperatorTok{=} \NormalTok{np.expand_dims(x, axis}\OperatorTok{=}\DecValTok{0}\NormalTok{)}
+\NormalTok{x }\OperatorTok{=} \NormalTok{preprocess_input(x)}
+
+\NormalTok{block4_pool_features }\OperatorTok{=} \NormalTok{model.predict(x)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{在新类上微调
+InceptionV3}\label{ux5728ux65b0ux7c7bux4e0aux5faeux8c03-inceptionv3}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.applications.inception_v3 }\ImportTok{import} \NormalTok{InceptionV3}
+\ImportTok{from} \NormalTok{keras.preprocessing }\ImportTok{import} \NormalTok{image}
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{Model}
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Dense, GlobalAveragePooling2D}
+\ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+
+\CommentTok{# 构建不带分类器的预训练模型}
+\NormalTok{base_model }\OperatorTok{=} \NormalTok{InceptionV3(weights}\OperatorTok{=}\StringTok{'imagenet'}\NormalTok{, include_top}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+
+\CommentTok{# 添加全局平均池化层}
+\NormalTok{x }\OperatorTok{=} \NormalTok{base_model.output}
+\NormalTok{x }\OperatorTok{=} \NormalTok{GlobalAveragePooling2D()(x)}
+
+\CommentTok{# 添加一个全连接层}
+\NormalTok{x }\OperatorTok{=} \NormalTok{Dense(}\DecValTok{1024}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{)(x)}
+
+\CommentTok{# 添加一个分类器，假设我们有200个类}
+\NormalTok{predictions }\OperatorTok{=} \NormalTok{Dense(}\DecValTok{200}\NormalTok{, activation}\OperatorTok{=}\StringTok{'softmax'}\NormalTok{)(x)}
+
+\CommentTok{# 构建我们需要训练的完整模型}
+\NormalTok{model }\OperatorTok{=} \NormalTok{Model(inputs}\OperatorTok{=}\NormalTok{base_model.}\BuiltInTok{input}\NormalTok{, outputs}\OperatorTok{=}\NormalTok{predictions)}
+
+\CommentTok{# 首先，我们只训练顶部的几层（随机初始化的层）}
+\CommentTok{# 锁住所有 InceptionV3 的卷积层}
+\ControlFlowTok{for} \NormalTok{layer }\OperatorTok{in} \NormalTok{base_model.layers:}
+    \NormalTok{layer.trainable }\OperatorTok{=} \VariableTok{False}
+
+\CommentTok{# 编译模型（一定要在锁层以后操作）}
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{, loss}\OperatorTok{=}\StringTok{'categorical_crossentropy'}\NormalTok{)}
+
+\CommentTok{# 在新的数据集上训练几代}
+\NormalTok{model.fit_generator(...)}
+
+\CommentTok{# 现在顶层应该训练好了，让我们开始微调 Inception V3 的卷积层。}
+\CommentTok{# 我们会锁住底下的几层，然后训练其余的顶层。}
+
+\CommentTok{# 让我们看看每一层的名字和层号，看看我们应该锁多少层呢：}
+\ControlFlowTok{for} \NormalTok{i, layer }\OperatorTok{in} \BuiltInTok{enumerate}\NormalTok{(base_model.layers):}
+   \BuiltInTok{print}\NormalTok{(i, layer.name)}
+
+\CommentTok{# 我们选择训练最上面的两个 Inception block}
+\CommentTok{# 也就是说锁住前面249层，然后放开之后的层。}
+\ControlFlowTok{for} \NormalTok{layer }\OperatorTok{in} \NormalTok{model.layers[:}\DecValTok{249}\NormalTok{]:}
+   \NormalTok{layer.trainable }\OperatorTok{=} \VariableTok{False}
+\ControlFlowTok{for} \NormalTok{layer }\OperatorTok{in} \NormalTok{model.layers[}\DecValTok{249}\NormalTok{:]:}
+   \NormalTok{layer.trainable }\OperatorTok{=} \VariableTok{True}
+
+\CommentTok{# 我们需要重新编译模型，才能使上面的修改生效}
+\CommentTok{# 让我们设置一个很低的学习率，使用 SGD 来微调}
+\ImportTok{from} \NormalTok{keras.optimizers }\ImportTok{import} \NormalTok{SGD}
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(optimizer}\OperatorTok{=}\NormalTok{SGD(lr}\OperatorTok{=}\FloatTok{0.0001}\NormalTok{, momentum}\OperatorTok{=}\FloatTok{0.9}\NormalTok{), loss}\OperatorTok{=}\StringTok{'categorical_crossentropy'}\NormalTok{)}
+
+\CommentTok{# 我们继续训练模型，这次我们训练最后两个 Inception block}
+\CommentTok{# 和两个全连接层}
+\NormalTok{model.fit_generator(...)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{通过自定义输入 tensor 构建
+InceptionV3}\label{ux901aux8fc7ux81eaux5b9aux4e49ux8f93ux5165-tensor-ux6784ux5efa-inceptionv3}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.applications.inception_v3 }\ImportTok{import} \NormalTok{InceptionV3}
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Input}
+
+\CommentTok{# this could also be the output a different Keras model or layer}
+\NormalTok{input_tensor }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{224}\NormalTok{, }\DecValTok{224}\NormalTok{, }\DecValTok{3}\NormalTok{))  }\CommentTok{# this assumes K.image_data_format() == 'channels_last'}
+
+\NormalTok{model }\OperatorTok{=} \NormalTok{InceptionV3(input_tensor}\OperatorTok{=}\NormalTok{input_tensor, weights}\OperatorTok{=}\StringTok{'imagenet'}\NormalTok{, include_top}\OperatorTok{=}\VariableTok{True}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\newpage
+\subsection{模型概览}
+
+\begin{longtable}[c]{cccccc}
+\toprule
+模型 & 大小 & Top-1 准确率 & Top-5 准确率 & 参数数量 &
+深度\tabularnewline
+\midrule
+\endhead
+\hyperref[xception]{Xception} & 88 MB & 0.790 & 0.945 & 22,910,480 &
+126\tabularnewline
+\hyperref[vgg16]{VGG16} & 528 MB & 0.715 & 0.901 & 138,357,544 &
+23\tabularnewline
+\hyperref[vgg19]{VGG19} & 549 MB & 0.727 & 0.910 & 143,667,240 &
+26\tabularnewline
+\hyperref[resnet50]{EesNet50} & 99 MB & 0.759 & 0.929 & 25,636,712 &
+168\tabularnewline
+\hyperref[inceptionv3]{InceptionV3} & 92 MB & 0.788 & 0.944 & 23,851,784 &
+159\tabularnewline
+\hyperref[inceptionresnetv2]{InceptionResNetV2} & 215 MB & 0.804 & 0.953 & 55,873,736 &
+572\tabularnewline
+\hyperref[mobilenet]{MobileNet} & 17 MB & 0.665 & 0.871 & 4,253,864 &
+88\tabularnewline
+\hyperref[densenet]{DenseNet121} & 33 MB & 0.745 & 0.918 & 8,062,504 &
+121\tabularnewline
+\hyperref[densenet]{DenseNet169} & 57 MB & 0.759 & 0.928 & 14,307,880 &
+169\tabularnewline
+\hyperref[densenet]{DenseNet201} & 80 MB & 0.770 & 0.933 & 20,242,984 &
+201\tabularnewline
+\bottomrule
+\end{longtable}
+
+Top-1 准确率和 Top-5 准确率都是在 ImageNet 验证集上的结果。
+
+
+
+\subsubsection{Xception}\label{xception}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.applications.xception.Xception(include_top}\OperatorTok{=}\VariableTok{True}\NormalTok{, weights}\OperatorTok{=}\StringTok{'imagenet'}, \\
+\hspace{3cm}\NormalTok{input_tensor}\OperatorTok{=}\VariableTok{None}\NormalTok{, input_shape}\OperatorTok{=}\VariableTok{None}\NormalTok{, pooling}\OperatorTok{=}\VariableTok{None}\NormalTok{, classes}\OperatorTok{=}\DecValTok{1000}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+在 ImageNet 上预训练的 Xception V1 模型。
+
+在 ImageNet 上，该模型取得了验证集 top1 0.790 和 top5 0.945 的准确率。
+
+注意，该模型目前仅能在 TensorFlow 后端使用，因为它依赖
+\texttt{SeparableConvolution} 层，目前该层只支持 \texttt{channels\_last}
+的维度顺序（高度、宽度、通道）。
+
+模型默认输入尺寸是 299x299。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  include\_top: 是否包括顶层的全连接层。
+\item
+  weights: \texttt{None} 代表随机初始化，
+  \texttt{\textquotesingle{}imagenet\textquotesingle{}} 代表加载在
+  ImageNet 上预训练的权值。
+\item
+  input\_tensor: 可选，Keras tensor 作为模型的输入（比如
+  \texttt{layers.Input()} 输出的 tensor）
+\item
+  input\_shape:
+  可选，输入尺寸元组，仅当\texttt{include\_top=False}时有效（不然输入形状必须是
+  \texttt{(299,\ 299,\ 3)}，因为预训练模型是以这个大小训练的）。输入尺寸必须是三个数字，且宽高必须不小于
+  71，比如 \texttt{(150,\ 150,\ 3)} 是一个合法的输入尺寸。
+\item
+  pooling: 可选，当 \texttt{include\_top} 为 \texttt{False}
+  时，该参数指定了特征提取时的池化方式。
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{None}
+    代表不池化，直接输出最后一层卷积层的输出，该输出是一个四维张量。
+  \item
+    \texttt{\textquotesingle{}avg\textquotesingle{}}
+    代表全局平均池化（GLobalAveragePool2D），相当于在最后一层卷积层后面再加一层全局平均池化层，输出是一个二维张量。
+  \item
+    \texttt{\textquotesingle{}max\textquotesingle{}} 代表全局最大池化
+  \end{itemize}
+\item
+  classes: 可选，图片分类的类别数，仅当 \texttt{include\_top} 为
+  \texttt{True} 并且不加载预训练权值时可用。
+\end{itemize}
+
+\textbf{返回值}
+
+一个 Keras \texttt{Model} 对象.
+
+\textbf{参考文献}\label{ux53c2ux8003ux6587ux732e}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://arxiv.org/abs/1610.02357}{Xception: Deep Learning with
+  Depthwise Separable Convolutions}
+\end{itemize}
+
+\textbf{License}\label{license}
+
+预训练权值由我们自己训练而来，基于 MIT license 发布。
+
+
+
+\subsubsection{VGG16}\label{vgg16}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.applications.vgg16.VGG16(include_top}\OperatorTok{=}\VariableTok{True}\NormalTok{, weights}\OperatorTok{=}\StringTok{'imagenet'}, \\
+\hspace{3cm}\NormalTok{input_tensor}\OperatorTok{=}\VariableTok{None}\NormalTok{, input_shape}\OperatorTok{=}\VariableTok{None}\NormalTok{, pooling}\OperatorTok{=}\VariableTok{None}\NormalTok{, classes}\OperatorTok{=}\DecValTok{1000}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+VGG16 模型，权值由 ImageNet 训练而来。
+
+该模型在 \texttt{Theano} 和 \texttt{TensorFlow} 后端均可使用，并接受
+\texttt{channels\_first} 和 \texttt{channels\_last}
+两种输入维度顺序（高度，宽度，通道）。
+
+模型默认输入尺寸是 224x224。
+
+\textbf{参数}\label{ux53c2ux6570-1}
+
+\begin{itemize}
+\tightlist
+\item
+  include\_top: 是否包括顶层的全连接层。
+\item
+  weights: \texttt{None} 代表随机初始化，
+  \texttt{\textquotesingle{}imagenet\textquotesingle{}} 代表加载在
+  ImageNet 上预训练的权值。
+\item
+  input\_tensor: 可选，Keras tensor 作为模型的输入（比如
+  \texttt{layers.Input()} 输出的 tensor）
+\item
+  input\_shape: 可选，输入尺寸元组，仅当 \texttt{include\_top=False}
+  时有效（不然输入形状必须是 \texttt{(224,\ 224,\ 3)}
+  （\texttt{channels\_last} 格式）或 \texttt{(3,\ 224,\ 224)}
+  （\texttt{channels\_first}
+  格式），因为预训练模型是以这个大小训练的）。输入尺寸必须是三个数字，且宽高必须不小于
+  48，比如 \texttt{(200,\ 200,\ 3)} 是一个合法的输入尺寸。
+\item
+  pooling: 可选，当 \texttt{include\_top} 为 \texttt{False}
+  时，该参数指定了特征提取时的池化方式。
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{None}
+    代表不池化，直接输出最后一层卷积层的输出，该输出是一个四维张量。
+  \item
+    \texttt{\textquotesingle{}avg\textquotesingle{}}
+    代表全局平均池化（GLobalAveragePool2D），相当于在最后一层卷积层后面再加一层全局平均池化层，输出是一个二维张量。
+  \item
+    \texttt{\textquotesingle{}max\textquotesingle{}} 代表全局最大池化
+  \end{itemize}
+\item
+  classes: 可选，图片分类的类别数，仅当 \texttt{include\_top} 为
+  \texttt{True} 并且不加载预训练权值时可用。
+\end{itemize}
+
+\textbf{返回值}\label{ux8fd4ux56deux503c-1}
+
+一个 Keras \texttt{Model} 对象。
+
+\textbf{参考文献}\label{ux53c2ux8003ux6587ux732e-1}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://arxiv.org/abs/1409.1556}{Very Deep Convolutional
+  Networks for Large-Scale Image
+  Recognition}：如果在研究中使用了VGG，请引用该论文。
+\end{itemize}
+
+\textbf{License}\label{license-1}
+
+预训练权值由
+\href{http://www.robots.ox.ac.uk/~vgg/research/very_deep/}{VGG at
+Oxford} 发布的预训练权值移植而来，基于
+\href{https://creativecommons.org/licenses/by/4.0/}{Creative Commons
+Attribution License}。
+
+
+
+\subsubsection{VGG19}\label{vgg19}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.applications.vgg19.VGG19(include_top}\OperatorTok{=}\VariableTok{True}\NormalTok{, weights}\OperatorTok{=}\StringTok{'imagenet'}, \\
+\hspace{3cm}\NormalTok{input_tensor}\OperatorTok{=}\VariableTok{None}\NormalTok{, input_shape}\OperatorTok{=}\VariableTok{None}\NormalTok{, pooling}\OperatorTok{=}\VariableTok{None}\NormalTok{, classes}\OperatorTok{=}\DecValTok{1000}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+VGG19 模型，权值由 ImageNet 训练而来。
+
+该模型在 \texttt{Theano} 和 \texttt{TensorFlow} 后端均可使用，并接受
+\texttt{channels\_first} 和 \texttt{channels\_last}
+两种输入维度顺序（高度，宽度，通道）。
+
+模型默认输入尺寸是 224x224。
+
+\textbf{参数}\label{ux53c2ux6570-2}
+
+\begin{itemize}
+\tightlist
+\item
+  include\_top: 是否包括顶层的全连接层。
+\item
+  weights: \texttt{None} 代表随机初始化，
+  \texttt{\textquotesingle{}imagenet\textquotesingle{}} 代表加载在
+  ImageNet 上预训练的权值。
+\item
+  input\_tensor: 可选，Keras tensor 作为模型的输入（比如
+  \texttt{layers.Input()} 输出的 tensor）
+\item
+  input\_shape: 可选，输入尺寸元组，仅当 \texttt{include\_top=False}
+  时有效（不然输入形状必须是 \texttt{(224,\ 224,\ 3)}
+  （\texttt{channels\_last} 格式）或 \texttt{(3,\ 224,\ 224)}
+  （\texttt{channels\_first}
+  格式），因为预训练模型是以这个大小训练的）。输入尺寸必须是三个数字，且宽高必须不小于
+  48，比如 \texttt{(200,\ 200,\ 3)} 是一个合法的输入尺寸。
+\item
+  pooling: 可选，当 \texttt{include\_top} 为 \texttt{False}
+  时，该参数指定了特征提取时的池化方式。
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{None}
+    代表不池化，直接输出最后一层卷积层的输出，该输出是一个四维张量。
+  \item
+    \texttt{\textquotesingle{}avg\textquotesingle{}}
+    代表全局平均池化（GLobalAveragePool2D），相当于在最后一层卷积层后面再加一层全局平均池化层，输出是一个二维张量。
+  \item
+    \texttt{\textquotesingle{}max\textquotesingle{}} 代表全局最大池化
+  \end{itemize}
+\item
+  classes: 可选，图片分类的类别数，仅当 \texttt{include\_top} 为
+  \texttt{True} 并且不加载预训练权值时可用。
+\end{itemize}
+
+\textbf{返回值}\label{ux8fd4ux56deux503c-2}
+
+一个 Keras \texttt{Model} 对象。
+
+\textbf{参考文献}\label{ux53c2ux8003ux6587ux732e-2}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://arxiv.org/abs/1409.1556}{Very Deep Convolutional
+  Networks for Large-Scale Image
+  Recognition}：如果在研究中使用了VGG，请引用该论文。
+\end{itemize}
+
+\textbf{License}\label{license-2}
+
+预训练权值由
+\href{http://www.robots.ox.ac.uk/~vgg/research/very_deep/}{VGG at
+Oxford} 发布的预训练权值移植而来，基于
+\href{https://creativecommons.org/licenses/by/4.0/}{Creative Commons
+Attribution License}。
+
+
+
+\subsubsection{ResNet50}\label{resnet50}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.applications.resnet50.ResNet50(include_top}\OperatorTok{=}\VariableTok{True}\NormalTok{, weights}\OperatorTok{=}\StringTok{'imagenet'}, \\
+\hspace{3cm}\NormalTok{input_tensor}\OperatorTok{=}\VariableTok{None}\NormalTok{, input_shape}\OperatorTok{=}\VariableTok{None}\NormalTok{, pooling}\OperatorTok{=}\VariableTok{None}\NormalTok{, classes}\OperatorTok{=}\DecValTok{1000}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+ResNet50 模型，权值由 ImageNet 训练而来。
+
+该模型在 \texttt{Theano} 和 \texttt{TensorFlow} 后端均可使用，并接受
+\texttt{channels\_first} 和 \texttt{channels\_last}
+两种输入维度顺序（高度，宽度，通道）。
+
+模型默认输入尺寸是 224x224。
+
+\textbf{参数}\label{ux53c2ux6570-3}
+
+\begin{itemize}
+\tightlist
+\item
+  include\_top: 是否包括顶层的全连接层。
+\item
+  weights: \texttt{None} 代表随机初始化，
+  \texttt{\textquotesingle{}imagenet\textquotesingle{}} 代表加载在
+  ImageNet 上预训练的权值。
+\item
+  input\_tensor: 可选，Keras tensor 作为模型的输入（比如
+  \texttt{layers.Input()} 输出的 tensor）
+\item
+  input\_shape: 可选，输入尺寸元组，仅当 \texttt{include\_top=False}
+  时有效（不然输入形状必须是 \texttt{(224,\ 224,\ 3)}
+  （\texttt{channels\_last} 格式）或 \texttt{(3,\ 224,\ 224)}
+  （\texttt{channels\_first}
+  格式），因为预训练模型是以这个大小训练的）。输入尺寸必须是三个数字，且宽高必须不小于
+  197，比如 \texttt{(200,\ 200,\ 3)} 是一个合法的输入尺寸。
+\item
+  pooling: 可选，当 \texttt{include\_top} 为 \texttt{False}
+  时，该参数指定了特征提取时的池化方式。
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{None}
+    代表不池化，直接输出最后一层卷积层的输出，该输出是一个四维张量。
+  \item
+    \texttt{\textquotesingle{}avg\textquotesingle{}}
+    代表全局平均池化（GLobalAveragePool2D），相当于在最后一层卷积层后面再加一层全局平均池化层，输出是一个二维张量。
+  \item
+    \texttt{\textquotesingle{}max\textquotesingle{}} 代表全局最大池化
+  \end{itemize}
+\item
+  classes: 可选，图片分类的类别数，仅当 \texttt{include\_top} 为
+  \texttt{True} 并且不加载预训练权值时可用。
+\end{itemize}
+
+\textbf{返回值}\label{ux8fd4ux56deux503c-3}
+
+一个 Keras \texttt{Model} 对象。
+
+\textbf{参考文献}\label{ux53c2ux8003ux6587ux732e-3}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://arxiv.org/abs/1512.03385}{Deep Residual Learning for
+  Image Recognition}
+\end{itemize}
+
+\textbf{License}\label{license-3}
+
+预训练权值由
+\href{https://github.com/KaimingHe/deep-residual-networks}{Kaiming He}
+发布的预训练权值移植而来，基于
+\href{https://github.com/KaimingHe/deep-residual-networks/blob/master/LICENSE}{MIT
+license}。
+
+
+
+\subsubsection{InceptionV3}\label{inceptionv3}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.applications.inception_v3.InceptionV3(include_top}\OperatorTok{=}\VariableTok{True}\NormalTok{, weights}\OperatorTok{=}\StringTok{'imagenet'}, \\
+\hspace{3cm}\NormalTok{input_tensor}\OperatorTok{=}\VariableTok{None}\NormalTok{, input_shape}\OperatorTok{=}\VariableTok{None}\NormalTok{, pooling}\OperatorTok{=}\VariableTok{None}\NormalTok{, classes}\OperatorTok{=}\DecValTok{1000}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Inception V3 模型，权值由 ImageNet 训练而来。
+
+该模型在 \texttt{Theano} 和 \texttt{TensorFlow} 后端均可使用，并接受
+\texttt{channels\_first} 和 \texttt{channels\_last}
+两种输入维度顺序（高度，宽度，通道）。
+
+模型默认输入尺寸是 299x299。
+
+\textbf{参数}\label{ux53c2ux6570-4}
+
+\begin{itemize}
+\tightlist
+\item
+  include\_top: 是否包括顶层的全连接层。
+\item
+  weights: \texttt{None} 代表随机初始化，
+  \texttt{\textquotesingle{}imagenet\textquotesingle{}} 代表加载在
+  ImageNet 上预训练的权值。
+\item
+  input\_tensor: 可选，Keras tensor 作为模型的输入（比如
+  \texttt{layers.Input()} 输出的 tensor）
+\item
+  input\_shape: 可选，输入尺寸元组，仅当 \texttt{include\_top=False}
+  时有效（不然输入形状必须是 \texttt{(299,\ 299,\ 3)}
+  （\texttt{channels\_last} 格式）或 \texttt{(3,\ 299,\ 299)}
+  （\texttt{channels\_first}
+  格式），因为预训练模型是以这个大小训练的）。输入尺寸必须是三个数字，且宽高必须不小于
+  139，比如 \texttt{(150,\ 150,\ 3)} 是一个合法的输入尺寸。
+\item
+  pooling: 可选，当 \texttt{include\_top} 为 \texttt{False}
+  时，该参数指定了特征提取时的池化方式。
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{None}
+    代表不池化，直接输出最后一层卷积层的输出，该输出是一个四维张量。
+  \item
+    \texttt{\textquotesingle{}avg\textquotesingle{}}
+    代表全局平均池化（GLobalAveragePool2D），相当于在最后一层卷积层后面再加一层全局平均池化层，输出是一个二维张量。
+  \item
+    \texttt{\textquotesingle{}max\textquotesingle{}} 代表全局最大池化
+  \end{itemize}
+\item
+  classes: 可选，图片分类的类别数，仅当 \texttt{include\_top} 为
+  \texttt{True} 并且不加载预训练权值时可用。
+\end{itemize}
+
+\textbf{返回值}\label{ux8fd4ux56deux503c-4}
+
+一个 Keras \texttt{Model} 对象。
+
+\textbf{参考文献}\label{ux53c2ux8003ux6587ux732e-4}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{http://arxiv.org/abs/1512.00567}{Rethinking the Inception
+  Architecture for Computer Vision}
+\end{itemize}
+
+\textbf{License}\label{license-4}
+
+预训练权值基于
+\href{https://github.com/tensorflow/models/blob/master/LICENSE}{Apache
+License}。
+
+
+
+\subsubsection{InceptionResNetV2}\label{inceptionresnetv2}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.applications.inception_resnet_v2.InceptionResNetV2(include_top}\OperatorTok{=}\VariableTok{True}\NormalTok{, weights}\OperatorTok{=}\StringTok{'imagenet'}\NormalTok{, input_tensor}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{input_shape}\OperatorTok{=}\VariableTok{None}\NormalTok{, pooling}\OperatorTok{=}\VariableTok{None}\NormalTok{, classes}\OperatorTok{=}\DecValTok{1000}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Inception-ResNet V2 模型，权值由 ImageNet 训练而来。
+
+该模型在 \texttt{Theano} 和 \texttt{TensorFlow} 后端均可使用，并接受
+\texttt{channels\_first} 和 \texttt{channels\_last}
+两种输入维度顺序（高度，宽度，通道）。
+
+模型默认输入尺寸是 299x299。
+
+\textbf{参数}\label{ux53c2ux6570-5}
+
+\begin{itemize}
+\tightlist
+\item
+  include\_top: 是否包括顶层的全连接层。
+\item
+  weights: \texttt{None} 代表随机初始化，
+  \texttt{\textquotesingle{}imagenet\textquotesingle{}} 代表加载在
+  ImageNet 上预训练的权值。
+\item
+  input\_tensor: 可选，Keras tensor 作为模型的输入（比如
+  \texttt{layers.Input()} 输出的 tensor）
+\item
+  input\_shape: 可选，输入尺寸元组，仅当 \texttt{include\_top=False}
+  时有效（不然输入形状必须是 \texttt{(299,\ 299,\ 3)}
+  （\texttt{channels\_last} 格式）或 \texttt{(3,\ 299,\ 299)}
+  （\texttt{channels\_first}
+  格式），因为预训练模型是以这个大小训练的）。输入尺寸必须是三个数字，且宽高必须不小于
+  139，比如 \texttt{(150,\ 150,\ 3)} 是一个合法的输入尺寸。
+\item
+  pooling: 可选，当 \texttt{include\_top} 为 \texttt{False}
+  时，该参数指定了特征提取时的池化方式。
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{None}
+    代表不池化，直接输出最后一层卷积层的输出，该输出是一个四维张量。
+  \item
+    \texttt{\textquotesingle{}avg\textquotesingle{}}
+    代表全局平均池化（GLobalAveragePool2D），相当于在最后一层卷积层后面再加一层全局平均池化层，输出是一个二维张量。
+  \item
+    \texttt{\textquotesingle{}max\textquotesingle{}} 代表全局最大池化
+  \end{itemize}
+\item
+  classes: 可选，图片分类的类别数，仅当 \texttt{include\_top} 为
+  \texttt{True} 并且不加载预训练权值时可用。
+\end{itemize}
+
+\textbf{返回值}\label{ux8fd4ux56deux503c-5}
+
+一个 Keras \texttt{Model} 对象。
+
+\textbf{参考文献}\label{ux53c2ux8003ux6587ux732e-5}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{http://arxiv.org/abs/1512.00567}{Rethinking the Inception
+  Architecture for Computer Vision}
+\end{itemize}
+
+\textbf{License}\label{license-5}
+
+预训练权值基于
+\href{https://github.com/tensorflow/models/blob/master/LICENSE}{Apache
+License}。
+
+
+
+\subsubsection{MobileNet}\label{mobilenet}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.applications.mobilenet.MobileNet(input_shape}\OperatorTok{=}\VariableTok{None}\NormalTok{, alpha}\OperatorTok{=}\FloatTok{1.0}, \\
+\hspace{3cm}\NormalTok{depth_multiplier}\OperatorTok{=}\DecValTok{1}\NormalTok{, dropout}\OperatorTok{=}\FloatTok{1e-3}\NormalTok{, include_top}\OperatorTok{=}\VariableTok{True}, \\
+\hspace{3cm}\NormalTok{weights}\OperatorTok{=}\StringTok{'imagenet'}\NormalTok{, input_tensor}\OperatorTok{=}\VariableTok{None}\NormalTok{, pooling}\OperatorTok{=}\VariableTok{None}\NormalTok{, classes}\OperatorTok{=}\DecValTok{1000}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+在 ImageNet 上预训练的 MobileNet 模型。
+
+注意，该模型目前仅能在 TensorFlow 后端使用，因为它依赖
+\texttt{SeparableConvolution} 层，目前该层只支持 \texttt{channels\_last}
+的维度顺序（高度、宽度、通道）。
+
+要通过 \texttt{load\_model} 载入 MobileNet 模型，你需要导入自定义对象
+\texttt{relu6} 和 \texttt{DepthwiseConv2D} 并通过
+\texttt{custom\_objects} 传参。
+
+下面是示例代码：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model }\OperatorTok{=} \NormalTok{load_model(}\StringTok{'mobilenet.h5'}\NormalTok{, custom_objects}\OperatorTok{=}\NormalTok{\{}
+                   \StringTok{'relu6'}\NormalTok{: mobilenet.relu6,}
+                   \CommentTok{'DepthwiseConv2D'}\NormalTok{: mobilenet.DepthwiseConv2D\})}
+\end{Highlighting}
+\end{Shaded}
+
+模型默认输入尺寸是 224x224.
+
+\textbf{参数}\label{ux53c2ux6570-6}
+
+\begin{itemize}
+\tightlist
+\item
+  input\_shape: 可选，输入尺寸元组，仅当 \texttt{include\_top=False}
+  时有效（不然输入形状必须是 \texttt{(224,\ 224,\ 3)}
+  ，因为预训练模型是以这个大小训练的）。输入尺寸必须是三个数字，且宽高必须不小于
+  32，比如 \texttt{(200,\ 200,\ 3)} 是一个合法的输入尺寸。
+\item
+  alpha: 控制网络的宽度：
+
+  \begin{itemize}
+  \tightlist
+  \item
+    如果 \texttt{alpha} \textless{} 1.0，则同比例减少每层的滤波器个数。
+  \item
+    如果 \texttt{alpha} \textgreater{}
+    1.0，则同比例增加每层的滤波器个数。
+  \item
+    如果 \texttt{alpha} = 1，使用论文默认的滤波器个数
+  \end{itemize}
+\item
+  depth\_multiplier: depthwise卷积的深度乘子，也称为（分辨率乘子）
+\item
+  dropout: dropout 概率
+\item
+  include\_top: 是否包括顶层的全连接层。
+\item
+  weights: \texttt{None} 代表随机初始化，
+  \texttt{\textquotesingle{}imagenet\textquotesingle{}} 代表加载在
+  ImageNet 上预训练的权值。
+\item
+  input\_tensor: 可选，Keras tensor 作为模型的输入（比如
+  \texttt{layers.Input()} 输出的 tensor）
+\item
+  pooling: 可选，当 \texttt{include\_top} 为 \texttt{False}
+  时，该参数指定了特征提取时的池化方式。
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{None}
+    代表不池化，直接输出最后一层卷积层的输出，该输出是一个四维张量。
+  \item
+    \texttt{\textquotesingle{}avg\textquotesingle{}}
+    代表全局平均池化（GLobalAveragePool2D），相当于在最后一层卷积层后面再加一层全局平均池化层，输出是一个二维张量。
+  \item
+    \texttt{\textquotesingle{}max\textquotesingle{}} 代表全局最大池化
+  \end{itemize}
+\item
+  classes: 可选，图片分类的类别数，仅当 \texttt{include\_top} 为
+  \texttt{True} 并且不加载预训练权值时可用。
+\end{itemize}
+
+\textbf{返回}\label{ux8fd4ux56de}
+
+一个 Keras \texttt{Model} 对象。
+
+\textbf{参考文献}\label{ux53c2ux8003ux6587ux732e-6}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://arxiv.org/pdf/1704.04861.pdf}{MobileNets: Efficient
+  Convolutional Neural Networks for Mobile Vision Applications}
+\end{itemize}
+
+\textbf{License}\label{license-6}
+
+预训练权值基于
+\href{https://github.com/tensorflow/models/blob/master/LICENSE}{Apache
+License}。
+
+
+
+\subsubsection{DenseNet}\label{densenet}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.applications.densenet.DenseNet121(include_top}\OperatorTok{=}\VariableTok{True}\NormalTok{, weights}\OperatorTok{=}\StringTok{'imagenet'}, \\
+\hspace{3cm}\NormalTok{input_tensor}\OperatorTok{=}\VariableTok{None}\NormalTok{, input_shape}\OperatorTok{=}\VariableTok{None}\NormalTok{, pooling}\OperatorTok{=}\VariableTok{None}\NormalTok{, classes}\OperatorTok{=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{keras.applications.densenet.DenseNet169(include_top}\OperatorTok{=}\VariableTok{True}\NormalTok{, weights}\OperatorTok{=}\StringTok{'imagenet'}, \\
+\hspace{3cm}\NormalTok{input_tensor}\OperatorTok{=}\VariableTok{None}\NormalTok{, input_shape}\OperatorTok{=}\VariableTok{None}\NormalTok{, pooling}\OperatorTok{=}\VariableTok{None}\NormalTok{, classes}\OperatorTok{=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{keras.applications.densenet.DenseNet201(include_top}\OperatorTok{=}\VariableTok{True}\NormalTok{, weights}\OperatorTok{=}\StringTok{'imagenet'}, \\
+\hspace{3cm}\NormalTok{input_tensor}\OperatorTok{=}\VariableTok{None}\NormalTok{, input_shape}\OperatorTok{=}\VariableTok{None}\NormalTok{, pooling}\OperatorTok{=}\VariableTok{None}\NormalTok{, classes}\OperatorTok{=}\DecValTok{1000}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+可以选择载入在 ImageNet 上的预训练权值。如果你在使用 TensorFlow
+为了发挥最佳性能，请在 \texttt{\textasciitilde{}/.keras/keras.json} 的
+Keras 配置文件中设置
+\texttt{image\_data\_format=\textquotesingle{}channels\_last\textquotesingle{}}。
+
+模型和权值兼容 TensorFlow、Theano 和 CNTK。可以在你的 Keras
+配置文件中指定数据格式。
+
+\textbf{参数}\label{ux53c2ux6570-7}
+
+\begin{itemize}
+\tightlist
+\item
+  blocks: 四个 Dense Layers 的 block 数量。
+\item
+  include\_top: 是否包括顶层的全连接层。
+\item
+  weights: \texttt{None} 代表随机初始化，
+  \texttt{\textquotesingle{}imagenet\textquotesingle{}} 代表加载在
+  ImageNet 上预训练的权值。
+\item
+  input\_tensor: 可选，Keras tensor 作为模型的输入（比如
+  \texttt{layers.Input()} 输出的 tensor）
+\item
+  input\_shape: 可选，输入尺寸元组，仅当 \texttt{include\_top=False}
+  时有效（不然输入形状必须是 \texttt{(224,\ 224,\ 3)}
+  （\texttt{channels\_last} 格式）或 \texttt{(3,\ 224,\ 224)}
+  （\texttt{channels\_first}
+  格式），因为预训练模型是以这个大小训练的）。输入尺寸必须是三个数字。
+\item
+  pooling: 可选，当 \texttt{include\_top} 为 \texttt{False}
+  时，该参数指定了特征提取时的池化方式。
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{None}
+    代表不池化，直接输出最后一层卷积层的输出，该输出是一个四维张量。
+  \item
+    \texttt{\textquotesingle{}avg\textquotesingle{}}
+    代表全局平均池化（GLobalAveragePool2D），相当于在最后一层卷积层后面再加一层全局平均池化层，输出是一个二维张量。
+  \item
+    \texttt{\textquotesingle{}max\textquotesingle{}} 代表全局最大池化
+  \end{itemize}
+\item
+  classes: 可选，图片分类的类别数，仅当 \texttt{include\_top} 为
+  \texttt{True} 并且不加载预训练权值时可用。
+\end{itemize}
+
+
+A Keras model instance.
+
+\textbf{返回}\label{ux8fd4ux56de-1}
+
+一个 Keras \texttt{Model} 对象。
+
+\textbf{参考文献}\label{ux53c2ux8003ux6587ux732e-7}
+
+预训练权值基于
+\href{https://github.com/liuzhuang13/DenseNet/blob/master/LICENSE}{BSD
+3-clause License}。
+
+
+
+\subsubsection{NASNet}\label{nasnet}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.applications.nasnet.NASNetLarge(input_shape}\OperatorTok{=}\VariableTok{None}\NormalTok{, include_top}\OperatorTok{=}\VariableTok{True}, \\
+\hspace{3cm}\NormalTok{weights}\OperatorTok{=}\StringTok{'imagenet'}\NormalTok{, input_tensor}\OperatorTok{=}\VariableTok{None}\NormalTok{, pooling}\OperatorTok{=}\VariableTok{None}\NormalTok{, classes}\OperatorTok{=}\DecValTok{1000}\NormalTok{)}
+\NormalTok{keras.applications.nasnet.NASNetMobile(input_shape}\OperatorTok{=}\VariableTok{None}\NormalTok{, include_top}\OperatorTok{=}\VariableTok{True}, \\
+\hspace{3cm}\NormalTok{weights}\OperatorTok{=}\StringTok{'imagenet'}\NormalTok{, input_tensor}\OperatorTok{=}\VariableTok{None}\NormalTok{, pooling}\OperatorTok{=}\VariableTok{None}\NormalTok{, classes}\OperatorTok{=}\DecValTok{1000}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+在 ImageNet 上预训练的神经结构搜索网络模型（NASNet）。
+
+注意，该模型目前仅能在 TensorFlow 后端使用，因此它只支持
+\texttt{channels\_last} 的维度顺序（高度、宽度、通道），可以在
+\texttt{\textasciitilde{}/.keras/keras.json} Keras 配置文件中设置。
+
+NASNetLarge 默认的输入尺寸是 331x331，NASNetMobile 默认的输入尺寸是
+224x224。
+
+\textbf{参数}\label{ux53c2ux6570-8}
+
+\begin{itemize}
+\tightlist
+\item
+  input\_shape: 可选，输入尺寸元组，仅当 \texttt{include\_top=False}
+  时有效（不然对于 NASNetMobile 模型来说，输入形状必须是
+  \texttt{(224,\ 224,\ 3)} （\texttt{channels\_last} 格式），对于
+  NASNetLarge 来说，输入形状必须是 \texttt{(331,\ 331,\ 3)}
+  （\texttt{channels\_last} 格式）。输入尺寸必须是三个数字。
+\item
+  include\_top: 是否包括顶层的全连接层。
+\item
+  weights: \texttt{None} 代表随机初始化，
+  \texttt{\textquotesingle{}imagenet\textquotesingle{}} 代表加载在
+  ImageNet 上预训练的权值。
+\item
+  input\_tensor: 可选，Keras tensor 作为模型的输入（比如
+  \texttt{layers.Input()} 输出的 tensor）
+\item
+  input\_shape: 可选，输入尺寸元组，仅当 \texttt{include\_top=False}
+  时有效（不然输入形状必须是 \texttt{(224,\ 224,\ 3)}
+  （\texttt{channels\_last} 格式）或 \texttt{(3,\ 224,\ 224)}
+  （\texttt{channels\_first}
+  格式），因为预训练模型是以这个大小训练的）。输入尺寸必须是三个数字。
+\item
+  pooling: 可选，当 \texttt{include\_top} 为 \texttt{False}
+  时，该参数指定了特征提取时的池化方式。
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{None}
+    代表不池化，直接输出最后一层卷积层的输出，该输出是一个四维张量。
+  \item
+    \texttt{\textquotesingle{}avg\textquotesingle{}}
+    代表全局平均池化（GLobalAveragePool2D），相当于在最后一层卷积层后面再加一层全局平均池化层，输出是一个二维张量。
+  \item
+    \texttt{\textquotesingle{}max\textquotesingle{}} 代表全局最大池化
+  \end{itemize}
+\item
+  classes: 可选，图片分类的类别数，仅当 \texttt{include\_top} 为
+  \texttt{True} 并且不加载预训练权值时可用。
+\end{itemize}
+
+\textbf{返回}\label{ux8fd4ux56de-2}
+
+一个 Keras \texttt{Model} 对象。
+
+\textbf{参考文献}\label{ux53c2ux8003ux6587ux732e-8}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://arxiv.org/abs/1707.07012}{Learning Transferable
+  Architectures for Scalable Image Recognition}
+\end{itemize}
+
+\textbf{License}\label{license-7}
+
+预训练权值基于
+\href{https://github.com/tensorflow/models/blob/master/LICENSE}{Apache
+License}。
+
+\newpage

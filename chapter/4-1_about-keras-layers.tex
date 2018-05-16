@@ -1,0 +1,67 @@
+\section{关于 Keras 网络层}\label{ux5173ux4e8ekerasux5c42}
+\subsection{关于Keras层}
+所有Keras层都有很多共同的函数：
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{layer.get\_weights()}: 以Numpy矩阵的形式返回层的权重。
+\item
+  \texttt{layer.set\_weights(weights)}:
+  从Numpy矩阵中设置层的权重（与\texttt{get\_weights}的输出形状相同）。
+\item
+  \texttt{layer.get\_config()}:
+  返回包含层配置的字典。此图层可以通过以下方式重置：
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{layer }\OperatorTok{=} \NormalTok{Dense(}\DecValTok{32}\NormalTok{)}
+\NormalTok{config }\OperatorTok{=} \NormalTok{layer.get_config()}
+\NormalTok{reconstructed_layer }\OperatorTok{=} \NormalTok{Dense.from_config(config)}
+\end{Highlighting}
+\end{Shaded}
+
+或:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{layers}
+
+\NormalTok{config }\OperatorTok{=} \NormalTok{layer.get_config()}
+\NormalTok{layer }\OperatorTok{=} \NormalTok{layers.deserialize(\{}\StringTok{'class_name'}\NormalTok{: layer.__class__.}\VariableTok{__name__}\NormalTok{,}
+                            \StringTok{'config'}\NormalTok{: config\})}
+\end{Highlighting}
+\end{Shaded}
+
+如果一个层具有单个节点 (i.e. 如果它不是共享层),
+你可以得到它的输入张量，输出张量，输入尺寸和输出尺寸:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{layer.input}
+\item
+  \texttt{layer.output}
+\item
+  \texttt{layer.input\_shape}
+\item
+  \texttt{layer.output\_shape}
+\end{itemize}
+
+如果层有多个节点 (参见:
+\hyperref[the-concept-of-layer-node]{层节点和共享层的概念}),
+您可以使用以下函数:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{layer.get\_input\_at(node\_index)}
+\item
+  \texttt{layer.get\_output\_at(node\_index)}
+\item
+  \texttt{layer.get\_input\_shape\_at(node\_index)}
+\item
+  \texttt{layer.get\_output\_shape\_at(node\_index)}
+\end{itemize}
+\newpage

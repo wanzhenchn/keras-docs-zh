@@ -1,0 +1,63 @@
+\section{正则化 Regularizers}\label{regularizers}
+\subsection{正规化的使用}
+
+规则化器允许在优化过程中对图层参数或图层活动进行处罚。
+这些处罚被纳入网络优化的损失函数中。
+
+罚款是在每个层的基础上进行的。确切的API将取决于层，但层\texttt{密集}，\texttt{Conv1D}，\texttt{Conv2D}和\texttt{Conv3D}具有统一的API。
+
+这些图层显示3个关键字参数：
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{kernel\_regularizer}:
+  \texttt{keras.regularizers.Regularizer}的实例
+\item
+  \texttt{bias\_regularizer}:
+  \texttt{keras.regularizers.Regularizer}的实例
+\item
+  \texttt{activity\_regularizer}:
+  \texttt{keras.regularizers.Regularizer}的实例
+\end{itemize}
+
+\subsection{例子}\label{ux4f8bux5b50}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{regularizers}
+\NormalTok{model.add(Dense(}\DecValTok{64}\NormalTok{, input_dim}\OperatorTok{=}\DecValTok{64}\NormalTok{,}
+                \NormalTok{kernel_regularizer}\OperatorTok{=}\NormalTok{regularizers.l2(}\FloatTok{0.01}\NormalTok{),}
+                \NormalTok{activity_regularizer}\OperatorTok{=}\NormalTok{regularizers.l1(}\FloatTok{0.01}\NormalTok{)))}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{可用的惩罚}\label{ux53efux7528ux7684ux60e9ux7f5a}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.regularizers.l1(}\DecValTok{0}\NormalTok{.)}
+\NormalTok{keras.regularizers.l2(}\DecValTok{0}\NormalTok{.)}
+\NormalTok{keras.regularizers.l1_l2(}\DecValTok{0}\NormalTok{.)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{开发新的正则化器}\label{ux5f00ux53d1ux65b0ux7684ux6b63ux5219ux5316ux5668}
+
+任何取得权重矩阵并返回损失贡献张量的函数都可以用作正则化器函数 , e.g.:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+
+\KeywordTok{def} \NormalTok{l1_reg(weight_matrix):}
+    \ControlFlowTok{return} \FloatTok{0.01} \OperatorTok{*} \NormalTok{K.}\BuiltInTok{sum}\NormalTok{(K.}\BuiltInTok{abs}\NormalTok{(weight_matrix))}
+
+\NormalTok{model.add(Dense(}\DecValTok{64}\NormalTok{, input_dim}\OperatorTok{=}\DecValTok{64}\NormalTok{,}
+                \NormalTok{kernel_regularizer}\OperatorTok{=}\NormalTok{l1_reg))}
+\end{Highlighting}
+\end{Shaded}
+
+另外，你也可以用面向对象的方式来写你的正则化器, 例子见 https://github.com/keras-team/keras/blob/master/keras/regularizers.py 模块。
+
+\newpage

@@ -1,0 +1,52 @@
+
+\subsection{编写你自己的Keras层}\label{ux7f16ux5199ux4f60ux81eaux5df1ux7684kerasux5c42}
+
+对于简单、无状态的自定义操作，你也许可以通过\texttt{layers.core.Lambda}层来实现。但是对于那些包含了可训练权重的自定义层，你应该自己实现这种层。
+
+这是一个\textbf{Keras2.0}中，Keras层的骨架（如果你用的是旧的版本，请你更新）。你只需要实现三个方法即可:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{build(input\_shape)}:
+  这是你定义权重的地方。这个方法必须设\texttt{self.built\ =\ True}，可以通过调用\texttt{super({[}Layer{]},\ self).build()}完成。
+\item
+  \texttt{call(x)}:
+  这里是编写层的功能逻辑的地方。你只需要关注传入\texttt{call}的第一个参数：输入张量，除非你希望你的层支持masking。
+\item
+  \texttt{compute\_output\_shape(input\_shape)}:
+  如果你的层更改了输入张量的形状，你应该在这里定义形状变化的逻辑，这让Keras能够自动推断各层的形状。
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\ImportTok{from} \NormalTok{keras.engine.topology }\ImportTok{import} \NormalTok{Layer}
+\ImportTok{import} \NormalTok{numpy }\ImportTok{as} \NormalTok{np}
+
+\KeywordTok{class} \NormalTok{MyLayer(Layer):}
+
+    \KeywordTok{def} \FunctionTok{__init__}\NormalTok{(}\VariableTok{self}\NormalTok{, output_dim, }\OperatorTok{**}\NormalTok{kwargs):}
+        \VariableTok{self}\NormalTok{.output_dim }\OperatorTok{=} \NormalTok{output_dim}
+        \BuiltInTok{super}\NormalTok{(MyLayer, }\VariableTok{self}\NormalTok{).}\FunctionTok{__init__}\NormalTok{(}\OperatorTok{**}\NormalTok{kwargs)}
+
+    \KeywordTok{def} \NormalTok{build(}\VariableTok{self}\NormalTok{, input_shape):}
+        \CommentTok{# Create a trainable weight variable for this layer.}
+        \VariableTok{self}\NormalTok{.kernel }\OperatorTok{=} \VariableTok{self}\NormalTok{.add_weight(name}\OperatorTok{=}\StringTok{'kernel'}\NormalTok{, }
+                                      \NormalTok{shape}\OperatorTok{=}\NormalTok{(input_shape[}\DecValTok{1}\NormalTok{], }\VariableTok{self}\NormalTok{.output_dim),}
+                                      \NormalTok{initializer}\OperatorTok{=}\StringTok{'uniform'}\NormalTok{,}
+                                      \NormalTok{trainable}\OperatorTok{=}\VariableTok{True}\NormalTok{)}
+        \BuiltInTok{super}\NormalTok{(MyLayer, }\VariableTok{self}\NormalTok{).build(input_shape)  }\CommentTok{# Be sure to call this somewhere!}
+
+    \KeywordTok{def} \NormalTok{call(}\VariableTok{self}\NormalTok{, x):}
+        \ControlFlowTok{return} \NormalTok{K.dot(x, }\VariableTok{self}\NormalTok{.kernel)}
+
+    \KeywordTok{def} \NormalTok{compute_output_shape(}\VariableTok{self}\NormalTok{, input_shape):}
+        \ControlFlowTok{return} \NormalTok{(input_shape[}\DecValTok{0}\NormalTok{], }\VariableTok{self}\NormalTok{.output_dim)}
+\end{Highlighting}
+\end{Shaded}
+
+已有的Keras层就是实现层的很好例子。不要犹豫阅读源码！
+
+
+\newpage

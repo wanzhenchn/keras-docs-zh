@@ -1,0 +1,124 @@
+\subsection{噪声层 Noise}
+    
+\subsubsection{GaussianNoise {\href{https://github.com/keras-team/keras/blob/master/keras/layers/noise.py\#L14}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.GaussianNoise(stddev)}
+\end{Highlighting}
+\end{Shaded}
+
+应用以 0 为中心的加性高斯噪声。
+
+这对缓解过拟合很有用 （你可以将其视为随机数据增强的一种形式）。
+高斯噪声（GS）是对真实输入的腐蚀过程的自然选择。
+
+由于它是一个正则化层，因此它只在训练时才被激活。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{stddev}: float，噪声分布的标准差。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+可以是任意的。 如果将该层作为模型的第一层，则需要指定
+\texttt{input\_shape} 参数 （整数元组，不包含样本数量的维度）。
+
+\textbf{输出尺寸}
+
+与输入相同。
+
+
+
+
+\subsubsection{GaussianDropout {\href{https://github.com/keras-team/keras/blob/master/keras/layers/noise.py\#L58}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.GaussianDropout(rate)}
+\end{Highlighting}
+\end{Shaded}
+
+应用以 1 为中心的 乘性高斯噪声。
+
+由于它是一个正则化层，因此它只在训练时才被激活。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{rate}: float，丢弃概率（与 \texttt{Dropout} 相同）。
+  这个乘性噪声的标准差为 \texttt{sqrt(rate\ /\ (1\ -\ rate))}。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+可以是任意的。 如果将该层作为模型的第一层，则需要指定
+\texttt{input\_shape} 参数 （整数元组，不包含样本数量的维度）。
+
+\textbf{输出尺寸}
+
+与输入相同。
+
+\textbf{参考文献}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{http://www.cs.toronto.edu/~rsalakhu/papers/srivastava14a.pdf}{Dropout:
+  A Simple Way to Prevent Neural Networks from Overfitting Srivastava,
+  Hinton, et al. 2014}
+\end{itemize}
+
+
+
+
+\subsubsection{AlphaDropout {\href{https://github.com/keras-team/keras/blob/master/keras/layers/noise.py\#L105}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.AlphaDropout(rate, noise_shape}\OperatorTok{=}\VariableTok{None}\NormalTok{, seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+将 Alpha Dropout 应用到输入。
+
+Alpha Dropout是一种
+\texttt{Dropout}，它保持输入的平均值和方差与原来的值不变， 已在 dropout
+之后仍然保证数据的自规范性。 通过随机将激活设置为负饱和值，Alpha Dropout
+非常适合按比例缩放的指数线性单元（SELU）。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{rate}: float，丢弃概率（与 \texttt{Dropout} 相同）。
+  这个乘性噪声的标准差为 \texttt{sqrt(rate\ /\ (1\ -\ rate))}。
+\item
+  \textbf{seed}: 用作随机种子的 Python 整数。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+可以是任意的。 如果将该层作为模型的第一层，则需要指定
+\texttt{input\_shape} 参数 （整数元组，不包含样本数量的维度）。
+
+\textbf{输出尺寸}
+
+与输入相同。
+
+\textbf{参考文献}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://arxiv.org/abs/1706.02515}{Self-Normalizing Neural
+  Networks}
+\end{itemize}
+\newpage

@@ -1,0 +1,115 @@
+\section{评估标准 Metrics}
+\subsection{评价函数的用法}\label{ux8bc4ux4ef7ux51fdux6570ux7684ux7528ux6cd5}
+
+评价函数用于评估当前训练模型的性能。当模型编译后（compile），评价函数应该作为
+\texttt{metrics} 的参数来输入。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(loss}\OperatorTok{=}\StringTok{'mean_squared_error'}\NormalTok{,}
+              \NormalTok{optimizer}\OperatorTok{=}\StringTok{'sgd'}\NormalTok{,}
+              \NormalTok{metrics}\OperatorTok{=}\NormalTok{[}\StringTok{'mae'}\NormalTok{, }\StringTok{'acc'}\NormalTok{])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{metrics}
+
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(loss}\OperatorTok{=}\StringTok{'mean_squared_error'}\NormalTok{,}
+              \NormalTok{optimizer}\OperatorTok{=}\StringTok{'sgd'}\NormalTok{,}
+              \NormalTok{metrics}\OperatorTok{=}\NormalTok{[metrics.mae, metrics.categorical_accuracy])}
+\end{Highlighting}
+\end{Shaded}
+
+评价函数和 \hyperref[losses]{损失函数}
+相似，只不过评价函数的结果不会用于训练过程中。
+
+我们可以传递已有的评价函数名称，或者传递一个自定义的 Theano/TensorFlow
+函数来使用（查阅\hyperref[custom-metrics]{自定义评价函数}）。
+
+\subsubsection{参数}\label{ux53c2ux6570}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{y\_true}: 真实标签，Theano/Tensorflow 张量。
+\item
+  \textbf{y\_pred}: 预测值。和 y\_true 相同尺寸的 Theano/TensorFlow
+  张量。
+\end{itemize}
+
+\subsubsection{返回值}\label{ux8fd4ux56deux503c}
+
+~返回一个表示全部数据点平均值的张量。
+
+
+
+\subsection{可使用的评价函数}\label{ux53efux4f7fux7528ux7684ux8bc4ux4ef7ux51fdux6570}
+
+\subsubsection{binary\_accuracy}\label{binaryux5faccuracy}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{binary_accuracy(y_true, y_pred)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{categorical\_accuracy}\label{categoricalux5faccuracy}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{categorical_accuracy(y_true, y_pred)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{sparse\_categorical\_accuracy}\label{sparseux5fcategoricalux5faccuracy}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{sparse_categorical_accuracy(y_true, y_pred)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{top\_k\_categorical\_accuracy}\label{topux5fkux5fcategoricalux5faccuracy}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{top_k_categorical_accuracy(y_true, y_pred, k}\OperatorTok{=}\DecValTok{5}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{sparse\_top\_k\_categorical\_accuracy}\label{sparseux5ftopux5fkux5fcategoricalux5faccuracy}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{sparse_top_k_categorical_accuracy(y_true, y_pred, k}\OperatorTok{=}\DecValTok{5}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsection{自定义评价函数}\label{custom-metrics}
+
+自定义评价函数应该在编译的时候（compile）传递进去。该函数需要以
+\texttt{(y\_true,\ y\_pred)} 作为输入参数，并返回一个张量作为输出结果。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{import} \NormalTok{keras.backend }\ImportTok{as} \NormalTok{K}
+
+\KeywordTok{def} \NormalTok{mean_pred(y_true, y_pred):}
+    \ControlFlowTok{return} \NormalTok{K.mean(y_pred)}
+
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{,}
+              \NormalTok{loss}\OperatorTok{=}\StringTok{'binary_crossentropy'}\NormalTok{,}
+              \NormalTok{metrics}\OperatorTok{=}\NormalTok{[}\StringTok{'accuracy'}\NormalTok{, mean_pred])}
+\end{Highlighting}
+\end{Shaded}
+\newpage

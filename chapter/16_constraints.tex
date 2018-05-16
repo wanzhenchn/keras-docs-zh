@@ -1,0 +1,38 @@
+\section{约束 Constraints}\label{constraints}
+\subsection{约束使用}
+来自\texttt{constraints}模块的函数允许在优化期间对网络参数设置约束（例如，非负）。
+
+惩罚以每层为基础进行。
+确切的API将取决于层，但层\texttt{密集}，\texttt{Conv1D}，\texttt{Conv2D}和\texttt{Conv3D}具有统一的API。
+这些图层显示2个关键字参数：
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{kernel\_constraint} 为主权重矩阵。
+\item
+  \texttt{bias\_constraint} 为偏见。
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.constraints }\ImportTok{import} \NormalTok{max_norm}
+\NormalTok{model.add(Dense(}\DecValTok{64}\NormalTok{, kernel_constraint}\OperatorTok{=}\NormalTok{max_norm(}\DecValTok{2}\NormalTok{.)))}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{可用的约束}\label{ux53efux7528ux7684ux7ea6ux675f}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{max\_norm(max\_value=2, axis=0)}: 最大范数约束
+\item
+  \textbf{non\_neg()}: 非负面约束
+\item
+  \textbf{unit\_norm(axis=0)}: 单位规范约束
+\item
+  \textbf{min\_max\_norm(min\_value=0.0, max\_value=1.0, rate=1.0,
+  axis=0)}: 最小/最大范数约束
+\end{itemize}
+\newpage

@@ -1,0 +1,109 @@
+
+\subsection{层封装器 wrappers  }
+\subsubsection{TimeDistributed {\href{https://github.com/keras-team/keras/blob/master/keras/layers/wrappers.py\#L104}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.TimeDistributed(layer)}
+\end{Highlighting}
+\end{Shaded}
+
+这个封装器将一个层应用于输入的每个时间片。
+
+输入至少为 3D，且第一个维度应该是时间所表示的维度。
+
+考虑 32 个样本的一个 batch， 其中每个样本是 10 个 16 维向量的序列。
+那么这个 batch 的输入尺寸为 \texttt{(32,\ 10,\ 16)}， 而
+\texttt{input\_shape} 不包含样本数量的维度，为 \texttt{(10,\ 16)}。
+
+你可以使用 \texttt{TimeDistributed} 来将 \texttt{Dense} 层独立地应用到
+这 10 个时间步的每一个：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 作为模型第一层}
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(TimeDistributed(Dense(}\DecValTok{8}\NormalTok{), input_shape}\OperatorTok{=}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{16}\NormalTok{)))}
+\CommentTok{# 现在 model.output_shape == (None, 10, 8)}
+\end{Highlighting}
+\end{Shaded}
+
+输出的尺寸为 \texttt{(32,\ 10,\ 8)}。
+
+在后续的层中，将不再需要 \texttt{input\_shape}：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model.add(TimeDistributed(Dense(}\DecValTok{32}\NormalTok{)))}
+\CommentTok{# 现在 model.output_shape == (None, 10, 32)}
+\end{Highlighting}
+\end{Shaded}
+
+输出的尺寸为 \texttt{(32,\ 10,\ 32)}。
+
+\texttt{TimeDistributed} 可以应用于任意层，不仅仅是 \texttt{Dense}，
+例如运用于 \texttt{Conv2D} 层：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(TimeDistributed(Conv2D(}\DecValTok{64}\NormalTok{, (}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{)),}
+                          \NormalTok{input_shape}\OperatorTok{=}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{299}\NormalTok{, }\DecValTok{299}\NormalTok{, }\DecValTok{3}\NormalTok{)))}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{layer}: 一个网络层实例。
+\end{itemize}
+
+
+
+\subsubsection{Bidirectional {\href{https://github.com/keras-team/keras/blob/master/keras/layers/wrappers.py\#L221}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Bidirectional(layer, merge_mode}\OperatorTok{=}\StringTok{'concat'}\NormalTok{, weights}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+RNN 的双向封装器，对序列进行前向和后向计算。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{layer}: \texttt{Recurrent} 实例。
+\item
+  \textbf{merge\_mode}: 前向和后向 RNN 的输出的结合模式。 为 \{'sum',
+  'mul', 'concat', 'ave', None\} 其中之一。 如果是
+  None，输出不会被结合，而是作为一个列表被返回。
+\end{itemize}
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果参数 \texttt{merge\_mode} 非法。
+\end{itemize}
+
+\textbf{例}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Bidirectional(LSTM(}\DecValTok{10}\NormalTok{, return_sequences}\OperatorTok{=}\VariableTok{True}\NormalTok{),}
+                        \NormalTok{input_shape}\OperatorTok{=}\NormalTok{(}\DecValTok{5}\NormalTok{, }\DecValTok{10}\NormalTok{)))}
+\NormalTok{model.add(Bidirectional(LSTM(}\DecValTok{10}\NormalTok{)))}
+\NormalTok{model.add(Dense(}\DecValTok{5}\NormalTok{))}
+\NormalTok{model.add(Activation(}\StringTok{'softmax'}\NormalTok{))}
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(loss}\OperatorTok{=}\StringTok{'categorical_crossentropy'}\NormalTok{, optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\newpage

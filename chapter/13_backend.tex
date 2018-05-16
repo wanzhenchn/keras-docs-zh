@@ -1,0 +1,4898 @@
+
+\section{后端 Backend}\label{keras-backend}
+
+\subsection{什么是 「后端」？}
+
+Keras
+是一个模型级库，为开发深度学习模型提供了高层次的构建模块。它不处理诸如张量乘积和卷积等低级操作。相反，它依赖于一个专门的、优化的张量操作库来完成这个操作，它可以作为
+Keras 的「后端引擎」。相比单独地选择一个张量库，而将 Keras
+的实现与该库相关联，Keras
+以模块方式处理这个问题，并且可以将几个不同的后端引擎无缝嵌入到 Keras
+中。
+
+目前，Keras 有三个后端实现可用: \textbf{TensorFlow}
+后端，\textbf{Theano} 后端，\textbf{CNTK} 后端。
+
+\begin{itemize}
+\tightlist
+\item
+  \href{http://www.tensorflow.org/}{TensorFlow} 是由 Google
+  开发的一个开源符号级张量操作框架。
+\item
+  \href{http://deeplearning.net/software/theano/}{Theano}
+  是由蒙特利尔大学的 LISA Lab 开发的一个开源符号级张量操作框架。
+\item
+  \href{https://www.microsoft.com/en-us/cognitive-toolkit/}{CNTK}
+  是由微软开发的一个深度学习开源工具包。
+\end{itemize}
+
+将来，我们可能会添加更多后端选项。
+
+
+\subsection{从一个后端切换到另一个后端}\label{ux4eceux4e00ux4e2aux540eux7aefux5207ux6362ux5230ux53e6ux4e00ux4e2aux540eux7aef}
+
+如果您至少运行过一次 Keras，您将在以下位置找到 Keras 配置文件：
+
+\texttt{\$HOME/.keras/keras.json}
+
+如果它不在那里，你可以创建它。
+
+\textbf{Windows用户注意事项：} 请将 \texttt{\$HOME} 修改为
+\texttt{\%USERPROFILE\%}。
+
+默认的配置文件如下所示：
+
+\begin{verbatim}
+{
+    "image_data_format": "channels_last",
+    "epsilon": 1e-07,
+    "floatx": "float32",
+    "backend": "tensorflow"
+}
+\end{verbatim}
+
+只需将字段 \texttt{backend} 更改为 \texttt{theano}，\texttt{tensorflow}
+或 \texttt{cntk}，Keras 将在下次运行 Keras 代码时使用新的配置。
+
+你也可以定义环境变量
+\texttt{KERAS\_BACKEND}，这会覆盖配置文件中定义的内容：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{KERAS_BACKEND=}\NormalTok{tensorflow }\KeywordTok{python} \NormalTok{-c }\StringTok{"from keras import backend"}
+\KeywordTok{Using} \NormalTok{TensorFlow backend.}
+\end{Highlighting}
+\end{Shaded}
+
+
+\subsection{keras.json
+详细配置}\label{keras.json-ux8be6ux7ec6ux914dux7f6e}
+
+The \texttt{keras.json} 配置文件包含以下设置：
+
+\begin{verbatim}
+{
+    "image_data_format": "channels_last",
+    "epsilon": 1e-07,
+    "floatx": "float32",
+    "backend": "tensorflow"
+}
+\end{verbatim}
+
+您可以通过编辑 \texttt{\$\ HOME/.keras/keras.json} 来更改这些设置。
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{image\_data\_format}: 字符串，\texttt{"channels\_last"} 或者
+  \texttt{"channels\_first"}。它指定了 Keras
+  将遵循的数据格式约定。(\texttt{keras.backend.image\_data\_format()}
+  返回它。) ~- 对于 2D 数据 (例如图像)，\texttt{"channels\_last"} 假定为
+  \texttt{(rows,\ cols,\ channels)}，而 \texttt{"channels\_first"}
+  假定为 \texttt{(channels,\ rows,\ cols)}。 ~- 对于 3D 数据，
+  \texttt{"channels\_last"} 假定为
+  \texttt{(conv\_dim1,\ conv\_dim2,\ conv\_dim3,\ channels)}，而
+  \texttt{"channels\_first"} 假定为
+  \texttt{(channels,\ conv\_dim1,\ conv\_dim2,\ conv\_dim3)}。
+\item
+  \texttt{epsilon}: 浮点数，用于避免在某些操作中被零除的数字模糊常量。
+\item
+  \texttt{floatx}: 字符串，\texttt{"float16"}, \texttt{"float32"}, 或
+  \texttt{"float64"}。默认浮点精度。
+\item
+  \texttt{backend}: 字符串， \texttt{"tensorflow"}, \texttt{"theano"},
+  或 \texttt{"cntk"}。
+\end{itemize}
+
+
+\subsection{使用抽象 Keras
+后端编写新代码}\label{ux4f7fux7528ux62bdux8c61-keras-ux540eux7aefux7f16ux5199ux65b0ux4ee3ux7801}
+
+如果你希望你编写的 Keras 模块与 Theano (\texttt{th}) 和 TensorFlow
+(\texttt{tf}) 兼容，则必须通过抽象 Keras 后端 API
+来编写它们。以下是一个介绍。
+
+您可以通过以下方式导入后端模块：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\end{Highlighting}
+\end{Shaded}
+
+下面的代码实例化一个输入占位符。它等价于 \texttt{tf.placeholder()} 或
+\texttt{th.tensor.matrix()}, \texttt{th.tensor.tensor3()}, 等等。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{inputs }\OperatorTok{=} \NormalTok{K.placeholder(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{5}\NormalTok{))}
+\CommentTok{# 同样可以：}
+\NormalTok{inputs }\OperatorTok{=} \NormalTok{K.placeholder(shape}\OperatorTok{=}\NormalTok{(}\VariableTok{None}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{5}\NormalTok{))}
+\CommentTok{# 同样可以：}
+\NormalTok{inputs }\OperatorTok{=} \NormalTok{K.placeholder(ndim}\OperatorTok{=}\DecValTok{3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+下面的代码实例化一个变量。它等价于 \texttt{tf.Variable()} 或
+\texttt{th.shared()}。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{import} \NormalTok{numpy }\ImportTok{as} \NormalTok{np}
+\NormalTok{val }\OperatorTok{=} \NormalTok{np.random.random((}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{5}\NormalTok{))}
+\NormalTok{var }\OperatorTok{=} \NormalTok{K.variable(value}\OperatorTok{=}\NormalTok{val)}
+
+\CommentTok{# 全 0 变量：}
+\NormalTok{var }\OperatorTok{=} \NormalTok{K.zeros(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{5}\NormalTok{))}
+\CommentTok{# 全 1 变量：}
+\NormalTok{var }\OperatorTok{=} \NormalTok{K.ones(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{5}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+你需要的大多数张量操作都可以像在 TensorFlow 或 Theano 中那样完成：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 使用随机数初始化张量}
+\NormalTok{b }\OperatorTok{=} \NormalTok{K.random_uniform_variable(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{), low}\OperatorTok{=}\DecValTok{0}\NormalTok{, high}\OperatorTok{=}\DecValTok{1}\NormalTok{) }\CommentTok{# 均匀分布}
+\NormalTok{c }\OperatorTok{=} \NormalTok{K.random_normal_variable(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{), mean}\OperatorTok{=}\DecValTok{0}\NormalTok{, scale}\OperatorTok{=}\DecValTok{1}\NormalTok{) }\CommentTok{# 高斯分布}
+\NormalTok{d }\OperatorTok{=} \NormalTok{K.random_normal_variable(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{), mean}\OperatorTok{=}\DecValTok{0}\NormalTok{, scale}\OperatorTok{=}\DecValTok{1}\NormalTok{)}
+
+\CommentTok{# 张量运算}
+\NormalTok{a }\OperatorTok{=} \NormalTok{b }\OperatorTok{+} \NormalTok{c }\OperatorTok{*} \NormalTok{K.}\BuiltInTok{abs}\NormalTok{(d)}
+\NormalTok{c }\OperatorTok{=} \NormalTok{K.dot(a, K.transpose(b))}
+\NormalTok{a }\OperatorTok{=} \NormalTok{K.}\BuiltInTok{sum}\NormalTok{(b, axis}\OperatorTok{=}\DecValTok{1}\NormalTok{)}
+\NormalTok{a }\OperatorTok{=} \NormalTok{K.softmax(b)}
+\NormalTok{a }\OperatorTok{=} \NormalTok{K.concatenate([b, c], axis}\OperatorTok{=-}\DecValTok{1}\NormalTok{)}
+\CommentTok{# 等等}
+\end{Highlighting}
+\end{Shaded}
+
+
+\subsection{后端函数}\label{ux540eux7aefux51fdux6570}
+
+\textbf{epsilon}\label{epsilon}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.epsilon()}
+\end{Highlighting}
+\end{Shaded}
+
+返回数字表达式中使用的模糊因子的值。
+
+\textbf{返回}
+
+一个浮点数。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \NormalTok{keras.backend.epsilon()}
+\FloatTok{1e-07}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{set\_epsilon}\label{setux5fepsilon}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.set_epsilon(e)}
+\end{Highlighting}
+\end{Shaded}
+
+设置数字表达式中使用的模糊因子的值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{e}: 浮点数。新的 epsilon 值。
+\end{itemize}
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\OperatorTok{>>>} \NormalTok{K.epsilon()}
+\FloatTok{1e-07}
+\OperatorTok{>>>} \NormalTok{K.set_epsilon(}\FloatTok{1e-05}\NormalTok{)}
+\OperatorTok{>>>} \NormalTok{K.epsilon()}
+\FloatTok{1e-05}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{floatx}\label{floatx}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.floatx()}
+\end{Highlighting}
+\end{Shaded}
+
+以字符串形式返回默认的浮点类型。 (例如，'float16', 'float32',
+'float64')。
+
+\textbf{返回}
+
+字符串，当前默认的浮点类型。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \NormalTok{keras.backend.floatx()}
+\CommentTok{'float32'}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{set\_floatx}\label{setux5ffloatx}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.set_floatx(floatx)}
+\end{Highlighting}
+\end{Shaded}
+
+设置默认的浮点类型。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{floatx}: 字符串，'float16', 'float32', 或 'float64'。
+\end{itemize}
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\OperatorTok{>>>} \NormalTok{K.floatx()}
+\CommentTok{'float32'}
+\OperatorTok{>>>} \NormalTok{K.set_floatx(}\StringTok{'float16'}\NormalTok{)}
+\OperatorTok{>>>} \NormalTok{K.floatx()}
+\CommentTok{'float16'}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{cast\_to\_floatx}\label{castux5ftoux5ffloatx}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.cast_to_floatx(x)}
+\end{Highlighting}
+\end{Shaded}
+
+将 Numpy 数组转换为默认的 Keras 浮点类型。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: Numpy 数组。
+\end{itemize}
+
+\textbf{返回}
+
+相同的 Numpy 数组，转换为它的新类型。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\OperatorTok{>>>} \NormalTok{K.floatx()}
+\CommentTok{'float32'}
+\OperatorTok{>>>} \NormalTok{arr }\OperatorTok{=} \NormalTok{numpy.array([}\FloatTok{1.0}\NormalTok{, }\FloatTok{2.0}\NormalTok{], dtype}\OperatorTok{=}\StringTok{'float64'}\NormalTok{)}
+\OperatorTok{>>>} \NormalTok{arr.dtype}
+\NormalTok{dtype(}\StringTok{'float64'}\NormalTok{)}
+\OperatorTok{>>>} \NormalTok{new_arr }\OperatorTok{=} \NormalTok{K.cast_to_floatx(arr)}
+\OperatorTok{>>>} \NormalTok{new_arr}
+\NormalTok{array([ }\DecValTok{1}\NormalTok{.,  }\DecValTok{2}\NormalTok{.], dtype}\OperatorTok{=}\NormalTok{float32)}
+\OperatorTok{>>>} \NormalTok{new_arr.dtype}
+\NormalTok{dtype(}\StringTok{'float32'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{image\_data\_format}\label{imageux5fdataux5fformat}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.image_data_format()}
+\end{Highlighting}
+\end{Shaded}
+
+返回默认图像数据格式约定 ('channels\_first' 或 'channels\_last')。
+
+\textbf{返回}
+
+一个字符串，\texttt{\textquotesingle{}channels\_first\textquotesingle{}}
+或 \texttt{\textquotesingle{}channels\_last\textquotesingle{}}
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \NormalTok{keras.backend.image_data_format()}
+\CommentTok{'channels_first'}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{set\_image\_data\_format}\label{setux5fimageux5fdataux5fformat}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.set_image_data_format(data_format)}
+\end{Highlighting}
+\end{Shaded}
+
+设置数据格式约定的值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{data\_format}:
+  字符串。\texttt{\textquotesingle{}channels\_first\textquotesingle{}}
+  或 \texttt{\textquotesingle{}channels\_last\textquotesingle{}}。
+\end{itemize}
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\OperatorTok{>>>} \NormalTok{K.image_data_format()}
+\CommentTok{'channels_first'}
+\OperatorTok{>>>} \NormalTok{K.set_image_data_format(}\StringTok{'channels_last'}\NormalTok{)}
+\OperatorTok{>>>} \NormalTok{K.image_data_format()}
+\CommentTok{'channels_last'}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{get\_uid}\label{getux5fuid}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.get_uid(prefix}\OperatorTok{=}\StringTok{''}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+获取默认计算图的 uid。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{prefix}: 图的可选前缀。
+\end{itemize}
+
+\textbf{返回}
+
+图的唯一标识符。
+
+
+\textbf{reset\_uids}\label{resetux5fuids}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.reset_uids()}
+\end{Highlighting}
+\end{Shaded}
+
+重置图的标识符。
+
+
+\textbf{clear\_session}\label{clearux5fsession}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.clear_session()}
+\end{Highlighting}
+\end{Shaded}
+
+销毁当前的 TF 图并创建一个新图。
+
+有用于避免旧模型/网络层混乱。
+
+
+\textbf{manual\_variable\_initialization}\label{manualux5fvariableux5finitialization}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.manual_variable_initialization(value)}
+\end{Highlighting}
+\end{Shaded}
+
+设置变量手动初始化的标志。
+
+这个布尔标志决定了变量是否应该在实例化时初始化（默认），
+或者用户是否应该自己处理初始化 （例如通过
+\texttt{tf.initialize\_all\_variables()}）。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{value}: Python 布尔值。
+\end{itemize}
+
+
+\textbf{learning\_phase}\label{learningux5fphase}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.learning_phase()}
+\end{Highlighting}
+\end{Shaded}
+
+返回学习阶段的标志。
+
+学习阶段标志是一个布尔张量（0 = test，1 = train），
+它作为输入传递给任何的 Keras 函数，以在训练和测试 时执行不同的行为操作。
+
+\textbf{返回}
+
+学习阶段 (标量整数张量或 python 整数)。
+
+
+\textbf{set\_learning\_phase}\label{setux5flearningux5fphase}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.set_learning_phase(value)}
+\end{Highlighting}
+\end{Shaded}
+
+将学习阶段设置为固定值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{value}: 学习阶段的值，0 或 1（整数）。
+\end{itemize}
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 \texttt{value} 既不是 \texttt{0} 也不是
+  \texttt{1}。
+\end{itemize}
+
+
+\textbf{is\_sparse}\label{isux5fsparse}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.is_sparse(tensor)}
+\end{Highlighting}
+\end{Shaded}
+
+判断张量是否是稀疏张量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{tensor}: 一个张量实例。
+\end{itemize}
+
+\textbf{返回}
+
+布尔值。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\OperatorTok{>>>} \NormalTok{a }\OperatorTok{=} \NormalTok{K.placeholder((}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{), sparse}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\OperatorTok{>>>} \BuiltInTok{print}\NormalTok{(K.is_sparse(a))}
+\VariableTok{False}
+\OperatorTok{>>>} \NormalTok{b }\OperatorTok{=} \NormalTok{K.placeholder((}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{), sparse}\OperatorTok{=}\VariableTok{True}\NormalTok{)}
+\OperatorTok{>>>} \BuiltInTok{print}\NormalTok{(K.is_sparse(b))}
+\VariableTok{True}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{to\_dense}\label{toux5fdense}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.to_dense(tensor)}
+\end{Highlighting}
+\end{Shaded}
+
+将稀疏张量转换为稠密张量并返回。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{tensor}: 张量实例（可能稀疏）。
+\end{itemize}
+
+\textbf{返回}
+
+一个稠密张量。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\OperatorTok{>>>} \NormalTok{b }\OperatorTok{=} \NormalTok{K.placeholder((}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{), sparse}\OperatorTok{=}\VariableTok{True}\NormalTok{)}
+\OperatorTok{>>>} \BuiltInTok{print}\NormalTok{(K.is_sparse(b))}
+\VariableTok{True}
+\OperatorTok{>>>} \NormalTok{c }\OperatorTok{=} \NormalTok{K.to_dense(b)}
+\OperatorTok{>>>} \BuiltInTok{print}\NormalTok{(K.is_sparse(c))}
+\VariableTok{False}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{variable}\label{variable}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.variable(value, dtype}\OperatorTok{=}\VariableTok{None}\NormalTok{, name}\OperatorTok{=}\VariableTok{None}\NormalTok{, constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+实例化一个变量并返回它。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{value}: Numpy 数组，张量的初始值。
+\item
+  \textbf{dtype}: 张量类型。
+\item
+  \textbf{name}: 张量的可选名称字符串。
+\item
+  \textbf{constraint}: 在优化器更新后应用于变量的可选投影函数。
+\end{itemize}
+
+\textbf{返回}
+
+变量实例（包含 Keras 元数据）
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\OperatorTok{>>>} \NormalTok{val }\OperatorTok{=} \NormalTok{np.array([[}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{], [}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{]])}
+\OperatorTok{>>>} \NormalTok{kvar }\OperatorTok{=} \NormalTok{K.variable(value}\OperatorTok{=}\NormalTok{val, dtype}\OperatorTok{=}\StringTok{'float64'}\NormalTok{, name}\OperatorTok{=}\StringTok{'example_var'}\NormalTok{)}
+\OperatorTok{>>>} \NormalTok{K.dtype(kvar)}
+\CommentTok{'float64'}
+\OperatorTok{>>>} \BuiltInTok{print}\NormalTok{(kvar)}
+\NormalTok{example_var}
+\OperatorTok{>>>} \NormalTok{K.}\BuiltInTok{eval}\NormalTok{(kvar)}
+\NormalTok{array([[ }\DecValTok{1}\NormalTok{.,  }\DecValTok{2}\NormalTok{.],}
+       \NormalTok{[ }\DecValTok{3}\NormalTok{.,  }\DecValTok{4}\NormalTok{.]])}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{constant}\label{constant}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.constant(value, dtype}\OperatorTok{=}\VariableTok{None}\NormalTok{, shape}\OperatorTok{=}\VariableTok{None}\NormalTok{, name}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+创建一个常数张量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{value}: 一个常数值（或列表）
+\item
+  \textbf{dtype}: 结果张量的元素类型。
+\item
+  \textbf{shape}: 可选的结果张量的尺寸。
+\item
+  \textbf{name}: 可选的张量的名称。
+\end{itemize}
+
+\textbf{返回}
+
+一个常数张量。
+
+
+\textbf{is\_keras\_tensor}\label{isux5fkerasux5ftensor}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.is_keras_tensor(x)}
+\end{Highlighting}
+\end{Shaded}
+
+判断 \texttt{x} 是否是 Keras 张量
+
+「Keras张量」是由 Keras 层（\texttt{Layer}类）或 \texttt{Input}
+返回的张量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 候选张量。
+\end{itemize}
+
+\textbf{返回}
+
+布尔值：参数是否是 Keras 张量。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 \texttt{x} 不是一个符号张量。
+\end{itemize}
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Input, Dense}
+\OperatorTok{>>>} \NormalTok{np_var }\OperatorTok{=} \NormalTok{numpy.array([}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{])}
+\OperatorTok{>>>} \NormalTok{K.is_keras_tensor(np_var) }\CommentTok{# 一个 Numpy 数组不是一个符号张量。}
+\PreprocessorTok{ValueError}
+\OperatorTok{>>>} \NormalTok{k_var }\OperatorTok{=} \NormalTok{tf.placeholder(}\StringTok{'float32'}\NormalTok{, shape}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{))}
+\OperatorTok{>>>} \NormalTok{K.is_keras_tensor(k_var) }\CommentTok{# 在 Keras 之外间接创建的变量不是 Keras 张量。}
+\VariableTok{False}
+\OperatorTok{>>>} \NormalTok{keras_var }\OperatorTok{=} \NormalTok{K.variable(np_var)}
+\OperatorTok{>>>} \NormalTok{K.is_keras_tensor(keras_var)  }\CommentTok{# Keras 后端创建的变量不是 Keras 张量。}
+\VariableTok{False}
+\OperatorTok{>>>} \NormalTok{keras_placeholder }\OperatorTok{=} \NormalTok{K.placeholder(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{5}\NormalTok{))}
+\OperatorTok{>>>} \NormalTok{K.is_keras_tensor(keras_placeholder)  }\CommentTok{# 占位符不是 Keras 张量。}
+\VariableTok{False}
+\OperatorTok{>>>} \NormalTok{keras_input }\OperatorTok{=} \NormalTok{Input([}\DecValTok{10}\NormalTok{])}
+\OperatorTok{>>>} \NormalTok{K.is_keras_tensor(keras_input) }\CommentTok{# 输入 Input 是 Keras 张量。}
+\VariableTok{True}
+\OperatorTok{>>>} \NormalTok{keras_layer_output }\OperatorTok{=} \NormalTok{Dense(}\DecValTok{10}\NormalTok{)(keras_input)}
+\OperatorTok{>>>} \NormalTok{K.is_keras_tensor(keras_layer_output) }\CommentTok{# 任何 Keras 层输出都是 Keras 张量。}
+\VariableTok{True}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{placeholder}\label{placeholder}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.placeholder(shape}\OperatorTok{=}\VariableTok{None}\NormalTok{, ndim}\OperatorTok{=}\VariableTok{None}\NormalTok{, dtype}\OperatorTok{=}\VariableTok{None}\NormalTok{, sparse}\OperatorTok{=}\VariableTok{False}\NormalTok{, name}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+实例化一个占位符张量并返回它。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{shape}: 占位符尺寸 (整数元组，可能包含 \texttt{None} 项)。
+\item
+  \textbf{ndim}: 张量的轴数。 \{\texttt{shape}, \texttt{ndim}\}
+  至少一个需要被指定。 如果两个都被指定，那么使用 \texttt{shape}。
+\item
+  \textbf{dtype}: 占位符类型。
+\item
+  \textbf{sparse}: 布尔值，占位符是否应该有一个稀疏类型。
+\item
+  \textbf{name}: 可选的占位符的名称字符串。
+\end{itemize}
+
+\textbf{返回}
+
+张量实例（包括 Keras 元数据）。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\OperatorTok{>>>} \NormalTok{input_ph }\OperatorTok{=} \NormalTok{K.placeholder(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{5}\NormalTok{))}
+\OperatorTok{>>>} \NormalTok{input_ph._keras_shape}
+\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{5}\NormalTok{)}
+\OperatorTok{>>>} \NormalTok{input_ph}
+\OperatorTok{<}\NormalTok{tf.Tensor }\StringTok{'Placeholder_4:0'} \NormalTok{shape}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{5}\NormalTok{) dtype}\OperatorTok{=}\NormalTok{float32}\OperatorTok{>}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{is\_placeholder}\label{isux5fplaceholder}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.is_placeholder(x)}
+\end{Highlighting}
+\end{Shaded}
+
+判断 \texttt{x} 是否是占位符。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 候选占位符。
+\end{itemize}
+
+\textbf{返回}
+
+布尔值。
+
+
+\textbf{shape}\label{shape}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.shape(x)}
+\end{Highlighting}
+\end{Shaded}
+
+返回张量或变量的符号尺寸。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+符号尺寸（它本身就是张量）。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# TensorFlow 例子}
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\OperatorTok{>>>} \NormalTok{tf_session }\OperatorTok{=} \NormalTok{K.get_session()}
+\OperatorTok{>>>} \NormalTok{val }\OperatorTok{=} \NormalTok{np.array([[}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{], [}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{]])}
+\OperatorTok{>>>} \NormalTok{kvar }\OperatorTok{=} \NormalTok{K.variable(value}\OperatorTok{=}\NormalTok{val)}
+\OperatorTok{>>>} \NormalTok{inputs }\OperatorTok{=} \NormalTok{keras.backend.placeholder(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{5}\NormalTok{))}
+\OperatorTok{>>>} \NormalTok{K.shape(kvar)}
+\OperatorTok{<}\NormalTok{tf.Tensor }\StringTok{'Shape_8:0'} \NormalTok{shape}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{,) dtype}\OperatorTok{=}\NormalTok{int32}\OperatorTok{>}
+\OperatorTok{>>>} \NormalTok{K.shape(inputs)}
+\OperatorTok{<}\NormalTok{tf.Tensor }\StringTok{'Shape_9:0'} \NormalTok{shape}\OperatorTok{=}\NormalTok{(}\DecValTok{3}\NormalTok{,) dtype}\OperatorTok{=}\NormalTok{int32}\OperatorTok{>}
+\CommentTok{# 要得到整数尺寸 (相反，你可以使用 K.int_shape(x))}
+\OperatorTok{>>>} \NormalTok{K.shape(kvar).}\BuiltInTok{eval}\NormalTok{(session}\OperatorTok{=}\NormalTok{tf_session)}
+\NormalTok{array([}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{], dtype}\OperatorTok{=}\NormalTok{int32)}
+\OperatorTok{>>>} \NormalTok{K.shape(inputs).}\BuiltInTok{eval}\NormalTok{(session}\OperatorTok{=}\NormalTok{tf_session)}
+\NormalTok{array([}\DecValTok{2}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{5}\NormalTok{], dtype}\OperatorTok{=}\NormalTok{int32)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{int\_shape}\label{intux5fshape}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.int_shape(x)}
+\end{Highlighting}
+\end{Shaded}
+
+返回张量或变量的尺寸，作为 int 或 None 项的元组。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+整数元组（或 None 项）。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\OperatorTok{>>>} \NormalTok{inputs }\OperatorTok{=} \NormalTok{K.placeholder(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{5}\NormalTok{))}
+\OperatorTok{>>>} \NormalTok{K.int_shape(inputs)}
+\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{5}\NormalTok{)}
+\OperatorTok{>>>} \NormalTok{val }\OperatorTok{=} \NormalTok{np.array([[}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{], [}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{]])}
+\OperatorTok{>>>} \NormalTok{kvar }\OperatorTok{=} \NormalTok{K.variable(value}\OperatorTok{=}\NormalTok{val)}
+\OperatorTok{>>>} \NormalTok{K.int_shape(kvar)}
+\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{ndim}\label{ndim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.ndim(x)}
+\end{Highlighting}
+\end{Shaded}
+
+以整数形式返回张量中的轴数。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+Integer (scalar), number of axes.
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\OperatorTok{>>>} \NormalTok{inputs }\OperatorTok{=} \NormalTok{K.placeholder(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{5}\NormalTok{))}
+\OperatorTok{>>>} \NormalTok{val }\OperatorTok{=} \NormalTok{np.array([[}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{], [}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{]])}
+\OperatorTok{>>>} \NormalTok{kvar }\OperatorTok{=} \NormalTok{K.variable(value}\OperatorTok{=}\NormalTok{val)}
+\OperatorTok{>>>} \NormalTok{K.ndim(inputs)}
+\DecValTok{3}
+\OperatorTok{>>>} \NormalTok{K.ndim(kvar)}
+\DecValTok{2}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{dtype}\label{dtype}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.dtype(x)}
+\end{Highlighting}
+\end{Shaded}
+
+以字符串形式返回 Keras 张量或变量的 dtype。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+字符串，\texttt{x} 的 dtype。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\OperatorTok{>>>} \NormalTok{K.dtype(K.placeholder(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{,}\DecValTok{4}\NormalTok{,}\DecValTok{5}\NormalTok{)))}
+\CommentTok{'float32'}
+\OperatorTok{>>>} \NormalTok{K.dtype(K.placeholder(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{,}\DecValTok{4}\NormalTok{,}\DecValTok{5}\NormalTok{), dtype}\OperatorTok{=}\StringTok{'float32'}\NormalTok{))}
+\CommentTok{'float32'}
+\OperatorTok{>>>} \NormalTok{K.dtype(K.placeholder(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{,}\DecValTok{4}\NormalTok{,}\DecValTok{5}\NormalTok{), dtype}\OperatorTok{=}\StringTok{'float64'}\NormalTok{))}
+\CommentTok{'float64'}
+\CommentTok{# Keras 变量}
+\OperatorTok{>>>} \NormalTok{kvar }\OperatorTok{=} \NormalTok{K.variable(np.array([[}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{], [}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{]]))}
+\OperatorTok{>>>} \NormalTok{K.dtype(kvar)}
+\CommentTok{'float32_ref'}
+\OperatorTok{>>>} \NormalTok{kvar }\OperatorTok{=} \NormalTok{K.variable(np.array([[}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{], [}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{]]), dtype}\OperatorTok{=}\StringTok{'float32'}\NormalTok{)}
+\OperatorTok{>>>} \NormalTok{K.dtype(kvar)}
+\CommentTok{'float32_ref'}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{eval}\label{eval}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.}\BuiltInTok{eval}\NormalTok{(x)}
+\end{Highlighting}
+\end{Shaded}
+
+估计一个变量的值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 变量。
+\end{itemize}
+
+\textbf{返回}
+
+Numpy 数组。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\OperatorTok{>>>} \NormalTok{kvar }\OperatorTok{=} \NormalTok{K.variable(np.array([[}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{], [}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{]]), dtype}\OperatorTok{=}\StringTok{'float32'}\NormalTok{)}
+\OperatorTok{>>>} \NormalTok{K.}\BuiltInTok{eval}\NormalTok{(kvar)}
+\NormalTok{array([[ }\DecValTok{1}\NormalTok{.,  }\DecValTok{2}\NormalTok{.],}
+       \NormalTok{[ }\DecValTok{3}\NormalTok{.,  }\DecValTok{4}\NormalTok{.]], dtype}\OperatorTok{=}\NormalTok{float32)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{zeros}\label{zeros}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.zeros(shape, dtype}\OperatorTok{=}\VariableTok{None}\NormalTok{, name}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+实例化一个全零变量并返回它。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{shape}: 整数元组，返回的Keras变量的尺寸。
+\item
+  \textbf{dtype}: 字符串，返回的 Keras 变量的数据类型。
+\item
+  \textbf{name}: 字符串，返回的 Keras 变量的名称。
+\end{itemize}
+
+\textbf{返回}
+
+一个变量（包括 Keras 元数据），用 \texttt{0.0} 填充。 请注意，如果
+\texttt{shape} 是符号化的，我们不能返回一个变量，
+而会返回一个动态尺寸的张量。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\OperatorTok{>>>} \NormalTok{kvar }\OperatorTok{=} \NormalTok{K.zeros((}\DecValTok{3}\NormalTok{,}\DecValTok{4}\NormalTok{))}
+\OperatorTok{>>>} \NormalTok{K.}\BuiltInTok{eval}\NormalTok{(kvar)}
+\NormalTok{array([[ }\DecValTok{0}\NormalTok{.,  }\DecValTok{0}\NormalTok{.,  }\DecValTok{0}\NormalTok{.,  }\DecValTok{0}\NormalTok{.],}
+       \NormalTok{[ }\DecValTok{0}\NormalTok{.,  }\DecValTok{0}\NormalTok{.,  }\DecValTok{0}\NormalTok{.,  }\DecValTok{0}\NormalTok{.],}
+       \NormalTok{[ }\DecValTok{0}\NormalTok{.,  }\DecValTok{0}\NormalTok{.,  }\DecValTok{0}\NormalTok{.,  }\DecValTok{0}\NormalTok{.]], dtype}\OperatorTok{=}\NormalTok{float32)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{ones}\label{ones}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.ones(shape, dtype}\OperatorTok{=}\VariableTok{None}\NormalTok{, name}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+实例化一个全一变量并返回它。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{shape}: 整数元组，返回的Keras变量的尺寸。
+\item
+  \textbf{dtype}: 字符串，返回的 Keras 变量的数据类型。
+\item
+  \textbf{name}: 字符串，返回的 Keras 变量的名称。
+\end{itemize}
+
+\textbf{返回}
+
+一个 Keras 变量，用 \texttt{1.0} 填充。 请注意，如果 \texttt{shape}
+是符号化的，我们不能返回一个变量， 而会返回一个动态尺寸的张量。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\OperatorTok{>>>} \NormalTok{kvar }\OperatorTok{=} \NormalTok{K.ones((}\DecValTok{3}\NormalTok{,}\DecValTok{4}\NormalTok{))}
+\OperatorTok{>>>} \NormalTok{K.}\BuiltInTok{eval}\NormalTok{(kvar)}
+\NormalTok{array([[ }\DecValTok{1}\NormalTok{.,  }\DecValTok{1}\NormalTok{.,  }\DecValTok{1}\NormalTok{.,  }\DecValTok{1}\NormalTok{.],}
+       \NormalTok{[ }\DecValTok{1}\NormalTok{.,  }\DecValTok{1}\NormalTok{.,  }\DecValTok{1}\NormalTok{.,  }\DecValTok{1}\NormalTok{.],}
+       \NormalTok{[ }\DecValTok{1}\NormalTok{.,  }\DecValTok{1}\NormalTok{.,  }\DecValTok{1}\NormalTok{.,  }\DecValTok{1}\NormalTok{.]], dtype}\OperatorTok{=}\NormalTok{float32)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{eye}\label{eye}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.eye(size, dtype}\OperatorTok{=}\VariableTok{None}\NormalTok{, name}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+实例化一个单位矩阵并返回它。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{size}: 整数，行/列的数目。
+\item
+  \textbf{dtype}: 字符串，返回的 Keras 变量的数据类型。
+\item
+  \textbf{name}: 字符串，返回的 Keras 变量的名称。
+\end{itemize}
+
+\textbf{返回}
+
+Keras 变量，一个单位矩阵。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\OperatorTok{>>>} \NormalTok{kvar }\OperatorTok{=} \NormalTok{K.eye(}\DecValTok{3}\NormalTok{)}
+\OperatorTok{>>>} \NormalTok{K.}\BuiltInTok{eval}\NormalTok{(kvar)}
+\NormalTok{array([[ }\DecValTok{1}\NormalTok{.,  }\DecValTok{0}\NormalTok{.,  }\DecValTok{0}\NormalTok{.],}
+       \NormalTok{[ }\DecValTok{0}\NormalTok{.,  }\DecValTok{1}\NormalTok{.,  }\DecValTok{0}\NormalTok{.],}
+       \NormalTok{[ }\DecValTok{0}\NormalTok{.,  }\DecValTok{0}\NormalTok{.,  }\DecValTok{1}\NormalTok{.]], dtype}\OperatorTok{=}\NormalTok{float32)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{zeros\_like}\label{zerosux5flike}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.zeros_like(x, dtype}\OperatorTok{=}\VariableTok{None}\NormalTok{, name}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+实例化与另一个张量相同尺寸的全零变量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: Keras 变量或 Keras 张量。
+\item
+  \textbf{dtype}: 字符串，返回的 Keras 变量的类型。 如果为 None，则使用
+  x 的类型。
+\item
+  \textbf{name}: 字符串，所创建的变量的名称。
+\end{itemize}
+
+\textbf{返回}
+
+一个 Keras 变量，其形状为 x，用零填充。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\OperatorTok{>>>} \NormalTok{kvar }\OperatorTok{=} \NormalTok{K.variable(np.random.random((}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{)))}
+\OperatorTok{>>>} \NormalTok{kvar_zeros }\OperatorTok{=} \NormalTok{K.zeros_like(kvar)}
+\OperatorTok{>>>} \NormalTok{K.}\BuiltInTok{eval}\NormalTok{(kvar_zeros)}
+\NormalTok{array([[ }\DecValTok{0}\NormalTok{.,  }\DecValTok{0}\NormalTok{.,  }\DecValTok{0}\NormalTok{.],}
+       \NormalTok{[ }\DecValTok{0}\NormalTok{.,  }\DecValTok{0}\NormalTok{.,  }\DecValTok{0}\NormalTok{.]], dtype}\OperatorTok{=}\NormalTok{float32)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{ones\_like}\label{onesux5flike}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.ones_like(x, dtype}\OperatorTok{=}\VariableTok{None}\NormalTok{, name}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+实例化与另一个张量相同形状的全一变量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: Keras 变量或 Keras 张量。
+\item
+  \textbf{dtype}: 字符串，返回的 Keras 变量的类型。 如果为 None，则使用
+  x 的类型。
+\item
+  \textbf{name}: 字符串，所创建的变量的名称。
+\end{itemize}
+
+\textbf{返回}
+
+一个 Keras 变量，其形状为 x，用一填充。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\OperatorTok{>>>} \NormalTok{kvar }\OperatorTok{=} \NormalTok{K.variable(np.random.random((}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{)))}
+\OperatorTok{>>>} \NormalTok{kvar_ones }\OperatorTok{=} \NormalTok{K.ones_like(kvar)}
+\OperatorTok{>>>} \NormalTok{K.}\BuiltInTok{eval}\NormalTok{(kvar_ones)}
+\NormalTok{array([[ }\DecValTok{1}\NormalTok{.,  }\DecValTok{1}\NormalTok{.,  }\DecValTok{1}\NormalTok{.],}
+       \NormalTok{[ }\DecValTok{1}\NormalTok{.,  }\DecValTok{1}\NormalTok{.,  }\DecValTok{1}\NormalTok{.]], dtype}\OperatorTok{=}\NormalTok{float32)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{identity}\label{identity}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.identity(x, name}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+返回与输入张量相同内容的张量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 输入张量。
+\item
+  \textbf{name}: 字符串，所创建的变量的名称。
+\end{itemize}
+
+\textbf{返回}
+
+一个相同尺寸、类型和内容的张量。
+
+
+\textbf{random\_uniform\_variable}\label{randomux5funiformux5fvariable}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.random_uniform_variable(shape, low, high, dtype}\OperatorTok{=}\VariableTok{None}\NormalTok{, name}\OperatorTok{=}\VariableTok{None}\NormalTok{, seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+使用从均匀分布中抽样出来的值来实例化变量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{shape}: 整数元组，返回的 Keras 变量的尺寸。
+\item
+  \textbf{low}: 浮点数，输出间隔的下界。
+\item
+  \textbf{high}: 浮点数，输出间隔的上界。
+\item
+  \textbf{dtype}: 字符串，返回的 Keras 变量的数据类型。
+\item
+  \textbf{name}: 字符串，返回的 Keras 变量的名称。
+\item
+  \textbf{seed}: 整数，随机种子。
+\end{itemize}
+
+\textbf{返回}
+
+一个 Keras 变量，以抽取的样本填充。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# TensorFlow 示例}
+\OperatorTok{>>>} \NormalTok{kvar }\OperatorTok{=} \NormalTok{K.random_uniform_variable((}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{), }\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{)}
+\OperatorTok{>>>} \NormalTok{kvar}
+\OperatorTok{<}\NormalTok{tensorflow.python.ops.variables.Variable }\BuiltInTok{object} \NormalTok{at }\BaseNTok{0x10ab40b10}\OperatorTok{>}
+\OperatorTok{>>>} \NormalTok{K.}\BuiltInTok{eval}\NormalTok{(kvar)}
+\NormalTok{array([[ }\FloatTok{0.10940075}\NormalTok{,  }\FloatTok{0.10047495}\NormalTok{,  }\FloatTok{0.476143}  \NormalTok{],}
+       \NormalTok{[ }\FloatTok{0.66137183}\NormalTok{,  }\FloatTok{0.00869417}\NormalTok{,  }\FloatTok{0.89220798}\NormalTok{]], dtype}\OperatorTok{=}\NormalTok{float32)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{random\_normal\_variable}\label{randomux5fnormalux5fvariable}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.random_normal_variable(shape, mean, scale, dtype}\OperatorTok{=}\VariableTok{None}\NormalTok{, name}\OperatorTok{=}\VariableTok{None}\NormalTok{, seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+使用从正态分布中抽取的值实例化一个变量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{shape}: 整数元组，返回的Keras变量的尺寸。
+\item
+  \textbf{mean}: 浮点型，正态分布平均值。
+\item
+  \textbf{scale}: 浮点型，正态分布标准差。
+\item
+  \textbf{dtype}: 字符串，返回的Keras变量的 dtype。
+\item
+  \textbf{name}: 字符串，返回的Keras变量的名称。
+\item
+  \textbf{seed}: 整数，随机种子。
+\end{itemize}
+
+\textbf{返回}
+
+一个 Keras 变量，以抽取的样本填充。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# TensorFlow 示例}
+\OperatorTok{>>>} \NormalTok{kvar }\OperatorTok{=} \NormalTok{K.random_normal_variable((}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{), }\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{)}
+\OperatorTok{>>>} \NormalTok{kvar}
+\OperatorTok{<}\NormalTok{tensorflow.python.ops.variables.Variable }\BuiltInTok{object} \NormalTok{at }\BaseNTok{0x10ab12dd0}\OperatorTok{>}
+\OperatorTok{>>>} \NormalTok{K.}\BuiltInTok{eval}\NormalTok{(kvar)}
+\NormalTok{array([[ }\FloatTok{1.19591331}\NormalTok{,  }\FloatTok{0.68685907}\NormalTok{, }\OperatorTok{-}\FloatTok{0.63814116}\NormalTok{],}
+       \NormalTok{[ }\FloatTok{0.92629528}\NormalTok{,  }\FloatTok{0.28055015}\NormalTok{,  }\FloatTok{1.70484698}\NormalTok{]], dtype}\OperatorTok{=}\NormalTok{float32)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{count\_params}\label{countux5fparams}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.count_params(x)}
+\end{Highlighting}
+\end{Shaded}
+
+返回 Keras 变量或张量中的静态元素数。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: Keras 变量或张量。
+\end{itemize}
+
+\textbf{返回}
+
+整数，\texttt{x} 中的元素数量，即，数组中静态维度的乘积。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \NormalTok{kvar }\OperatorTok{=} \NormalTok{K.zeros((}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{))}
+\OperatorTok{>>>} \NormalTok{K.count_params(kvar)}
+\DecValTok{6}
+\OperatorTok{>>>} \NormalTok{K.}\BuiltInTok{eval}\NormalTok{(kvar)}
+\NormalTok{array([[ }\DecValTok{0}\NormalTok{.,  }\DecValTok{0}\NormalTok{.,  }\DecValTok{0}\NormalTok{.],}
+       \NormalTok{[ }\DecValTok{0}\NormalTok{.,  }\DecValTok{0}\NormalTok{.,  }\DecValTok{0}\NormalTok{.]], dtype}\OperatorTok{=}\NormalTok{float32)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{cast}\label{cast}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.cast(x, dtype)}
+\end{Highlighting}
+\end{Shaded}
+
+将张量转换到不同的 dtype 并返回。
+
+你可以转换一个 Keras 变量，但它仍然返回一个 Keras 张量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: Keras 张量（或变量）。
+\item
+  \textbf{dtype}: 字符串，
+  (\texttt{\textquotesingle{}float16\textquotesingle{}},
+  \texttt{\textquotesingle{}float32\textquotesingle{}} 或
+  \texttt{\textquotesingle{}float64\textquotesingle{}})。
+\end{itemize}
+
+\textbf{返回}
+
+Keras 张量，类型为 \texttt{dtype}。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{backend }\ImportTok{as} \NormalTok{K}
+\OperatorTok{>>>} \BuiltInTok{input} \OperatorTok{=} \NormalTok{K.placeholder((}\DecValTok{2}\NormalTok{, }\DecValTok{3}\NormalTok{), dtype}\OperatorTok{=}\StringTok{'float32'}\NormalTok{)}
+\OperatorTok{>>>} \BuiltInTok{input}
+\OperatorTok{<}\NormalTok{tf.Tensor }\StringTok{'Placeholder_2:0'} \NormalTok{shape}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{3}\NormalTok{) dtype}\OperatorTok{=}\NormalTok{float32}\OperatorTok{>}
+\CommentTok{# It doesn't work in-place as below.}
+\OperatorTok{>>>} \NormalTok{K.cast(}\BuiltInTok{input}\NormalTok{, dtype}\OperatorTok{=}\StringTok{'float16'}\NormalTok{)}
+\OperatorTok{<}\NormalTok{tf.Tensor }\StringTok{'Cast_1:0'} \NormalTok{shape}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{3}\NormalTok{) dtype}\OperatorTok{=}\NormalTok{float16}\OperatorTok{>}
+\OperatorTok{>>>} \BuiltInTok{input}
+\OperatorTok{<}\NormalTok{tf.Tensor }\StringTok{'Placeholder_2:0'} \NormalTok{shape}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{3}\NormalTok{) dtype}\OperatorTok{=}\NormalTok{float32}\OperatorTok{>}
+\CommentTok{# you need to assign it.}
+\OperatorTok{>>>} \BuiltInTok{input} \OperatorTok{=} \NormalTok{K.cast(}\BuiltInTok{input}\NormalTok{, dtype}\OperatorTok{=}\StringTok{'float16'}\NormalTok{)}
+\OperatorTok{>>>} \BuiltInTok{input}
+\OperatorTok{<}\NormalTok{tf.Tensor }\StringTok{'Cast_2:0'} \NormalTok{shape}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{3}\NormalTok{) dtype}\OperatorTok{=}\NormalTok{float16}\OperatorTok{>}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{update}\label{update}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.update(x, new_x)}
+\end{Highlighting}
+\end{Shaded}
+
+将 \texttt{x} 的值更新为 \texttt{new\_x}。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 一个~\texttt{Variable}。
+\item
+  \textbf{new\_x}: 一个与 \texttt{x} 尺寸相同的张量。
+\end{itemize}
+
+\textbf{返回}
+
+更新后的变量 \texttt{x}。
+
+
+\textbf{update\_add}\label{updateux5fadd}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.update_add(x, increment)}
+\end{Highlighting}
+\end{Shaded}
+
+通过增加 \texttt{increment} 来更新 \texttt{x} 的值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 一个 \texttt{Variable}。
+\item
+  \textbf{increment}: 与 \texttt{x} 形状相同的张量。
+\end{itemize}
+
+\textbf{返回}
+
+更新后的变量 \texttt{x}。
+
+
+\textbf{update\_sub}\label{updateux5fsub}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.update_sub(x, decrement)}
+\end{Highlighting}
+\end{Shaded}
+
+通过减 \texttt{decrement} 来更新 \texttt{x} 的值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 一个 \texttt{Variable}。
+\item
+  \textbf{decrement}: 与 \texttt{x} 形状相同的张量。
+\end{itemize}
+
+\textbf{返回}
+
+更新后的变量 \texttt{x}。
+
+
+\textbf{moving\_average\_update}\label{movingux5faverageux5fupdate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.moving_average_update(x, value, momentum)}
+\end{Highlighting}
+\end{Shaded}
+
+计算变量的移动平均值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 一个 \texttt{Variable}。
+\item
+  \textbf{value}: 与 \texttt{x} 形状相同的张量。
+\item
+  \textbf{momentum}: 移动平均动量。
+\end{itemize}
+
+\textbf{返回}
+
+更新变量的操作。
+
+
+\textbf{dot}\label{dot}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.dot(x, y)}
+\end{Highlighting}
+\end{Shaded}
+
+将 2 个张量（和/或变量）相乘并返回一个\emph{张量}。
+
+当试图将 nD 张量与 nD 张量相乘时， 它会重现 Theano 行为。 (例如
+\texttt{(2,\ 3)\ *\ (4,\ 3,\ 5)\ -\textgreater{}\ (2,\ 4,\ 5)})
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{y}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量，\texttt{x} 和 \texttt{y} 的点积。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 张量之间的点积}
+\OperatorTok{>>>} \NormalTok{x }\OperatorTok{=} \NormalTok{K.placeholder(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{3}\NormalTok{))}
+\OperatorTok{>>>} \NormalTok{y }\OperatorTok{=} \NormalTok{K.placeholder(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{))}
+\OperatorTok{>>>} \NormalTok{xy }\OperatorTok{=} \NormalTok{K.dot(x, y)}
+\OperatorTok{>>>} \NormalTok{xy}
+\OperatorTok{<}\NormalTok{tf.Tensor }\StringTok{'MatMul_9:0'} \NormalTok{shape}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{4}\NormalTok{) dtype}\OperatorTok{=}\NormalTok{float32}\OperatorTok{>}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 张量之间的点积}
+\OperatorTok{>>>} \NormalTok{x }\OperatorTok{=} \NormalTok{K.placeholder(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{32}\NormalTok{, }\DecValTok{28}\NormalTok{, }\DecValTok{3}\NormalTok{))}
+\OperatorTok{>>>} \NormalTok{y }\OperatorTok{=} \NormalTok{K.placeholder(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{))}
+\OperatorTok{>>>} \NormalTok{xy }\OperatorTok{=} \NormalTok{K.dot(x, y)}
+\OperatorTok{>>>} \NormalTok{xy}
+\OperatorTok{<}\NormalTok{tf.Tensor }\StringTok{'MatMul_9:0'} \NormalTok{shape}\OperatorTok{=}\NormalTok{(}\DecValTok{32}\NormalTok{, }\DecValTok{28}\NormalTok{, }\DecValTok{4}\NormalTok{) dtype}\OperatorTok{=}\NormalTok{float32}\OperatorTok{>}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 类 Theano 行为的例子}
+\OperatorTok{>>>} \NormalTok{x }\OperatorTok{=} \NormalTok{K.random_uniform_variable(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{3}\NormalTok{), low}\OperatorTok{=}\DecValTok{0}\NormalTok{, high}\OperatorTok{=}\DecValTok{1}\NormalTok{)}
+\OperatorTok{>>>} \NormalTok{y }\OperatorTok{=} \NormalTok{K.ones((}\DecValTok{4}\NormalTok{, }\DecValTok{3}\NormalTok{, }\DecValTok{5}\NormalTok{))}
+\OperatorTok{>>>} \NormalTok{xy }\OperatorTok{=} \NormalTok{K.dot(x, y)}
+\OperatorTok{>>>} \NormalTok{K.int_shape(xy)}
+\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{5}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{batch\_dot}\label{batchux5fdot}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.batch_dot(x, y, axes}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+批量化的点积。
+
+当 \texttt{x} 和 \texttt{y} 是批量数据时， \texttt{batch\_dot} 用于计算
+\texttt{x} 和 \texttt{y} 的点积， 即尺寸为 \texttt{(batch\_size,\ :)}。
+
+\texttt{batch\_dot} 产生一个比输入尺寸更小的张量或变量。 如果维数减少到
+1，我们使用 \texttt{expand\_dims} 来确保 ndim 至少为 2。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: \texttt{ndim\ \textgreater{}=\ 2} 的 Keras 张量或变量。
+\item
+  \textbf{y}: \texttt{ndim\ \textgreater{}=\ 2} 的 Keras 张量或变量。
+\item
+  \textbf{axes}: 表示目标维度的整数或列表。 \texttt{axes{[}0{]}} 和
+  \texttt{axes{[}1{]}} 的长度必须相同。
+\end{itemize}
+
+\textbf{返回}
+
+一个尺寸等于 \texttt{x} 的尺寸（减去总和的维度）和 \texttt{y}
+的尺寸（减去批次维度和总和的维度）的连接的张量。 如果最后的秩为
+1，我们将它重新转换为 \texttt{(batch\_size,\ 1)}。
+
+\textbf{例子}
+
+假设 \texttt{x\ =\ {[}{[}1,\ 2{]},\ {[}3,\ 4{]}{]}} 和
+\texttt{y\ =\ {[}{[}5,\ 6{]},\ {[}7,\ 8{]}{]}}，
+\texttt{batch\_dot(x,\ y,\ axes=1)\ =\ {[}{[}17{]},\ {[}53{]}{]}} 是
+\texttt{x.dot(y.T)} 的主对角线， 尽管我们不需要计算非对角元素。
+
+尺寸推断： 让 \texttt{x} 的尺寸为 \texttt{(100,\ 20)}，以及 \texttt{y}
+的尺寸为 \texttt{(100,\ 30,\ 20)}。 如果 \texttt{axes} 是 (1,
+2)，要找出结果张量的尺寸， 循环 \texttt{x} 和~\texttt{y}
+的尺寸的每一个维度。
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{x.shape{[}0{]}} : 100 : 附加到输出形状，
+\item
+  \texttt{x.shape{[}1{]}} : 20 : 不附加到输出形状， \texttt{x}
+  的第一个维度已经被加和了 (\texttt{dot\_axes{[}0{]}} = 1)。
+\item
+  \texttt{y.shape{[}0{]}} : 100 : 不附加到输出形状，总是忽略 \texttt{y}
+  的第一维
+\item
+  \texttt{y.shape{[}1{]}} : 30 : 附加到输出形状，
+\item
+  \texttt{y.shape{[}2{]}} : 20 : 不附加到输出形状， \texttt{y}
+  的第二个维度已经被加和了 (\texttt{dot\_axes{[}0{]}} = 2)。
+  \texttt{output\_shape} = \texttt{(100,\ 30)}
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \NormalTok{x_batch }\OperatorTok{=} \NormalTok{K.ones(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{32}\NormalTok{, }\DecValTok{20}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\OperatorTok{>>>} \NormalTok{y_batch }\OperatorTok{=} \NormalTok{K.ones(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{32}\NormalTok{, }\DecValTok{30}\NormalTok{, }\DecValTok{20}\NormalTok{))}
+\OperatorTok{>>>} \NormalTok{xy_batch_dot }\OperatorTok{=} \NormalTok{K.batch_dot(x_batch, y_batch, axes}\OperatorTok{=}\NormalTok{[}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{])}
+\OperatorTok{>>>} \NormalTok{K.int_shape(xy_batch_dot)}
+\NormalTok{(}\DecValTok{32}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{30}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{transpose}\label{transpose}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.transpose(x)}
+\end{Highlighting}
+\end{Shaded}
+
+将张量转置并返回。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \NormalTok{var }\OperatorTok{=} \NormalTok{K.variable([[}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{3}\NormalTok{], [}\DecValTok{4}\NormalTok{, }\DecValTok{5}\NormalTok{, }\DecValTok{6}\NormalTok{]])}
+\OperatorTok{>>>} \NormalTok{K.}\BuiltInTok{eval}\NormalTok{(var)}
+\NormalTok{array([[ }\DecValTok{1}\NormalTok{.,  }\DecValTok{2}\NormalTok{.,  }\DecValTok{3}\NormalTok{.],}
+       \NormalTok{[ }\DecValTok{4}\NormalTok{.,  }\DecValTok{5}\NormalTok{.,  }\DecValTok{6}\NormalTok{.]], dtype}\OperatorTok{=}\NormalTok{float32)}
+\OperatorTok{>>>} \NormalTok{var_transposed }\OperatorTok{=} \NormalTok{K.transpose(var)}
+\OperatorTok{>>>} \NormalTok{K.}\BuiltInTok{eval}\NormalTok{(var_transposed)}
+\NormalTok{array([[ }\DecValTok{1}\NormalTok{.,  }\DecValTok{4}\NormalTok{.],}
+       \NormalTok{[ }\DecValTok{2}\NormalTok{.,  }\DecValTok{5}\NormalTok{.],}
+       \NormalTok{[ }\DecValTok{3}\NormalTok{.,  }\DecValTok{6}\NormalTok{.]], dtype}\OperatorTok{=}\NormalTok{float32)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \NormalTok{inputs }\OperatorTok{=} \NormalTok{K.placeholder((}\DecValTok{2}\NormalTok{, }\DecValTok{3}\NormalTok{))}
+\OperatorTok{>>>} \NormalTok{inputs}
+\OperatorTok{<}\NormalTok{tf.Tensor }\StringTok{'Placeholder_11:0'} \NormalTok{shape}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{3}\NormalTok{) dtype}\OperatorTok{=}\NormalTok{float32}\OperatorTok{>}
+\OperatorTok{>>>} \NormalTok{input_transposed }\OperatorTok{=} \NormalTok{K.transpose(inputs)}
+\OperatorTok{>>>} \NormalTok{input_transposed}
+\OperatorTok{<}\NormalTok{tf.Tensor }\StringTok{'transpose_4:0'} \NormalTok{shape}\OperatorTok{=}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{2}\NormalTok{) dtype}\OperatorTok{=}\NormalTok{float32}\OperatorTok{>}
+\end{Highlighting}
+\end{Shaded}
+
+
+\textbf{gather}\label{gather}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.gather(reference, indices)}
+\end{Highlighting}
+\end{Shaded}
+
+在张量 \texttt{reference} 中检索索引 \texttt{indices} 的元素。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{reference}: 一个张量。
+\item
+  \textbf{indices}: 索引的整数张量。
+\end{itemize}
+
+\textbf{返回}
+
+与 \texttt{reference} 类型相同的张量。
+
+
+\textbf{max}\label{max}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.}\BuiltInTok{max}\NormalTok{(x, axis}\OperatorTok{=}\VariableTok{None}\NormalTok{, keepdims}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+张量中的最大值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{axis}: 一个整数，需要在哪个轴寻找最大值。
+\item
+  \textbf{keepdims}: 布尔值，是否保留原尺寸。 如果 \texttt{keepdims} 为
+  \texttt{False}，则张量的秩减 1。 如果 \texttt{keepdims} 为
+  \texttt{True}，缩小的维度保留为长度 1。
+\end{itemize}
+
+\textbf{返回}
+
+\texttt{x} 中最大值的张量。
+
+
+\textbf{min}\label{min}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.}\BuiltInTok{min}\NormalTok{(x, axis}\OperatorTok{=}\VariableTok{None}\NormalTok{, keepdims}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+张量中的最小值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{axis}: 一个整数，需要在哪个轴寻找最大值。
+\item
+  \textbf{keepdims}: 布尔值，是否保留原尺寸。 如果 \texttt{keepdims} 为
+  \texttt{False}，则张量的秩减 1。 如果 \texttt{keepdims} 为
+  \texttt{True}，缩小的维度保留为长度 1。
+\end{itemize}
+
+\textbf{返回}
+
+\texttt{x} 中最小值的张量。
+
+
+\textbf{sum}\label{sum}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.}\BuiltInTok{sum}\NormalTok{(x, axis}\OperatorTok{=}\VariableTok{None}\NormalTok{, keepdims}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+计算张量在某一指定轴的和。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{axis}: 一个整数，需要加和的轴。
+\item
+  \textbf{keepdims}: 布尔值，是否保留原尺寸。 如果 \texttt{keepdims} 为
+  \texttt{False}，则张量的秩减 1。 如果 \texttt{keepdims} 为
+  \texttt{True}，缩小的维度保留为长度 1。
+\end{itemize}
+
+\textbf{返回}
+
+\texttt{x} 的和的张量。
+
+
+\textbf{prod}\label{prod}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.prod(x, axis}\OperatorTok{=}\VariableTok{None}\NormalTok{, keepdims}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+在某一指定轴，计算张量中的值的乘积。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{axis}: 一个整数需要计算乘积的轴。
+\item
+  \textbf{keepdims}: 布尔值，是否保留原尺寸。 如果 \texttt{keepdims} 为
+  \texttt{False}，则张量的秩减 1。 如果 \texttt{keepdims} 为
+  \texttt{True}，缩小的维度保留为长度 1。
+\end{itemize}
+
+\textbf{返回}
+
+\texttt{x} 的元素的乘积的张量。
+
+
+\textbf{cumsum}\label{cumsum}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.cumsum(x, axis}\OperatorTok{=}\DecValTok{0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+在某一指定轴，计算张量中的值的累加和。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{axis}: 一个整数，需要加和的轴。
+\end{itemize}
+
+\textbf{返回}
+
+\texttt{x} 在 \texttt{axis} 轴的累加和的张量。
+
+
+\textbf{cumprod}\label{cumprod}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.cumprod(x, axis}\OperatorTok{=}\DecValTok{0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+在某一指定轴，计算张量中的值的累积乘积。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{axis}: 一个整数，需要计算乘积的轴。
+\end{itemize}
+
+\textbf{返回}
+
+\texttt{x} 在 \texttt{axis} 轴的累乘的张量。
+
+
+\textbf{var}\label{var}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.var(x, axis}\OperatorTok{=}\VariableTok{None}\NormalTok{, keepdims}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+张量在某一指定轴的方差。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{axis}: 一个整数，要计算方差的轴。
+\item
+  \textbf{keepdims}: 布尔值，是否保留原尺寸。 如果 \texttt{keepdims} 为
+  \texttt{False}，则张量的秩减 1。 如果 \texttt{keepdims} 为
+  \texttt{True}，缩小的维度保留为长度 1。
+\end{itemize}
+
+\textbf{返回}
+
+\texttt{x} 元素的方差的张量。
+
+
+\textbf{std}\label{std}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.std(x, axis}\OperatorTok{=}\VariableTok{None}\NormalTok{, keepdims}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+张量在某一指定轴的标准差。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{axis}: 一个整数，要计算标准差的轴。
+\item
+  \textbf{keepdims}: 布尔值，是否保留原尺寸。 如果 \texttt{keepdims} 为
+  \texttt{False}，则张量的秩减 1。 如果 \texttt{keepdims} 为
+  \texttt{True}，缩小的维度保留为长度 1。
+\end{itemize}
+
+\textbf{返回}
+
+\texttt{x} 元素的标准差的张量。
+
+
+\textbf{mean}\label{mean}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.mean(x, axis}\OperatorTok{=}\VariableTok{None}\NormalTok{, keepdims}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+张量在某一指定轴的均值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: A tensor or variable.
+\item
+  \textbf{axis}: 整数或列表。需要计算均值的轴。
+\item
+  \textbf{keepdims}: 布尔值，是否保留原尺寸。 如果 \texttt{keepdims} 为
+  \texttt{False}，则 \texttt{axis} 中每一项的张量秩减 1。 如果
+  \texttt{keepdims} 为 \texttt{True}，则缩小的维度保留为长度 1。
+\end{itemize}
+
+\textbf{返回}
+
+\texttt{x} 元素的均值的张量。
+
+
+\textbf{any}\label{any}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.}\BuiltInTok{any}\NormalTok{(x, axis}\OperatorTok{=}\VariableTok{None}\NormalTok{, keepdims}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+reduction
+
+按位归约（逻辑 OR）。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{axis}: 执行归约操作的轴。
+\item
+  \textbf{keepdims}: 是否放弃或广播归约的轴。
+\end{itemize}
+
+\textbf{返回}
+
+一个 uint8 张量 (0s 和 1s)。
+
+
+\textbf{all}\label{all}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.}\BuiltInTok{all}\NormalTok{(x, axis}\OperatorTok{=}\VariableTok{None}\NormalTok{, keepdims}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+按位归约（逻辑 AND）。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{axis}: 执行归约操作的轴。
+\item
+  \textbf{keepdims}: 是否放弃或广播归约的轴。
+\end{itemize}
+
+\textbf{返回}
+
+一个 uint8 张量 (0s 和 1s)。
+
+
+\textbf{argmax}\label{argmax}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.argmax(x, axis}\OperatorTok{=-}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+返回指定轴的最大值的索引。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{axis}: 执行归约操作的轴。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{argmin}\label{argmin}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.argmin(x, axis}\OperatorTok{=-}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+返回指定轴的最小值的索引。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{axis}: 执行归约操作的轴。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{square}\label{square}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.square(x)}
+\end{Highlighting}
+\end{Shaded}
+
+元素级的平方操作。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{abs}\label{abs}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.}\BuiltInTok{abs}\NormalTok{(x)}
+\end{Highlighting}
+\end{Shaded}
+
+元素级的绝对值操作。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{sqrt}\label{sqrt}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.sqrt(x)}
+\end{Highlighting}
+\end{Shaded}
+
+元素级的平方根操作。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{exp}\label{exp}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.exp(x)}
+\end{Highlighting}
+\end{Shaded}
+
+元素级的指数运算操作。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{log}\label{log}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.log(x)}
+\end{Highlighting}
+\end{Shaded}
+
+元素级的对数运算操作。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{logsumexp}\label{logsumexp}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.logsumexp(x, axis}\OperatorTok{=}\VariableTok{None}\NormalTok{, keepdims}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+计算 log(sum(exp(张量在某一轴的元素)))。
+
+这个函数在数值上比 log(sum(exp(x))) 更稳定。
+它避免了求大输入的指数造成的上溢，以及求小输入的对数造成的下溢。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{axis}: 一个整数，需要归约的轴。
+\item
+  \textbf{keepdims}: 布尔值，是否保留原尺寸。 如果 \texttt{keepdims} 为
+  \texttt{False}，则张量的秩减 1。 如果 \texttt{keepdims} 为
+  \texttt{True}，缩小的维度保留为长度 1。
+\end{itemize}
+
+\textbf{返回}
+
+归约后的张量。
+
+
+\textbf{round}\label{round}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.}\BuiltInTok{round}\NormalTok{(x)}
+\end{Highlighting}
+\end{Shaded}
+
+元素级地四舍五入到最接近的整数。
+
+在平局的情况下，使用的舍入模式是「偶数的一半」。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{sign}\label{sign}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.sign(x)}
+\end{Highlighting}
+\end{Shaded}
+
+元素级的符号运算。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{pow}\label{pow}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.}\BuiltInTok{pow}\NormalTok{(x, a)}
+\end{Highlighting}
+\end{Shaded}
+
+元素级的指数运算操作。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{a}: Python 整数。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{clip}\label{clip}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.clip(x, min_value, max_value)}
+\end{Highlighting}
+\end{Shaded}
+
+元素级裁剪。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{min\_value}: Python 浮点或整数。
+\item
+  \textbf{max\_value}: Python 浮点或整数。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{equal}\label{equal}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.equal(x, y)}
+\end{Highlighting}
+\end{Shaded}
+
+逐个元素对比两个张量的相等情况。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{y}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个布尔张量。
+
+
+\textbf{not\_equal}\label{notux5fequal}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.not_equal(x, y)}
+\end{Highlighting}
+\end{Shaded}
+
+逐个元素对比两个张量的不相等情况。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{y}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个布尔张量。
+
+
+\textbf{greater}\label{greater}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.greater(x, y)}
+\end{Highlighting}
+\end{Shaded}
+
+逐个元素比对 (x \textgreater{} y) 的真值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{y}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个布尔张量。
+
+
+\textbf{greater\_equal}\label{greaterux5fequal}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.greater_equal(x, y)}
+\end{Highlighting}
+\end{Shaded}
+
+逐个元素比对 (x \textgreater{}= y) 的真值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{y}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个布尔张量。
+
+
+\textbf{less}\label{less}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.less(x, y)}
+\end{Highlighting}
+\end{Shaded}
+
+逐个元素比对 (x \textless{} y) 的真值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{y}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个布尔张量。
+
+
+\textbf{less\_equal}\label{lessux5fequal}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.less_equal(x, y)}
+\end{Highlighting}
+\end{Shaded}
+
+逐个元素比对 (x \textless{}= y) 的真值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{y}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个布尔张量。
+
+
+\textbf{maximum}\label{maximum}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.maximum(x, y)}
+\end{Highlighting}
+\end{Shaded}
+
+逐个元素比对两个张量的最大值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{y}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+\textbf{minimum}\label{minimum}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.minimum(x, y)}
+\end{Highlighting}
+\end{Shaded}
+
+逐个元素比对两个张量的最小值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{y}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{sin}\label{sin}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.sin(x)}
+\end{Highlighting}
+\end{Shaded}
+
+逐个元素计算 x 的 sin 值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{cos}\label{cos}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.cos(x)}
+\end{Highlighting}
+\end{Shaded}
+
+逐个元素计算 x 的 cos 值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{normalize\_batch\_in\_training}\label{normalizeux5fbatchux5finux5ftraining}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.normalize_batch_in_training(x, gamma, beta, reduction_axes, epsilon}\OperatorTok{=}\FloatTok{0.001}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+计算批次的均值和标准差，然后在批次上应用批次标准化。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 输入张量或变量。
+\item
+  \textbf{gamma}: 用于缩放输入的张量。
+\item
+  \textbf{beta}: 用于中心化输入的张量。
+\item
+  \textbf{reduction\_axes}: 整数迭代，需要标准化的轴。
+\item
+  \textbf{epsilon}: 模糊因子。
+\end{itemize}
+
+\textbf{返回}
+
+长度为 3 个元组，\texttt{(normalized\_tensor,\ mean,\ variance)}。
+
+
+\textbf{batch\_normalization}\label{batchux5fnormalization}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.batch_normalization(x, mean, var, beta, gamma, epsilon}\OperatorTok{=}\FloatTok{0.001}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+在给定的 mean，var，beta 和 gamma 上应用批量标准化。
+
+即，返回：
+\texttt{output\ =\ (x\ -\ mean)\ /\ (sqrt(var)\ +\ epsilon)\ *\ gamma\ +\ beta}
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 输入张量或变量。
+\item
+  \textbf{mean}: 批次的均值。
+\item
+  \textbf{var}: 批次的方差。
+\item
+  \textbf{beta}: 用于中心化输入的张量。
+\item
+  \textbf{gamma}: 用于缩放输入的张量。
+\item
+  \textbf{epsilon}: 模糊因子。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{concatenate}\label{concatenate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.concatenate(tensors, axis}\OperatorTok{=-}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+基于指定的轴，连接张量的列表。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{tensors}: 需要连接的张量列表。
+\item
+  \textbf{axis}: 连接的轴。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{reshape}\label{reshape}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.reshape(x, shape)}
+\end{Highlighting}
+\end{Shaded}
+
+将张量重塑为指定的尺寸。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{shape}: 目标尺寸元组。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{permute\_dimensions}\label{permuteux5fdimensions}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.permute_dimensions(x, pattern)}
+\end{Highlighting}
+\end{Shaded}
+
+重新排列张量的轴。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{pattern}: 维度索引的元组，例如 \texttt{(0,\ 2,\ 1)}。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{resize\_images}\label{resizeux5fimages}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.resize_images(x, height_factor, width_factor, data_format)}
+\end{Highlighting}
+\end{Shaded}
+
+调整 4D 张量中包含的图像的大小。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 需要调整的张量或变量。
+\item
+  \textbf{height\_factor}: 正整数。
+\item
+  \textbf{width\_factor}: 正整数。
+\item
+  \textbf{data\_format}: 字符串，\texttt{"channels\_last"} 或
+  \texttt{"channels\_first"}。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 \texttt{data\_format}
+  既不是~\texttt{"channels\_last"} 也不是 \texttt{"channels\_first"}。
+\end{itemize}
+
+
+\textbf{resize\_volumes}\label{resizeux5fvolumes}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.resize_volumes(x, depth_factor, height_factor, width_factor, data_format)}
+\end{Highlighting}
+\end{Shaded}
+
+调整 5D 张量中包含的体积。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 需要调整的张量或变量。
+\item
+  \textbf{depth\_factor}: 正整数。
+\item
+  \textbf{height\_factor}: 正整数。
+\item
+  \textbf{width\_factor}: 正整数。
+\item
+  \textbf{data\_format}: 字符串，\texttt{"channels\_last"} 或
+  \texttt{"channels\_first"}。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 \texttt{data\_format}
+  既不是~\texttt{"channels\_last"} 也不是 \texttt{"channels\_first"}。
+\end{itemize}
+
+
+\textbf{repeat\_elements}\label{repeatux5felements}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.repeat_elements(x, rep, axis)}
+\end{Highlighting}
+\end{Shaded}
+
+沿某一轴重复张量的元素，如 \texttt{np.repeat}。
+
+如果 \texttt{x} 的尺寸为 \texttt{(s1，s2，s3)} 而 \texttt{axis} 为
+\texttt{1}， 则输出尺寸为 \texttt{(s1，s2\ *\ rep，s3）}。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{rep}: Python 整数，重复次数。
+\item
+  \textbf{axis}: 需要重复的轴。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{repeat}\label{repeat}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.repeat(x, n)}
+\end{Highlighting}
+\end{Shaded}
+
+重复一个 2D 张量。
+
+如果 \texttt{x} 的尺寸为 \texttt{(samples,\ dim)} 并且~\texttt{n} 为
+\texttt{2}， 则输出的尺寸为 \texttt{(samples,\ 2,\ dim)}。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{n}: Python 整数，重复次数。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{arange}\label{arange}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.arange(start, stop}\OperatorTok{=}\VariableTok{None}\NormalTok{, step}\OperatorTok{=}\DecValTok{1}\NormalTok{, dtype}\OperatorTok{=}\StringTok{'int32'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+创建一个包含整数序列的 1D 张量。
+
+该函数参数与 Theano 的 \texttt{arange} 函数的约定相同：
+如果只提供了一个参数，那它就是 \texttt{stop} 参数。
+
+返回的张量的默认类型是 \texttt{int32}，以匹配 TensorFlow 的默认值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{start}: 起始值。
+\item
+  \textbf{stop}: 结束值。
+\item
+  \textbf{step}: 两个连续值之间的差。
+\item
+  \textbf{dtype}: 要使用的整数类型。
+\end{itemize}
+
+\textbf{返回}
+
+一个整数张量。
+
+
+\textbf{tile}\label{tile}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.tile(x, n)}
+\end{Highlighting}
+\end{Shaded}
+
+创建一个用 \texttt{n} 平铺 的 \texttt{x} 张量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{n}: 整数列表。长度必须与 \texttt{x} 中的维数相同。
+\end{itemize}
+
+\textbf{返回}
+
+一个平铺的张量。
+
+
+\textbf{flatten}\label{flatten}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.flatten(x)}
+\end{Highlighting}
+\end{Shaded}
+
+展平一个张量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个重新调整为 1D 的张量。
+
+
+\textbf{batch\_flatten}\label{batchux5fflatten}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.batch_flatten(x)}
+\end{Highlighting}
+\end{Shaded}
+
+将一个 nD 张量变成一个 第 0 维相同的 2D 张量。
+
+换句话说，它将批次中的每一个样本展平。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{expand\_dims}\label{expandux5fdims}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.expand_dims(x, axis}\OperatorTok{=-}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+在索引 \texttt{axis} 轴，添加 1 个尺寸的维度。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{axis}: 需要添加新的轴的位置。
+\end{itemize}
+
+\textbf{返回}
+
+一个扩展维度的轴。
+
+
+\textbf{squeeze}\label{squeeze}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.squeeze(x, axis)}
+\end{Highlighting}
+\end{Shaded}
+
+在索引 \texttt{axis} 轴，移除 1 个尺寸的维度。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{axis}: 需要丢弃的轴。
+\end{itemize}
+
+\textbf{返回}
+
+一个与 \texttt{x} 数据相同但维度降低的张量。
+
+
+\textbf{temporal\_padding}\label{temporalux5fpadding}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.temporal_padding(x, padding}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+填充 3D 张量的中间维度。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{padding}: 2
+  个整数的元组，在第一个维度的开始和结束处添加多少个零。 \textbf{返回}
+\end{itemize}
+
+一个填充的 3D 张量。
+
+
+\textbf{spatial\_2d\_padding}\label{spatialux5f2dux5fpadding}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.spatial_2d_padding(x, padding}\OperatorTok{=}\NormalTok{((}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), (}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{)), data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+填充 4D 张量的第二维和第三维。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{padding}: 2 元组的元组，填充模式。
+\item
+  \textbf{data\_format}: 字符串，\texttt{"channels\_last"} 或
+  \texttt{"channels\_first"}。
+\end{itemize}
+
+\textbf{返回}
+
+一个填充的 4D 张量。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 \texttt{data\_format} 既不是
+  \texttt{"channels\_last"} 也不是 \texttt{"channels\_first"}。
+\end{itemize}
+
+
+\textbf{spatial\_3d\_padding}\label{spatialux5f3dux5fpadding}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.spatial_3d_padding(x, padding}\OperatorTok{=}\NormalTok{((}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), (}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), (}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{)), data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+沿着深度、高度宽度三个维度填充 5D 张量。
+
+分别使用 "padding{[}0{]}", "padding{[}1{]}" 和 "padding{[}2{]}"
+来左右填充这些维度。
+
+对于 'channels\_last' 数据格式， 第 2、3、4 维将被填充。 对于
+'channels\_first' 数据格式， 第 3、4、5 维将被填充。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{padding}: 3 元组的元组，填充模式。
+\item
+  \textbf{data\_format}: 字符串，\texttt{"channels\_last"} 或
+  \texttt{"channels\_first"}。
+\end{itemize}
+
+\textbf{返回}
+
+一个填充的 5D 张量。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 \texttt{data\_format} 既不是
+  \texttt{"channels\_last"} 也不是 \texttt{"channels\_first"}。
+\end{itemize}
+
+
+\textbf{stack}\label{stack}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.stack(x, axis}\OperatorTok{=}\DecValTok{0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+将秩 为 \texttt{R} 的张量列表堆叠成秩为 \texttt{R\ +\ 1} 的张量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量列表。
+\item
+  \textbf{axis}: 需要执行堆叠的轴。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{one\_hot}\label{oneux5fhot}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.one_hot(indices, num_classes)}
+\end{Highlighting}
+\end{Shaded}
+
+计算一个整数张量的 one-hot 表示。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{indices}: nD 整数，尺寸为
+  \texttt{(batch\_size,\ dim1,\ dim2,\ ...\ dim(n-1))}
+\item
+  \textbf{num\_classes}: 整数，需要考虑的类别数。
+\end{itemize}
+
+\textbf{返回}
+
+输入的 (n + 1)D one-hot 表示， 尺寸为
+\texttt{(batch\_size,\ dim1,\ dim2,\ ...\ dim(n-1),\ num\_classes)}。
+
+
+\textbf{reverse}\label{reverse}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.reverse(x, axes)}
+\end{Highlighting}
+\end{Shaded}
+
+沿指定的轴反转张量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 需要反转的张量。
+\item
+  \textbf{axes}: 整数或整数迭代。需要反转的轴。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{get\_value}\label{getux5fvalue}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.get_value(x)}
+\end{Highlighting}
+\end{Shaded}
+
+返回一个变量的值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 输入变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个 Numpy 数组。
+
+
+\textbf{batch\_get\_value}\label{batchux5fgetux5fvalue}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.batch_get_value(ops)}
+\end{Highlighting}
+\end{Shaded}
+
+返回多个张量变量的值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ops}: 要运行的操作列表。
+\end{itemize}
+
+\textbf{返回}
+
+一个 Numpy 数组的列表。
+
+
+\textbf{set\_value}\label{setux5fvalue}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.set_value(x, value)}
+\end{Highlighting}
+\end{Shaded}
+
+使用 Numpy 数组设置变量的值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 需要设置新值的张量。
+\item
+  \textbf{value}: 需要设置的值， 一个尺寸相同的 Numpy 数组。
+\end{itemize}
+
+
+\textbf{batch\_set\_value}\label{batchux5fsetux5fvalue}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.batch_set_value(tuples)}
+\end{Highlighting}
+\end{Shaded}
+
+一次设置多个张量变量的值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{tuples}: 元组 \texttt{(tensor,\ value)} 的列表。
+  \texttt{value} 应该是一个 Numpy 数组。
+\end{itemize}
+
+
+\textbf{print\_tensor}\label{printux5ftensor}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.print_tensor(x, message}\OperatorTok{=}\StringTok{''}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+在评估时打印 \texttt{message} 和张量的值。
+
+请注意，\texttt{print\_tensor} 返回一个与 \texttt{x}
+相同的新张量，应该在后面的代码中使用它。否则在评估过程中不会考虑打印操作。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \NormalTok{x }\OperatorTok{=} \NormalTok{K.print_tensor(x, message}\OperatorTok{=}\StringTok{"x is: "}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 需要打印的张量。
+\item
+  \textbf{message}: 需要与张量一起打印的消息。
+\end{itemize}
+
+\textbf{返回}
+
+同一个不变的张量~\texttt{x}。
+
+
+\textbf{function}\label{function}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.function(inputs, outputs, updates}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+实例化 Keras 函数。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{inputs}: 占位符张量列表。
+\item
+  \textbf{outputs}: 输出张量列表。
+\item
+  \textbf{updates}: 更新操作列表。
+\item
+  \_\_**kwargs\_\_: 需要传递给 \texttt{tf.Session.run} 的参数。
+\end{itemize}
+
+\textbf{返回}
+
+输出值为 Numpy 数组。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果无效的 kwargs 被传入。
+\end{itemize}
+
+
+\textbf{gradients}\label{gradients}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.gradients(loss, variables)}
+\end{Highlighting}
+\end{Shaded}
+
+返回 \texttt{variables} 在 \texttt{loss} 上的梯度。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{loss}: 需要最小化的标量张量。
+\item
+  \textbf{variables}: 变量列表。
+\end{itemize}
+
+\textbf{返回}
+
+一个梯度张量。
+
+
+\textbf{stop\_gradient}\label{stopux5fgradient}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.stop_gradient(variables)}
+\end{Highlighting}
+\end{Shaded}
+
+返回 \texttt{variables}，但是对于其他变量，其梯度为零。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{variables}: 需要考虑的张量或张量列表，任何的其他变量保持不变。
+\end{itemize}
+
+\textbf{返回}
+
+单个张量或张量列表（取决于传递的参数）， 与任何其他变量具有恒定的梯度。
+
+
+\textbf{rnn}\label{rnn}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.rnn(step_function, inputs, initial_states, go_backwards}\OperatorTok{=}\VariableTok{False}, \\
+\hspace{3cm}\NormalTok{mask}\OperatorTok{=}\VariableTok{None}\NormalTok{, constants}\OperatorTok{=}\VariableTok{None}\NormalTok{, unroll}\OperatorTok{=}\VariableTok{False}\NormalTok{, input_length}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+在张量的时间维度迭代。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{step\_function}: RNN 步骤函数，
+\item
+  \textbf{inputs}: 尺寸为 \texttt{(samples,\ ...)} 的张量
+  (不含时间维度), 表示批次样品在某个时间步的输入。
+\item
+  \textbf{states}: 张量列表。
+\item
+  \textbf{outputs}: 尺寸为 \texttt{(samples,\ output\_dim)} 的张量
+  (不含时间维度)
+\item
+  \textbf{new\_states}: 张量列表，与 \texttt{states} 长度和尺寸相同。
+  列表中的第一个状态必须是前一个时间步的输出张量。
+\item
+  \textbf{inputs}: 时序数据张量 \texttt{(samples,\ time,\ ...)} (最少
+  3D)。
+\item
+  \textbf{initial\_states}: 尺寸为 \texttt{(samples,\ output\_dim)}
+  的张量 (不含时间维度)，包含步骤函数中使用的状态的初始值。
+\item
+  \textbf{go\_backwards}: 布尔值。如果为
+  True，以相反的顺序在时间维上进行迭代并返回相反的序列。
+\item
+  \textbf{mask}: 尺寸为 \texttt{(samples,\ time,\ 1)}
+  的二进制张量，对于被屏蔽的每个元素都为零。
+\item
+  \textbf{constants}: 每个步骤传递的常量值列表。
+\item
+  \textbf{unroll}: 是否展开 RNN 或使用符号循环（依赖于后端的
+  \texttt{while\_loop}或 \texttt{scan}）。
+\item
+  \textbf{input\_length}: 与 TensorFlow 实现不相关。如果使用 Theano
+  展开，则必须指定。
+\end{itemize}
+
+\textbf{返回}
+
+一个元组，\texttt{(last\_output,\ outputs,\ new\_states)}。
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{last\_output}: rnn 的最后输出，尺寸为
+  \texttt{(samples,\ ...)}。
+\item
+  \textbf{outputs}: 尺寸为 \texttt{(samples,\ time,\ ...)} 的张量，其中
+  每一项 \texttt{outputs{[}s,\ t{]}} 是样本 \texttt{s} 在时间 \texttt{t}
+  的步骤函数输出值。
+\item
+  \textbf{new\_states}: 张量列表，有步骤函数返回的最后状态， 尺寸为
+  \texttt{(samples,\ ...)}。
+\end{itemize}
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果输入的维度小于 3。
+\item
+  \textbf{ValueError}: 如果~\texttt{unroll} 为 \texttt{True}
+  但输入时间步并不是固定的数字。
+\item
+  \textbf{ValueError}: 如果提供了 \texttt{mask} (非 \texttt{None})
+  但未提供 \texttt{states} (\texttt{len(states)} == 0)。
+\end{itemize}
+
+
+\textbf{switch}\label{switch}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.switch(condition, then_expression, else_expression)}
+\end{Highlighting}
+\end{Shaded}
+
+根据一个标量值在两个操作之间切换。
+
+请注意，\texttt{then\_expression} 和 \texttt{else\_expression}
+都应该是\emph{相同尺寸}的符号张量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{condition}: 张量 (\texttt{int} 或 \texttt{bool})。
+\item
+  \textbf{then\_expression}: 张量或返回张量的可调用函数。
+\item
+  \textbf{else\_expression}: 张量或返回张量的可调用函数。
+\end{itemize}
+
+\textbf{返回}
+
+选择的张量。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 \texttt{condition}
+  的秩大于两个表达式的秩序。
+\end{itemize}
+
+
+\textbf{in\_train\_phase}\label{inux5ftrainux5fphase}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.in_train_phase(x, alt, training}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+在训练阶段选择 \texttt{x}，其他阶段选择 \texttt{alt}。
+
+请注意 \texttt{alt} 应该与 \texttt{x} 尺寸相同。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 在训练阶段需要返回的 x (张量或返回张量的可调用函数)。
+\item
+  \textbf{alt}: 在其他阶段需要返回的 alt (张量或返回张量的可调用函数)。
+\item
+  \textbf{training}: 可选的标量张量 (或 Python 布尔值，或者 Python
+  整数)， 以指定学习阶段。
+\end{itemize}
+
+\textbf{返回}
+
+基于 \texttt{training} 标志，要么返回 \texttt{x}，要么返回
+\texttt{alt}。 \texttt{training} 标志默认为
+\texttt{K.learning\_phase()}。
+
+
+\textbf{in\_test\_phase}\label{inux5ftestux5fphase}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.in_test_phase(x, alt, training}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+在测试阶段选择 \texttt{x}，其他阶段选择 \texttt{alt}。
+
+请注意 \texttt{alt} 应该与 \texttt{x} 尺寸相同。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 在训练阶段需要返回的 x (张量或返回张量的可调用函数)。
+\item
+  \textbf{alt}: 在其他阶段需要返回的 alt (张量或返回张量的可调用函数)。
+\item
+  \textbf{training}: 可选的标量张量 (或 Python 布尔值，或者 Python
+  整数)， 以指定学习阶段。
+\end{itemize}
+
+\textbf{返回}
+
+基于 \texttt{K.learning\_phase}，要么返回 \texttt{x}，要么返回
+\texttt{alt}。
+
+
+\textbf{relu}\label{relu}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.relu(x, alpha}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, max_value}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+ReLU 整流线性单位。
+
+默认情况下，它返回逐个元素的 \texttt{max(x,\ 0)} 值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 一个张量或变量。
+\item
+  \textbf{alpha}: 一个标量，负数部分的斜率（默认为 \texttt{0.}）。
+\item
+  \textbf{max\_value}: 饱和度阈值。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{elu}\label{elu}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.elu(x, alpha}\OperatorTok{=}\FloatTok{1.0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+指数线性单元。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 用于计算激活函数的张量或变量。
+\item
+  \textbf{alpha}: 一个标量，负数部分的斜率。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{softmax}\label{softmax}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.softmax(x)}
+\end{Highlighting}
+\end{Shaded}
+
+张量的 Softmax 值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{softplus}\label{softplus}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.softplus(x)}
+\end{Highlighting}
+\end{Shaded}
+
+张量的 Softplus 值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{softsign}\label{softsign}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.softsign(x)}
+\end{Highlighting}
+\end{Shaded}
+
+张量的 Softsign 值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{categorical\_crossentropy}\label{categoricalux5fcrossentropy}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.categorical_crossentropy(target, output, from_logits}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+输出张量与目标张量之间的分类交叉熵。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{target}: 与 \texttt{output} 尺寸相同的张量。
+\item
+  \textbf{output}: 由 softmax 产生的张量 (除非 \texttt{from\_logits} 为
+  True， 在这种情况下 \texttt{output} 应该是对数形式)。
+\item
+  \textbf{from\_logits}: 布尔值，\texttt{output} 是 softmax 的结果，
+  还是对数形式的张量。
+\end{itemize}
+
+\textbf{返回}
+
+输出张量。
+
+
+\textbf{sparse\_categorical\_crossentropy}\label{sparseux5fcategoricalux5fcrossentropy}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.sparse_categorical_crossentropy(target, output, from_logits}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+稀疏表示的整数值目标的分类交叉熵。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{target}: 一个整数张量。
+\item
+  \textbf{output}: 由 softmax 产生的张量 (除非 \texttt{from\_logits} 为
+  True， 在这种情况下 \texttt{output} 应该是对数形式)。
+\item
+  \textbf{from\_logits}: 布尔值，\texttt{output} 是 softmax 的结果，
+  还是对数形式的张量。
+\end{itemize}
+
+\textbf{返回}
+
+输出张量。
+
+
+\textbf{binary\_crossentropy}\label{binaryux5fcrossentropy}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.binary_crossentropy(target, output, from_logits}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+输出张量与目标张量之间的二进制交叉熵。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{target}: 与 \texttt{output} 尺寸相同的张量。
+\item
+  \textbf{output}: 一个张量。
+\item
+  \textbf{from\_logits}: \texttt{output} 是否是对数张量。
+  默认情况下，我们认为 \texttt{output} 编码了概率分布。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{sigmoid}\label{sigmoid}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.sigmoid(x)}
+\end{Highlighting}
+\end{Shaded}
+
+逐个元素求 sigmoid 值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 一个张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{hard\_sigmoid}\label{hardux5fsigmoid}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.hard_sigmoid(x)}
+\end{Highlighting}
+\end{Shaded}
+
+分段的 sigmoid 线性近似。速度比 sigmoid 更快。
+
+\begin{itemize}
+\tightlist
+\item
+  如果 \texttt{x\ \textless{}\ -2.5}，返回 \texttt{0}。
+\item
+  如果 \texttt{x\ \textgreater{}\ 2.5}，返回 \texttt{1}。
+\item
+  如果 \texttt{-2.5\ \textless{}=\ x\ \textless{}=\ 2.5}，返回
+  \texttt{0.2\ *\ x\ +\ 0.5}。
+\end{itemize}
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 一个张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{tanh}\label{tanh}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.tanh(x)}
+\end{Highlighting}
+\end{Shaded}
+
+逐个元素求 tanh 值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 一个张量或变量。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{dropout}\label{dropout}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.dropout(x, level, noise_shape}\OperatorTok{=}\VariableTok{None}\NormalTok{, seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+将 \texttt{x} 中的某些项随机设置为零，同时缩放整个张量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量
+\item
+  \textbf{level}: 张量中将被设置为 0 的项的比例。
+\item
+  \textbf{noise\_shape}: 随机生成的 保留/丢弃 标志的尺寸，
+  必须可以广播到 \texttt{x} 的尺寸。
+\item
+  \textbf{seed}: 保证确定性的随机种子。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{l2\_normalize}\label{l2ux5fnormalize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.l2_normalize(x, axis}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+在指定的轴使用 L2 范式 标准化一个张量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{axis}: 需要执行标准化的轴。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{in\_top\_k}\label{inux5ftopux5fk}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.in_top_k(predictions, targets, k)}
+\end{Highlighting}
+\end{Shaded}
+
+判断 \texttt{targets} 是否在 \texttt{predictions} 的前 \texttt{k} 个中。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{predictions}: 一个张量，尺寸为
+  \texttt{(batch\_size,\ classes)}，类型为 \texttt{float32}。
+\item
+  \textbf{targets}: 一个 1D 张量，长度为 \texttt{batch\_size}，类型为
+  \texttt{int32} 或 \texttt{int64}。
+\item
+  \textbf{k}: 一个 \texttt{int}，要考虑的顶部元素的数量。
+\end{itemize}
+
+\textbf{返回}
+
+一个 1D 张量，长度为 \texttt{batch\_size}，类型为 \texttt{bool}。 如果
+\texttt{predictions{[}i,\ targets{[}i{]}{]}} 在
+\texttt{predictions{[}i{]}} 的 top-\texttt{k} 值中， 则
+\texttt{output{[}i{]}} 为 \texttt{True}。
+
+
+\textbf{conv1d}\label{conv1d}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.conv1d(x, kernel, strides}\OperatorTok{=}\DecValTok{1}\NormalTok{, padding}\OperatorTok{=}\StringTok{'valid'}, \\
+\hspace{3cm}\NormalTok{data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{, dilation_rate}\OperatorTok{=}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+1D 卷积。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{kernel}: 核张量。
+\item
+  \textbf{strides}: 步长整型。
+\item
+  \textbf{padding}: 字符串，\texttt{"same"}, \texttt{"causal"} 或
+  \texttt{"valid"}。
+\item
+  \textbf{data\_format}: 字符串，\texttt{"channels\_last"} 或
+  \texttt{"channels\_first"}。
+\item
+  \textbf{dilation\_rate}: 整数膨胀率。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量，1D 卷积结果。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 \texttt{data\_format} 既不是
+  \texttt{channels\_last} 也不是 \texttt{channels\_first}。
+\end{itemize}
+
+
+\textbf{conv2d}\label{conv2d}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.conv2d(x, kernel, strides}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), padding}\OperatorTok{=}\StringTok{'valid'}, \\
+\hspace{3cm}\NormalTok{data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{, dilation_rate}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+2D 卷积。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{kernel}: 核张量。
+\item
+  \textbf{strides}: 步长元组。
+\item
+  \textbf{padding}: 字符串，\texttt{"same"} 或 \texttt{"valid"}。
+\item
+  \textbf{data\_format}: 字符串，\texttt{"channels\_last"} 或
+  \texttt{"channels\_first"}。 对于输入/卷积核/输出，是否使用 Theano 或
+  TensorFlow/CNTK数据格式。
+\item
+  \textbf{dilation\_rate}: 2 个整数的元组。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量，2D 卷积结果。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 \texttt{data\_format} 既不是
+  \texttt{channels\_last} 也不是 \texttt{channels\_first}。
+\end{itemize}
+
+
+\textbf{conv2d\_transpose}\label{conv2dux5ftranspose}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.conv2d_transpose(x, kernel, output_shape, strides}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), padding}\OperatorTok{=}\StringTok{'valid'}, \\
+\hspace{3cm}\NormalTok{data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+2D 反卷积 (即转置卷积)。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{kernel}: 核张量。
+\item
+  \textbf{output\_shape}: 表示输出尺寸的 1D 整型张量。
+\item
+  \textbf{strides}: 步长元组。
+\item
+  \textbf{padding}: 字符串，\texttt{"same"} 或 \texttt{"valid"}。
+\item
+  \textbf{data\_format}: 字符串，\texttt{"channels\_last"} 或
+  \texttt{"channels\_first"}。 对于输入/卷积核/输出，是否使用 Theano 或
+  TensorFlow/CNTK数据格式。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量，转置的 2D 卷积的结果。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 \texttt{data\_format} 既不是
+  \texttt{channels\_last} 也不是 \texttt{channels\_first}。
+\end{itemize}
+
+
+\textbf{separable\_conv1d}\label{separableux5fconv1d}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.separable_conv1d(x, depthwise_kernel, pointwise_kernel, strides}\OperatorTok{=}\DecValTok{1}, \\
+\hspace{3cm}\NormalTok{padding}\OperatorTok{=}\StringTok{'valid'}\NormalTok{, data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{, dilation_rate}\OperatorTok{=}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+带可分离滤波器的 1D 卷积。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 输入张量。
+\item
+  \textbf{depthwise\_kernel}: 用于深度卷积的卷积核。
+\item
+  \textbf{pointwise\_kernel}: 1x1 卷积核。
+\item
+  \textbf{strides}: 步长整数。
+\item
+  \textbf{padding}: 字符串，\texttt{"same"} 或 \texttt{"valid"}。
+\item
+  \textbf{data\_format}: 字符串，\texttt{"channels\_last"} 或
+  \texttt{"channels\_first"}。
+\item
+  \textbf{dilation\_rate}: 整数膨胀率。
+\end{itemize}
+
+\textbf{返回}
+
+输出张量。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 \texttt{data\_format} 既不是
+  \texttt{channels\_last} 也不是 \texttt{channels\_first}。
+\end{itemize}
+
+
+\textbf{separable\_conv2d}\label{separableux5fconv2d}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.separable_conv2d(x, depthwise_kernel, pointwise_kernel, strides}\OperatorTok{=}\\
+\hspace{3cm}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), padding}\OperatorTok{=}\StringTok{'valid'}\NormalTok{, data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{, dilation_rate}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+带可分离滤波器的 2D 卷积。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 输入张量。
+\item
+  \textbf{depthwise\_kernel}: 用于深度卷积的卷积核。
+\item
+  \textbf{pointwise\_kernel}: 1x1 卷积核。
+\item
+  \textbf{strides}: 步长元组 (长度为 2)。
+\item
+  \textbf{padding}: 字符串，\texttt{"same"} 或 \texttt{"valid"}。
+\item
+  \textbf{data\_format}: 字符串，\texttt{"channels\_last"} 或
+  \texttt{"channels\_first"}。
+\item
+  \textbf{dilation\_rate}: 整数元组，可分离卷积的膨胀率。
+\end{itemize}
+
+\textbf{返回}
+
+输出张量。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 \texttt{data\_format} 既不是
+  \texttt{channels\_last} 也不是 \texttt{channels\_first}。
+\end{itemize}
+
+
+\textbf{depthwise\_conv2d}\label{depthwiseux5fconv2d}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.depthwise_conv2d(x, depthwise_kernel, strides}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), padding}\OperatorTok{=}\StringTok{'valid'}, \\
+\hspace{3cm}\NormalTok{data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{, dilation_rate}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+带可分离滤波器的 2D 卷积。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 输入张量。
+\item
+  \textbf{depthwise\_kernel}: 用于深度卷积的卷积核。
+\item
+  \textbf{strides}: 步长元组 (长度为 2)。
+\item
+  \textbf{padding}: 字符串，\texttt{"same"} 或 \texttt{"valid"}。
+\item
+  \textbf{data\_format}: 字符串，\texttt{"channels\_last"} 或
+  \texttt{"channels\_first"}。
+\item
+  \textbf{dilation\_rate}: 整数元组，可分离卷积的膨胀率。
+\end{itemize}
+
+\textbf{返回}
+
+输出张量。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 \texttt{data\_format} 既不是
+  \texttt{channels\_last} 也不是 \texttt{channels\_first}。
+\end{itemize}
+
+
+\textbf{conv3d}\label{conv3d}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.conv3d(x, kernel, strides}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), padding}\OperatorTok{=}\StringTok{'valid'},\\
+\hspace{3cm}\NormalTok{data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{, dilation_rate}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+3D 卷积。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{kernel}: 核张量。
+\item
+  \textbf{strides}: 步长元组。
+\item
+  \textbf{padding}: 字符串，\texttt{"same"} 或 \texttt{"valid"}。
+\item
+  \textbf{data\_format}: 字符串，\texttt{"channels\_last"} 或
+  \texttt{"channels\_first"}。
+\item
+  \textbf{dilation\_rate}: 3 个整数的元组。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量，3D 卷积的结果。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 \texttt{data\_format} 既不是
+  \texttt{channels\_last} 也不是 \texttt{channels\_first}。
+\end{itemize}
+
+
+\textbf{conv3d\_transpose}\label{conv3dux5ftranspose}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.conv3d_transpose(x, kernel, output_shape, strides}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), padding}\OperatorTok{=}\StringTok{'valid'},\\
+\hspace{3cm}\NormalTok{data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+3D 反卷积 (即转置卷积)。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 输入张量。
+\item
+  \textbf{kernel}: 核张量。
+\item
+  \textbf{output\_shape}: 表示输出尺寸的 1D 整数张量。
+\item
+  \textbf{strides}: 步长元组。
+\item
+  \textbf{padding}: 字符串，\texttt{"same"} 或 \texttt{"valid"}。
+\item
+  \textbf{data\_format}: 字符串，\texttt{"channels\_last"} 或
+  \texttt{"channels\_first"}。 对于输入/卷积核/输出，是否使用 Theano 或
+  TensorFlow/CNTK数据格式。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量，3D 转置卷积的结果。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 \texttt{data\_format} 既不是
+  \texttt{channels\_last} 也不是 \texttt{channels\_first}。
+\end{itemize}
+
+
+\textbf{pool2d}\label{pool2d}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.pool2d(x, pool_size, strides}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), padding}\OperatorTok{=}\StringTok{'valid'},\\
+\hspace{3cm}\NormalTok{data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{, pool_mode}\OperatorTok{=}\StringTok{'max'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+2D 池化。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{pool\_size}: 2 个整数的元组。
+\item
+  \textbf{strides}: 2 个整数的元组。
+\item
+  \textbf{padding}: 字符串，\texttt{"same"} 或 \texttt{"valid"}。
+\item
+  \textbf{data\_format}: 字符串，\texttt{"channels\_last"} 或
+  \texttt{"channels\_first"}。
+\item
+  \textbf{pool\_mode}: 字符串，\texttt{"max"} 或 \texttt{"avg"}。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量，2D 池化的结果。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 \texttt{data\_format} 既不是
+  \texttt{channels\_last} 也不是 \texttt{channels\_first}。
+\item
+  \textbf{ValueError}: if \texttt{pool\_mode} 既不是 \texttt{"max"}
+  也不是 \texttt{"avg"}。
+\end{itemize}
+
+
+\textbf{pool3d}\label{pool3d}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.pool3d(x, pool_size, strides}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), padding}\OperatorTok{=}\StringTok{'valid'}, \\
+\hspace{3cm}\NormalTok{data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{, pool_mode}\OperatorTok{=}\StringTok{'max'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+3D 池化。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{pool\_size}: 3 个整数的元组。
+\item
+  \textbf{strides}: 3 个整数的元组。
+\item
+  \textbf{padding}: 字符串，\texttt{"same"} 或 \texttt{"valid"}。
+\item
+  \textbf{data\_format}: 字符串，\texttt{"channels\_last"} 或
+  \texttt{"channels\_first"}。
+\item
+  \textbf{pool\_mode}: 字符串，\texttt{"max"} 或 \texttt{"avg"}。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量，3D 池化的结果。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 \texttt{data\_format} 既不是
+  \texttt{channels\_last} 也不是 \texttt{channels\_first}。
+\item
+  \textbf{ValueError}: if \texttt{pool\_mode} 既不是 \texttt{"max"}
+  也不是 \texttt{"avg"}。
+\end{itemize}
+
+
+\textbf{bias\_add}\label{biasux5fadd}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.bias_add(x, bias, data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+给张量添加一个偏置向量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 张量或变量。
+\item
+  \textbf{bias}: 需要添加的偏置向量。
+\item
+  \textbf{data\_format}: 字符串，\texttt{"channels\_last"} 或
+  \texttt{"channels\_first"}。
+\end{itemize}
+
+\textbf{返回}
+
+输出张量。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 以下两种情况之一：
+\end{itemize}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  无效的 \texttt{data\_format} 参数。
+\item
+  无效的偏置向量尺寸。 偏置应该是一个 \texttt{ndim(x)-1}
+  维的向量或张量。
+\end{enumerate}
+
+
+\textbf{random\_normal}\label{randomux5fnormal}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.random_normal(shape, mean}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, stddev}\OperatorTok{=}\FloatTok{1.0}\NormalTok{, dtype}\OperatorTok{=}\VariableTok{None}\NormalTok{, seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+返回正态分布值的张量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{shape}: 一个整数元组，需要创建的张量的尺寸。
+\item
+  \textbf{mean}: 一个浮点数，抽样的正态分布平均值。
+\item
+  \textbf{stddev}: 一个浮点数，抽样的正态分布标准差。
+\item
+  \textbf{dtype}: 字符串，返回的张量的数据类型。
+\item
+  \textbf{seed}: 整数，随机种子。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{random\_uniform}\label{randomux5funiform}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.random_uniform(shape, minval}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, maxval}\OperatorTok{=}\FloatTok{1.0}\NormalTok{, dtype}\OperatorTok{=}\VariableTok{None}\NormalTok{, seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+返回均匀分布值的张量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{shape}: 一个整数元组，需要创建的张量的尺寸。
+\item
+  \textbf{minval}: 一个浮点数，抽样的均匀分布下界。
+\item
+  \textbf{maxval}: 一个浮点数，抽样的均匀分布上界。
+\item
+  \textbf{dtype}: 字符串，返回的张量的数据类型。
+\item
+  \textbf{seed}: 整数，随机种子。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{random\_binomial}\label{randomux5fbinomial}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.random_binomial(shape, p}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, dtype}\OperatorTok{=}\VariableTok{None}\NormalTok{, seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+返回随机二项分布值的张量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{shape}: 一个整数元组，需要创建的张量的尺寸。
+\item
+  \textbf{p}:
+  一个浮点数，\texttt{0.\ \textless{}=\ p\ \textless{}=\ 1}，二项分布的概率。
+\item
+  \textbf{dtype}: 字符串，返回的张量的数据类型。
+\item
+  \textbf{seed}: 整数，随机种子。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{truncated\_normal}\label{truncatedux5fnormal}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.truncated_normal(shape, mean}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, stddev}\OperatorTok{=}\FloatTok{1.0}\NormalTok{, dtype}\OperatorTok{=}\VariableTok{None}\NormalTok{, seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+返回截断的随机正态分布值的张量。
+
+生成的值遵循具有指定平均值和标准差的正态分布，
+此外，其中数值大于平均值两个标准差的将被丢弃和重新挑选。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{shape}: 一个整数元组，需要创建的张量的尺寸。
+\item
+  \textbf{mean}: 平均值。
+\item
+  \textbf{stddev}: 标准差。
+\item
+  \textbf{dtype}: 字符串，返回的张量的数据类型。
+\item
+  \textbf{seed}: 整数，随机种子。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量。
+
+
+\textbf{ctc\_label\_dense\_to\_sparse}\label{ctcux5flabelux5fdenseux5ftoux5fsparse}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.ctc_label_dense_to_sparse(labels, label_lengths)}
+\end{Highlighting}
+\end{Shaded}
+
+将 CTC 标签从密集转换为稀疏表示。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{labels}: 密集 CTC 标签。
+\item
+  \textbf{label\_lengths}: 标签长度。
+\end{itemize}
+
+\textbf{返回}
+
+一个表示标签的稀疏张量。
+
+
+\textbf{ctc\_batch\_cost}\label{ctcux5fbatchux5fcost}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.ctc_batch_cost(y_true, y_pred, input_length, label_length)}
+\end{Highlighting}
+\end{Shaded}
+
+在每个批次元素上运行 CTC 损失算法。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{y\_true}: 张量 \texttt{(samples,\ max\_string\_length)}，
+  包含真实标签。
+\item
+  \textbf{y\_pred}: 张量
+  \texttt{(samples,\ time\_steps,\ num\_categories)}， 包含预测值，或
+  softmax 输出。
+\item
+  \textbf{input\_length}: 张量 \texttt{(samples,\ 1)}， 包含
+  \texttt{y\_pred} 中每个批次样本的序列长度。
+\item
+  \textbf{label\_length}: 张量 \texttt{(samples,\ 1)}， 包含
+  \texttt{y\_true} 中每个批次样本的序列长度。
+\end{itemize}
+
+\textbf{返回}
+
+尺寸为 (samples,1) 的张量，包含每一个元素的 CTC 损失。
+
+
+\textbf{ctc\_decode}\label{ctcux5fdecode}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.ctc_decode(y_pred, input_length, greedy}\OperatorTok{=}\VariableTok{True}\NormalTok{, beam_width}\OperatorTok{=}\DecValTok{100}\NormalTok{, top_paths}\OperatorTok{=}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+解码 softmax 的输出。
+
+可以使用贪心搜索（也称为最优路径）或受限字典搜索。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{y\_pred}:
+  张量~\texttt{(samples,\ time\_steps,\ num\_categories)}，
+  包含预测值，或 softmax 输出。
+\item
+  \textbf{input\_length}: 张量 \texttt{(samples,)}， 包含
+  \texttt{y\_pred} 中每个批次样本的序列长度。
+\item
+  \textbf{greedy}: 如果为
+  \texttt{True}，则执行更快速的最优路径搜索，而不使用字典。
+\item
+  \textbf{beam\_width}: 如果 \texttt{greedy} 为
+  \texttt{false}，将使用该宽度的 beam 搜索解码器搜索。
+\item
+  \textbf{top\_paths}: 如果 \texttt{greedy} 为 \texttt{false}，
+  将返回多少条最可能的路径。
+\end{itemize}
+
+\textbf{返回}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Tuple}:
+\item
+  \textbf{List}: 如果~\texttt{greedy} 为
+  \texttt{true}，返回包含解码序列的一个元素的列表。 如果为
+  \texttt{false}，返回最可能解码序列的 \texttt{top\_paths}。
+\item
+  \textbf{Important}: 空白标签返回为
+  \texttt{-1}。包含每个解码序列的对数概率的张量 \texttt{(top\_paths,)}。
+\end{itemize}
+
+
+\textbf{map\_fn}\label{mapux5ffn}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.map_fn(fn, elems, name}\OperatorTok{=}\VariableTok{None}\NormalTok{, dtype}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+将函数fn映射到元素 \texttt{elems} 上并返回输出。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{fn}: 将在每个元素上调用的可调用函数。
+\item
+  \textbf{elems}: 张量。
+\item
+  \textbf{name}: 映射节点在图中的字符串名称。
+\item
+  \textbf{dtype}: 输出数据格式。
+\end{itemize}
+
+\textbf{返回}
+
+数据类型为 \texttt{dtype} 的张量。
+
+
+\textbf{foldl}\label{foldl}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.foldl(fn, elems, initializer}\OperatorTok{=}\VariableTok{None}\NormalTok{, name}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+使用 fn 归约 elems，以从左到右组合它们。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{fn}: 将在每个元素和一个累加器上调用的可调用函数，例如
+  \texttt{lambda\ acc,\ x:\ acc\ +\ x}。
+\item
+  \textbf{elems}: 张量。
+\item
+  \textbf{initializer}: 第一个使用的值 (如果为
+  None，使用\texttt{elems{[}0{]}})。
+\item
+  \textbf{name}: foldl 节点在图中的字符串名称。
+\end{itemize}
+
+\textbf{返回}
+
+与 \texttt{initializer} 类型和尺寸相同的张量。
+
+
+\textbf{foldr}\label{foldr}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.foldr(fn, elems, initializer}\OperatorTok{=}\VariableTok{None}\NormalTok{, name}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+使用 fn 归约 elems，以从右到左组合它们。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{fn}: 将在每个元素和一个累加器上调用的可调用函数，例如
+  \texttt{lambda\ acc,\ x:\ acc\ +\ x}。
+\item
+  \textbf{elems}: 张量。
+\item
+  \textbf{initializer}: 第一个使用的值 (如果为
+  None，使用\texttt{elems{[}-1{]}})。
+\item
+  \textbf{name}: foldr 节点在图中的字符串名称。
+\end{itemize}
+
+\textbf{返回}
+
+与 \texttt{initializer} 类型和尺寸相同的张量。
+
+
+\textbf{local\_conv1d}\label{localux5fconv1d}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.local_conv1d(inputs, kernel, kernel_size, strides, data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+在不共享权值的情况下，运用 1D 卷积。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{inputs}: 3D 张量，尺寸为 (batch\_size, steps, input\_dim)
+\item
+  \textbf{kernel}: 卷积的非共享权重, 尺寸为 (output\_items,
+  feature\_dim, filters)
+\item
+  \textbf{kernel\_size}: 一个整数的元组， 指定 1D 卷积窗口的长度。
+\item
+  \textbf{strides}: 一个整数的元组， 指定卷积步长。
+\item
+  \textbf{data\_format}: 数据格式，channels\_first 或 channels\_last。
+\end{itemize}
+
+\textbf{返回}
+
+运用不共享权重的 1D 卷积之后的张量，尺寸为 (batch\_size, output\_length,
+filters)。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 \texttt{data\_format} 既不是
+  \texttt{channels\_last} 也不是 \texttt{channels\_first}。
+\end{itemize}
+
+
+\textbf{local\_conv2d}\label{localux5fconv2d}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.backend.local_conv2d(inputs, kernel, kernel_size, strides, output_shape, data_format},\\
+\hspace{3cm}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+在不共享权值的情况下，运用 2D 卷积。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{inputs}: 如果
+  \texttt{data\_format=\textquotesingle{}channels\_first\textquotesingle{}}，
+  则为尺寸为 (batch\_size, filters, new\_rows, new\_cols) 的 4D 张量。
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_last\textquotesingle{}}，
+  则为尺寸为 (batch\_size, new\_rows, new\_cols, filters) 的 4D 张量。
+\item
+  \textbf{kernel}: 卷积的非共享权重, 尺寸为 (output\_items,
+  feature\_dim, filters)
+\item
+  \textbf{kernel\_size}: 2 个整数的元组， 指定 2D 卷积窗口的宽度和高度。
+\item
+  \textbf{strides}: 2 个整数的元组， 指定 2D
+  卷积沿宽度和高度方向的步长。
+\item
+  \textbf{output\_shape}: 元组 (output\_row, output\_col) 。
+\item
+  \textbf{data\_format}: 数据格式，channels\_first 或 channels\_last。
+\end{itemize}
+
+\textbf{返回}
+
+一个 4D 张量。
+
+\begin{itemize}
+\tightlist
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_first\textquotesingle{}}，尺寸为
+  (batch\_size, filters, new\_rows, new\_cols)。
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_last\textquotesingle{}}，尺寸为
+  (batch\_size, new\_rows, new\_cols, filters)
+\end{itemize}
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 \texttt{data\_format} 既不是
+  \texttt{channels\_last} 也不是 \texttt{channels\_first}。
+\end{itemize}
+
+
+\textbf{backend}\label{backend}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{backend.backend()}
+\end{Highlighting}
+\end{Shaded}
+
+公开可用的方法，以确定当前后端。
+
+\textbf{返回}
+
+字符串，Keras 目前正在使用的后端名。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>>>} \NormalTok{keras.backend.backend()}
+\CommentTok{'tensorflow'}
+\end{Highlighting}
+\end{Shaded}
+
+\newpage

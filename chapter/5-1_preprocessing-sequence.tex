@@ -1,0 +1,159 @@
+\section{数据预处理}
+\subsection{序列预处理}
+\subsubsection{pad\_sequences}\label{preprocessing-sequence}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.preprocessing.sequence.pad_sequences(sequences, maxlen}\OperatorTok{=}\VariableTok{None}\NormalTok{, dtype}\OperatorTok{=}\StringTok{'int32'}\NormalTok{,}
+    \NormalTok{padding}\OperatorTok{=}\StringTok{'pre'}\NormalTok{, truncating}\OperatorTok{=}\StringTok{'pre'}\NormalTok{, value}\OperatorTok{=}\DecValTok{0}\NormalTok{.)}
+\end{Highlighting}
+\end{Shaded}
+
+Transform a list of \texttt{num\_samples} sequences (lists of scalars)
+into a 2D Numpy array of shape \texttt{(num\_samples,\ num\_timesteps)}.
+\texttt{num\_timesteps} is either the \texttt{maxlen} argument if
+provided, or the length of the longest sequence otherwise. Sequences
+that are shorter than \texttt{num\_timesteps} are padded with
+\texttt{value} at the end. Sequences longer than \texttt{num\_timesteps}
+are truncated so that it fits the desired length. Position where padding
+or truncation happens is determined by \texttt{padding} or
+\texttt{truncating}, respectively.
+
+\begin{itemize}
+\item
+  \textbf{Return}: 2D Numpy array of shape
+  \texttt{(num\_samples,\ num\_timesteps)}.
+\item
+  \textbf{Arguments}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{sequences}: List of lists of int or float.
+  \item
+    \textbf{maxlen}: None or int. Maximum sequence length, longer
+    sequences are truncated and shorter sequences are padded with zeros
+    at the end.
+  \item
+    \textbf{dtype}: datatype of the Numpy array returned.
+  \item
+    \textbf{padding}: 'pre' or 'post', pad either before or after each
+    sequence.
+  \item
+    \textbf{truncating}: 'pre' or 'post', remove values from sequences
+    larger than maxlen either in the beginning or in the end of the
+    sequence
+  \item
+    \textbf{value}: float, value to pad the sequences to the desired
+    value.
+  \end{itemize}
+\end{itemize}
+
+\subsubsection{skipgrams}\label{skipgrams}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.preprocessing.sequence.skipgrams(sequence, vocabulary_size,}
+    \NormalTok{window_size}\OperatorTok{=}\DecValTok{4}\NormalTok{, negative_samples}\OperatorTok{=}\DecValTok{1}\NormalTok{., shuffle}\OperatorTok{=}\VariableTok{True}\NormalTok{,}
+    \NormalTok{categorical}\OperatorTok{=}\VariableTok{False}\NormalTok{, sampling_table}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Transforms a sequence of word indexes (list of int) into couples of the
+form:
+
+\begin{itemize}
+\tightlist
+\item
+  (word, word in the same window), with label 1 (positive samples).
+\item
+  (word, random word from the vocabulary), with label 0 (negative
+  samples).
+\end{itemize}
+
+Read more about Skipgram in this gnomic paper by Mikolov et al.:
+\href{http://arxiv.org/pdf/1301.3781v3.pdf}{Efficient Estimation of Word
+Representations in Vector Space}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Return}: tuple \texttt{(couples,\ labels)}.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{couples} is a list of 2-elements lists of int:
+    \texttt{{[}word\_index,\ other\_word\_index{]}}.
+  \item
+    \texttt{labels} is a list of 0 and 1, where 1 indicates that
+    \texttt{other\_word\_index} was found in the same window as
+    \texttt{word\_index}, and 0 indicates that
+    \texttt{other\_word\_index} was random.
+  \item
+    if categorical is set to True, the labels are categorical, ie. 1
+    becomes {[}0,1{]}, and 0 becomes {[}1, 0{]}.
+  \end{itemize}
+\item
+  \textbf{Arguments}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{sequence}: list of int indexes. If using a sampling\_table,
+    the index of a word should be its the rank in the dataset (starting
+    at 1).
+  \item
+    \textbf{vocabulary\_size}: int.
+  \item
+    \textbf{window\_size}: int. maximum distance between two words in a
+    positive couple.
+  \item
+    \textbf{negative\_samples}: float \textgreater{}= 0. 0 for no
+    negative (=random) samples. 1 for same number as positive samples.
+    etc.
+  \item
+    \textbf{shuffle}: boolean. Whether to shuffle the samples.
+  \item
+    \textbf{categorical}: boolean. Whether to make the returned labels
+    categorical.
+  \item
+    \textbf{sampling\_table}: Numpy array of shape
+    \texttt{(vocabulary\_size,)} where \texttt{sampling\_table{[}i{]}}
+    is the probability of sampling the word with index i (assumed to be
+    i-th most common word in the dataset).
+  \end{itemize}
+\end{itemize}
+
+
+\subsubsection{make\_sampling\_table}\label{makeux5fsamplingux5ftable}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.preprocessing.sequence.make_sampling_table(size, sampling_factor}\OperatorTok{=}\FloatTok{1e-5}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Used for generating the \texttt{sampling\_table} argument for
+\texttt{skipgrams}. \texttt{sampling\_table{[}i{]}} is the probability
+of sampling the word i-th most common word in a dataset (more common
+words should be sampled less frequently, for balance).
+
+\begin{itemize}
+\item
+  \textbf{Return}: Numpy array of shape \texttt{(size,)}.
+\item
+  \textbf{Arguments}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{size}: size of the vocabulary considered.
+  \item
+    \textbf{sampling\_factor}: lower values result in a longer
+    probability decay (common words will be sampled less frequently). If
+    set to 1, no subsampling will be performed (all sampling
+    probabilities will be 1).
+  \end{itemize}
+\end{itemize}
+\newpage

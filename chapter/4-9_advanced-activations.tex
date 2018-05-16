@@ -1,0 +1,211 @@
+\subsection{高级激活层 Advanced Activations}\label{advanced-activations}
+
+    
+\subsubsection{LeakyReLU {\href{https://github.com/keras-team/keras/blob/master/keras/layers/advanced_activations.py\#L18}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.LeakyReLU(alpha}\OperatorTok{=}\FloatTok{0.3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+带泄漏的修正线性单元。
+
+当神经元未激活时，它仍可以赋予其一个很小的梯度：
+\texttt{f(x)\ =\ alpha\ *\ x\ for\ x\ \textless{}\ 0},
+\texttt{f(x)\ =\ x\ for\ x\ \textgreater{}=\ 0}.
+
+\textbf{输入尺寸}
+
+可以是任意的。如果将该层作为模型的第一层， 则需要指定
+\texttt{input\_shape} 参数 （整数元组，不包含样本数量的维度）。
+
+\textbf{输出尺寸}
+
+与输入相同。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{alpha}: float \textgreater{}= 0。负斜率系数。
+\end{itemize}
+
+\textbf{参考文献}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://web.stanford.edu/~awni/papers/relu_hybrid_icml2013_final.pdf}{Rectifier
+  Nonlinearities Improve Neural Network Acoustic Models}
+\end{itemize}
+
+
+
+
+\subsubsection{PReLU {\href{https://github.com/keras-team/keras/blob/master/keras/layers/advanced_activations.py\#L57}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.PReLU(alpha_initializer}\OperatorTok{=}\StringTok{'zeros'}\NormalTok{, alpha_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{alpha_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, shared_axes}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+参数化的修正线性单元。
+
+形式： \texttt{f(x)\ =\ alpha\ *\ x\ for\ x\ \textless{}\ 0},
+\texttt{f(x)\ =\ x\ for\ x\ \textgreater{}=\ 0}, 其中 \texttt{alpha}
+是一个可学习的数组，尺寸与 x 相同。
+
+\textbf{输入尺寸}
+
+可以是任意的。如果将这一层作为模型的第一层， 则需要指定
+\texttt{input\_shape} 参数 （整数元组，不包含样本数量的维度）。
+
+\textbf{输出尺寸}
+
+与输入相同。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{alpha\_initializer}: 权重的初始化函数。
+\item
+  \textbf{alpha\_regularizer}: 权重的正则化方法。
+\item
+  \textbf{alpha\_constraint}: 权重的约束。
+\item
+  \textbf{shared\_axes}: 激活函数共享可学习参数的轴。
+  例如，如果输入特征图来自输出形状为
+  \texttt{(batch,\ height,\ width,\ channels)} 的 2D
+  卷积层，而且你希望跨空间共享参数，以便每个滤波器只有一组参数， 可设置
+  \texttt{shared\_axes={[}1,\ 2{]}}。
+\end{itemize}
+
+\textbf{参考文献}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://arxiv.org/abs/1502.01852}{Delving Deep into Rectifiers:
+  Surpassing Human-Level Performance on ImageNet Classification}
+\end{itemize}
+
+
+
+
+\subsubsection{ELU {\href{https://github.com/keras-team/keras/blob/master/keras/layers/advanced_activations.py\#L152}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.ELU(alpha}\OperatorTok{=}\FloatTok{1.0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+指数线性单元。
+
+形式：
+\texttt{f(x)\ =\ \ alpha\ *\ (exp(x)\ -\ 1.)\ for\ x\ \textless{}\ 0},
+\texttt{f(x)\ =\ x\ for\ x\ \textgreater{}=\ 0}.
+
+\textbf{输入尺寸}
+
+可以是任意的。如果将这一层作为模型的第一层， 则需要指定
+\texttt{input\_shape} 参数 （整数元组，不包含样本数量的维度）。
+
+\textbf{输出尺寸}
+
+与输入相同。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{alpha}: 负因子的尺度。
+\end{itemize}
+
+\textbf{参考文献}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://arxiv.org/abs/1511.07289v1}{Fast and Accurate Deep
+  Network Learning by Exponential Linear Units (ELUs)}
+\end{itemize}
+
+
+
+\subsubsection{ThresholdedReLU {\href{https://github.com/keras-team/keras/blob/master/keras/layers/advanced_activations.py\#L191}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.ThresholdedReLU(theta}\OperatorTok{=}\FloatTok{1.0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+带阈值的修正线性单元。
+
+形式： \texttt{f(x)\ =\ x\ for\ x\ \textgreater{}\ theta},
+\texttt{f(x)\ =\ 0\ otherwise}.
+
+\textbf{输入尺寸}
+
+可以是任意的。如果将这一层作为模型的第一层， 则需要指定
+\texttt{input\_shape} 参数 （整数元组，不包含样本数量的维度）。
+
+\textbf{输出尺寸}
+
+与输入相同。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{theta}: float \textgreater{}= 0。激活的阈值位。
+\end{itemize}
+
+\textbf{参考文献}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{http://arxiv.org/abs/1402.3337}{Zero-Bias Autoencoders and the
+  Benefits of Co-Adapting Features}
+\end{itemize}
+
+
+
+\subsubsection{Softmax {\href{https://github.com/keras-team/keras/blob/master/keras/layers/advanced_activations.py\#L230}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Softmax(axis}\OperatorTok{=-}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Softmax 激活函数。
+
+\textbf{输入尺寸}
+
+可以是任意的。如果将这一层作为模型的第一层， 则需要指定
+\texttt{input\_shape} 参数 （整数元组，不包含样本数量的维度）。
+
+\textbf{输出尺寸}
+
+与输入相同。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{axis}: 整数，应用 softmax 标准化的轴。
+\end{itemize}
+
+\newpage

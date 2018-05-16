@@ -1,0 +1,464 @@
+\section{快速开始}
+\subsection{Sequential 顺序模型指引}\label{sequential-model-guide}
+\subsubsection{开始使用 Keras 顺序 (Sequential)模型}
+
+顺序模型是多个网络层的线性堆叠。
+
+你可以通过将层的列表传递给 \texttt{Sequential} 的构造函数，来创建一个
+Sequential 模型：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{Sequential}
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Dense, Activation}
+
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential([}
+    \NormalTok{Dense(}\DecValTok{32}\NormalTok{, input_shape}\OperatorTok{=}\NormalTok{(}\DecValTok{784}\NormalTok{,)),}
+    \NormalTok{Activation(}\StringTok{'relu'}\NormalTok{),}
+    \NormalTok{Dense(}\DecValTok{10}\NormalTok{),}
+    \NormalTok{Activation(}\StringTok{'softmax'}\NormalTok{),}
+\NormalTok{])}
+\end{Highlighting}
+\end{Shaded}
+
+也可以使用 \texttt{.add()} 方法将各层添加到模型中：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Dense(}\DecValTok{32}\NormalTok{, input_dim}\OperatorTok{=}\DecValTok{784}\NormalTok{))}
+\NormalTok{model.add(Activation(}\StringTok{'relu'}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+
+\subsubsection{指定输入数据的尺寸}
+
+模型需要知道它所期望的输入的尺寸。出于这个原因，顺序模型中的第一层（只有第一层，因为下面的层可以自动地推断尺寸）需要接收关于其输入尺寸的信息。有几种方法来做到这一点：
+
+\begin{itemize}
+\tightlist
+\item
+  传递一个 \texttt{input\_shape} 参数给第一层。它是一个表示尺寸的元组
+  (一个整数或 \texttt{None} 的元组，其中 \texttt{None}
+  表示可能为任何正整数)。在 \texttt{input\_shape} 中不包含数据的 batch
+  大小。
+\item
+  某些 2D 层，例如 \texttt{Dense}，支持通过参数 \texttt{input\_dim}
+  指定输入尺寸，某些 3D 时序层支持 \texttt{input\_dim} 和
+  \texttt{input\_length} 参数。
+\item
+  如果你需要为你的输入指定一个固定的 batch 大小（这对 stateful RNNs
+  很有用），你可以传递一个 \texttt{batch\_size}
+  参数给一个层。如果你同时将 \texttt{batch\_size=32} 和
+  \texttt{input\_shape=(6,\ 8)} 传递给一个层，那么每一批输入的尺寸就为
+  \texttt{(32，6，8)}。
+\end{itemize}
+
+因此，下面的代码片段是等价的：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Dense(}\DecValTok{32}\NormalTok{, input_shape}\OperatorTok{=}\NormalTok{(}\DecValTok{784}\NormalTok{,)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Dense(}\DecValTok{32}\NormalTok{, input_dim}\OperatorTok{=}\DecValTok{784}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+
+\subsubsection{编译}\label{ux7f16ux8bd1}
+
+在训练模型之前，您需要配置学习过程，这是通过 \texttt{compile}
+方法完成的。它接收三个参数：
+
+\begin{itemize}
+\tightlist
+\item
+  优化器 optimizer。它可以是现有优化器的字符串标识符，如
+  \texttt{rmsprop} 或 \texttt{adagrad}，也可以是 Optimizer
+  类的实例。详见：\hyperref[optimizers]{optimizers}。
+\item
+  损失函数
+  loss，模型试图最小化的目标函数。它可以是现有损失函数的字符串标识符，如
+  \texttt{categorical\_crossentropy} 或
+  \texttt{mse}，也可以是一个目标函数。详见：\hyperref[losses]{losses}。
+\item
+  评估标准 metrics。对于任何分类问题，你都希望将其设置为
+  \texttt{metrics\ =\ {[}\textquotesingle{}accuracy\textquotesingle{}{]}}。评估标准可以是现有的标准的字符串标识符，也可以是自定义的评估标准函数。
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 多分类问题}
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{,}
+              \NormalTok{loss}\OperatorTok{=}\StringTok{'categorical_crossentropy'}\NormalTok{,}
+              \NormalTok{metrics}\OperatorTok{=}\NormalTok{[}\StringTok{'accuracy'}\NormalTok{])}
+
+\CommentTok{# 二分类问题}
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{,}
+              \NormalTok{loss}\OperatorTok{=}\StringTok{'binary_crossentropy'}\NormalTok{,}
+              \NormalTok{metrics}\OperatorTok{=}\NormalTok{[}\StringTok{'accuracy'}\NormalTok{])}
+
+\CommentTok{# 均方误差回归问题}
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{,}
+              \NormalTok{loss}\OperatorTok{=}\StringTok{'mse'}\NormalTok{)}
+
+\CommentTok{# 自定义评估标准函数}
+\ImportTok{import} \NormalTok{keras.backend }\ImportTok{as} \NormalTok{K}
+
+\KeywordTok{def} \NormalTok{mean_pred(y_true, y_pred):}
+    \ControlFlowTok{return} \NormalTok{K.mean(y_pred)}
+
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{,}
+              \NormalTok{loss}\OperatorTok{=}\StringTok{'binary_crossentropy'}\NormalTok{,}
+              \NormalTok{metrics}\OperatorTok{=}\NormalTok{[}\StringTok{'accuracy'}\NormalTok{, mean_pred])}
+\end{Highlighting}
+\end{Shaded}
+
+
+\subsubsection{训练}
+
+Keras 模型在输入数据和标签的 Numpy
+矩阵上进行训练。为了训练一个模型，你通常会使用 \texttt{fit}
+函数。\hyperref[sequential-api]{文档详见此处}。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 对于具有2个类的单输入模型（二进制分类）：}
+
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Dense(}\DecValTok{32}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{, input_dim}\OperatorTok{=}\DecValTok{100}\NormalTok{))}
+\NormalTok{model.add(Dense(}\DecValTok{1}\NormalTok{, activation}\OperatorTok{=}\StringTok{'sigmoid'}\NormalTok{))}
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{,}
+              \NormalTok{loss}\OperatorTok{=}\StringTok{'binary_crossentropy'}\NormalTok{,}
+              \NormalTok{metrics}\OperatorTok{=}\NormalTok{[}\StringTok{'accuracy'}\NormalTok{])}
+
+\CommentTok{# 生成虚拟数据}
+\ImportTok{import} \NormalTok{numpy }\ImportTok{as} \NormalTok{np}
+\NormalTok{data }\OperatorTok{=} \NormalTok{np.random.random((}\DecValTok{1000}\NormalTok{, }\DecValTok{100}\NormalTok{))}
+\NormalTok{labels }\OperatorTok{=} \NormalTok{np.random.randint(}\DecValTok{2}\NormalTok{, size}\OperatorTok{=}\NormalTok{(}\DecValTok{1000}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+
+\CommentTok{# 训练模型，以 32 个样本为一个 batch 进行迭代}
+\NormalTok{model.fit(data, labels, epochs}\OperatorTok{=}\DecValTok{10}\NormalTok{, batch_size}\OperatorTok{=}\DecValTok{32}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 对于具有10个类的单输入模型（多分类分类）：}
+
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Dense(}\DecValTok{32}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{, input_dim}\OperatorTok{=}\DecValTok{100}\NormalTok{))}
+\NormalTok{model.add(Dense(}\DecValTok{10}\NormalTok{, activation}\OperatorTok{=}\StringTok{'softmax'}\NormalTok{))}
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{,}
+              \NormalTok{loss}\OperatorTok{=}\StringTok{'categorical_crossentropy'}\NormalTok{,}
+              \NormalTok{metrics}\OperatorTok{=}\NormalTok{[}\StringTok{'accuracy'}\NormalTok{])}
+
+\CommentTok{# 生成虚拟数据}
+\ImportTok{import} \NormalTok{numpy }\ImportTok{as} \NormalTok{np}
+\NormalTok{data }\OperatorTok{=} \NormalTok{np.random.random((}\DecValTok{1000}\NormalTok{, }\DecValTok{100}\NormalTok{))}
+\NormalTok{labels }\OperatorTok{=} \NormalTok{np.random.randint(}\DecValTok{10}\NormalTok{, size}\OperatorTok{=}\NormalTok{(}\DecValTok{1000}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+
+\CommentTok{# 将标签转换为分类的 one-hot 编码}
+\NormalTok{one_hot_labels }\OperatorTok{=} \NormalTok{keras.utils.to_categorical(labels, num_classes}\OperatorTok{=}\DecValTok{10}\NormalTok{)}
+
+\CommentTok{# 训练模型，以 32 个样本为一个 batch 进行迭代}
+\NormalTok{model.fit(data, one_hot_labels, epochs}\OperatorTok{=}\DecValTok{10}\NormalTok{, batch_size}\OperatorTok{=}\DecValTok{32}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\subsubsection{例子}\label{ux4f8bux5b50}
+
+这里有几个可以帮助你开始的例子！
+
+在
+\href{https://github.com/keras-team/keras/tree/master/examples}{examples
+目录} 中，你可以找到真实数据集的示例模型：
+
+\begin{itemize}
+\tightlist
+\item
+  CIFAR10 小图片分类：具有实时数据增强的卷积神经网络 (CNN)
+\item
+  IMDB 电影评论情感分类：基于词序列的 LSTM
+\item
+  Reuters 新闻主题分类：多层感知器 (MLP)
+\item
+  MNIST 手写数字分类：MLP 和 CNN
+\item
+  基于 LSTM 的字符级文本生成
+\end{itemize}
+
+...等等。
+
+\subsubsubsection{基于多层感知器 (MLP) 的 softmax
+多分类：}\label{ux57faux4e8eux591aux5c42ux611fux77e5ux5668-mlp-ux7684-softmax-ux591aux5206ux7c7b}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{import} \NormalTok{keras}
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{Sequential}
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Dense, Dropout, Activation}
+\ImportTok{from} \NormalTok{keras.optimizers }\ImportTok{import} \NormalTok{SGD}
+
+\CommentTok{# 生成虚拟数据}
+\ImportTok{import} \NormalTok{numpy }\ImportTok{as} \NormalTok{np}
+\NormalTok{x_train }\OperatorTok{=} \NormalTok{np.random.random((}\DecValTok{1000}\NormalTok{, }\DecValTok{20}\NormalTok{))}
+\NormalTok{y_train }\OperatorTok{=} \NormalTok{keras.utils.to_categorical(np.random.randint(}\DecValTok{10}\NormalTok{, size}\OperatorTok{=}\NormalTok{(}\DecValTok{1000}\NormalTok{, }\DecValTok{1}\NormalTok{)), num_classes}\OperatorTok{=}\DecValTok{10}\NormalTok{)}
+\NormalTok{x_test }\OperatorTok{=} \NormalTok{np.random.random((}\DecValTok{100}\NormalTok{, }\DecValTok{20}\NormalTok{))}
+\NormalTok{y_test }\OperatorTok{=} \NormalTok{keras.utils.to_categorical(np.random.randint(}\DecValTok{10}\NormalTok{, size}\OperatorTok{=}\NormalTok{(}\DecValTok{100}\NormalTok{, }\DecValTok{1}\NormalTok{)), num_classes}\OperatorTok{=}\DecValTok{10}\NormalTok{)}
+
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\CommentTok{# Dense(64) 是一个具有 64 个隐藏神经元的全连接层。}
+\CommentTok{# 在第一层必须指定所期望的输入数据尺寸：}
+\CommentTok{# 在这里，是一个 20 维的向量。}
+\NormalTok{model.add(Dense(}\DecValTok{64}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{, input_dim}\OperatorTok{=}\DecValTok{20}\NormalTok{))}
+\NormalTok{model.add(Dropout(}\FloatTok{0.5}\NormalTok{))}
+\NormalTok{model.add(Dense(}\DecValTok{64}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{))}
+\NormalTok{model.add(Dropout(}\FloatTok{0.5}\NormalTok{))}
+\NormalTok{model.add(Dense(}\DecValTok{10}\NormalTok{, activation}\OperatorTok{=}\StringTok{'softmax'}\NormalTok{))}
+
+\NormalTok{sgd }\OperatorTok{=} \NormalTok{SGD(lr}\OperatorTok{=}\FloatTok{0.01}\NormalTok{, decay}\OperatorTok{=}\FloatTok{1e-6}\NormalTok{, momentum}\OperatorTok{=}\FloatTok{0.9}\NormalTok{, nesterov}\OperatorTok{=}\VariableTok{True}\NormalTok{)}
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(loss}\OperatorTok{=}\StringTok{'categorical_crossentropy'}\NormalTok{,}
+              \NormalTok{optimizer}\OperatorTok{=}\NormalTok{sgd,}
+              \NormalTok{metrics}\OperatorTok{=}\NormalTok{[}\StringTok{'accuracy'}\NormalTok{])}
+
+\NormalTok{model.fit(x_train, y_train,}
+          \NormalTok{epochs}\OperatorTok{=}\DecValTok{20}\NormalTok{,}
+          \NormalTok{batch_size}\OperatorTok{=}\DecValTok{128}\NormalTok{)}
+\NormalTok{score }\OperatorTok{=} \NormalTok{model.evaluate(x_test, y_test, batch_size}\OperatorTok{=}\DecValTok{128}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsubsection{基于多层感知器的二分类：}\label{ux57faux4e8eux591aux5c42ux611fux77e5ux5668ux7684ux4e8cux5206ux7c7b}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{import} \NormalTok{numpy }\ImportTok{as} \NormalTok{np}
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{Sequential}
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Dense, Dropout}
+
+\CommentTok{# 生成虚拟数据}
+\NormalTok{x_train }\OperatorTok{=} \NormalTok{np.random.random((}\DecValTok{1000}\NormalTok{, }\DecValTok{20}\NormalTok{))}
+\NormalTok{y_train }\OperatorTok{=} \NormalTok{np.random.randint(}\DecValTok{2}\NormalTok{, size}\OperatorTok{=}\NormalTok{(}\DecValTok{1000}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\NormalTok{x_test }\OperatorTok{=} \NormalTok{np.random.random((}\DecValTok{100}\NormalTok{, }\DecValTok{20}\NormalTok{))}
+\NormalTok{y_test }\OperatorTok{=} \NormalTok{np.random.randint(}\DecValTok{2}\NormalTok{, size}\OperatorTok{=}\NormalTok{(}\DecValTok{100}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Dense(}\DecValTok{64}\NormalTok{, input_dim}\OperatorTok{=}\DecValTok{20}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{))}
+\NormalTok{model.add(Dropout(}\FloatTok{0.5}\NormalTok{))}
+\NormalTok{model.add(Dense(}\DecValTok{64}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{))}
+\NormalTok{model.add(Dropout(}\FloatTok{0.5}\NormalTok{))}
+\NormalTok{model.add(Dense(}\DecValTok{1}\NormalTok{, activation}\OperatorTok{=}\StringTok{'sigmoid'}\NormalTok{))}
+
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(loss}\OperatorTok{=}\StringTok{'binary_crossentropy'}\NormalTok{,}
+              \NormalTok{optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{,}
+              \NormalTok{metrics}\OperatorTok{=}\NormalTok{[}\StringTok{'accuracy'}\NormalTok{])}
+
+\NormalTok{model.fit(x_train, y_train,}
+          \NormalTok{epochs}\OperatorTok{=}\DecValTok{20}\NormalTok{,}
+          \NormalTok{batch_size}\OperatorTok{=}\DecValTok{128}\NormalTok{)}
+\NormalTok{score }\OperatorTok{=} \NormalTok{model.evaluate(x_test, y_test, batch_size}\OperatorTok{=}\DecValTok{128}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsubsection{类似 VGG
+的卷积神经网络：}\label{ux7c7bux4f3c-vgg-ux7684ux5377ux79efux795eux7ecfux7f51ux7edc}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{import} \NormalTok{numpy }\ImportTok{as} \NormalTok{np}
+\ImportTok{import} \NormalTok{keras}
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{Sequential}
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Dense, Dropout, Flatten}
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Conv2D, MaxPooling2D}
+\ImportTok{from} \NormalTok{keras.optimizers }\ImportTok{import} \NormalTok{SGD}
+
+\CommentTok{# 生成虚拟数据}
+\NormalTok{x_train }\OperatorTok{=} \NormalTok{np.random.random((}\DecValTok{100}\NormalTok{, }\DecValTok{100}\NormalTok{, }\DecValTok{100}\NormalTok{, }\DecValTok{3}\NormalTok{))}
+\NormalTok{y_train }\OperatorTok{=} \NormalTok{keras.utils.to_categorical(np.random.randint(}\DecValTok{10}\NormalTok{, size}\OperatorTok{=}\NormalTok{(}\DecValTok{100}\NormalTok{, }\DecValTok{1}\NormalTok{)), num_classes}\OperatorTok{=}\DecValTok{10}\NormalTok{)}
+\NormalTok{x_test }\OperatorTok{=} \NormalTok{np.random.random((}\DecValTok{20}\NormalTok{, }\DecValTok{100}\NormalTok{, }\DecValTok{100}\NormalTok{, }\DecValTok{3}\NormalTok{))}
+\NormalTok{y_test }\OperatorTok{=} \NormalTok{keras.utils.to_categorical(np.random.randint(}\DecValTok{10}\NormalTok{, size}\OperatorTok{=}\NormalTok{(}\DecValTok{20}\NormalTok{, }\DecValTok{1}\NormalTok{)), num_classes}\OperatorTok{=}\DecValTok{10}\NormalTok{)}
+
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\CommentTok{# 输入: 3 通道 100x100 像素图像 -> (100, 100, 3) 张量。}
+\CommentTok{# 使用 32 个大小为 3x3 的卷积滤波器。}
+\NormalTok{model.add(Conv2D(}\DecValTok{32}\NormalTok{, (}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{), activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{, input_shape}\OperatorTok{=}\NormalTok{(}\DecValTok{100}\NormalTok{, }\DecValTok{100}\NormalTok{, }\DecValTok{3}\NormalTok{)))}
+\NormalTok{model.add(Conv2D(}\DecValTok{32}\NormalTok{, (}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{), activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{))}
+\NormalTok{model.add(MaxPooling2D(pool_size}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{)))}
+\NormalTok{model.add(Dropout(}\FloatTok{0.25}\NormalTok{))}
+
+\NormalTok{model.add(Conv2D(}\DecValTok{64}\NormalTok{, (}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{), activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{))}
+\NormalTok{model.add(Conv2D(}\DecValTok{64}\NormalTok{, (}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{), activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{))}
+\NormalTok{model.add(MaxPooling2D(pool_size}\OperatorTok{=}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{)))}
+\NormalTok{model.add(Dropout(}\FloatTok{0.25}\NormalTok{))}
+
+\NormalTok{model.add(Flatten())}
+\NormalTok{model.add(Dense(}\DecValTok{256}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{))}
+\NormalTok{model.add(Dropout(}\FloatTok{0.5}\NormalTok{))}
+\NormalTok{model.add(Dense(}\DecValTok{10}\NormalTok{, activation}\OperatorTok{=}\StringTok{'softmax'}\NormalTok{))}
+
+\NormalTok{sgd }\OperatorTok{=} \NormalTok{SGD(lr}\OperatorTok{=}\FloatTok{0.01}\NormalTok{, decay}\OperatorTok{=}\FloatTok{1e-6}\NormalTok{, momentum}\OperatorTok{=}\FloatTok{0.9}\NormalTok{, nesterov}\OperatorTok{=}\VariableTok{True}\NormalTok{)}
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(loss}\OperatorTok{=}\StringTok{'categorical_crossentropy'}\NormalTok{, optimizer}\OperatorTok{=}\NormalTok{sgd)}
+
+\NormalTok{model.fit(x_train, y_train, batch_size}\OperatorTok{=}\DecValTok{32}\NormalTok{, epochs}\OperatorTok{=}\DecValTok{10}\NormalTok{)}
+\NormalTok{score }\OperatorTok{=} \NormalTok{model.evaluate(x_test, y_test, batch_size}\OperatorTok{=}\DecValTok{32}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsubsection{基于 LSTM
+的序列分类：}\label{ux57faux4e8e-lstm-ux7684ux5e8fux5217ux5206ux7c7b}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{Sequential}
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Dense, Dropout}
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Embedding}
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{LSTM}
+
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Embedding(max_features, output_dim}\OperatorTok{=}\DecValTok{256}\NormalTok{))}
+\NormalTok{model.add(LSTM(}\DecValTok{128}\NormalTok{))}
+\NormalTok{model.add(Dropout(}\FloatTok{0.5}\NormalTok{))}
+\NormalTok{model.add(Dense(}\DecValTok{1}\NormalTok{, activation}\OperatorTok{=}\StringTok{'sigmoid'}\NormalTok{))}
+
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(loss}\OperatorTok{=}\StringTok{'binary_crossentropy'}\NormalTok{,}
+              \NormalTok{optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{,}
+              \NormalTok{metrics}\OperatorTok{=}\NormalTok{[}\StringTok{'accuracy'}\NormalTok{])}
+
+\NormalTok{model.fit(x_train, y_train, batch_size}\OperatorTok{=}\DecValTok{16}\NormalTok{, epochs}\OperatorTok{=}\DecValTok{10}\NormalTok{)}
+\NormalTok{score }\OperatorTok{=} \NormalTok{model.evaluate(x_test, y_test, batch_size}\OperatorTok{=}\DecValTok{16}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsubsection{基于 1D
+卷积的序列分类：}\label{ux57faux4e8e-1d-ux5377ux79efux7684ux5e8fux5217ux5206ux7c7b}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{Sequential}
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Dense, Dropout}
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Embedding}
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Conv1D, GlobalAveragePooling1D, MaxPooling1D}
+
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Conv1D(}\DecValTok{64}\NormalTok{, }\DecValTok{3}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{, input_shape}\OperatorTok{=}\NormalTok{(seq_length, }\DecValTok{100}\NormalTok{)))}
+\NormalTok{model.add(Conv1D(}\DecValTok{64}\NormalTok{, }\DecValTok{3}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{))}
+\NormalTok{model.add(MaxPooling1D(}\DecValTok{3}\NormalTok{))}
+\NormalTok{model.add(Conv1D(}\DecValTok{128}\NormalTok{, }\DecValTok{3}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{))}
+\NormalTok{model.add(Conv1D(}\DecValTok{128}\NormalTok{, }\DecValTok{3}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{))}
+\NormalTok{model.add(GlobalAveragePooling1D())}
+\NormalTok{model.add(Dropout(}\FloatTok{0.5}\NormalTok{))}
+\NormalTok{model.add(Dense(}\DecValTok{1}\NormalTok{, activation}\OperatorTok{=}\StringTok{'sigmoid'}\NormalTok{))}
+
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(loss}\OperatorTok{=}\StringTok{'binary_crossentropy'}\NormalTok{,}
+              \NormalTok{optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{,}
+              \NormalTok{metrics}\OperatorTok{=}\NormalTok{[}\StringTok{'accuracy'}\NormalTok{])}
+
+\NormalTok{model.fit(x_train, y_train, batch_size}\OperatorTok{=}\DecValTok{16}\NormalTok{, epochs}\OperatorTok{=}\DecValTok{10}\NormalTok{)}
+\NormalTok{score }\OperatorTok{=} \NormalTok{model.evaluate(x_test, y_test, batch_size}\OperatorTok{=}\DecValTok{16}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsubsection{基于栈式 LSTM
+的序列分类}\label{ux57faux4e8eux6808ux5f0f-lstm-ux7684ux5e8fux5217ux5206ux7c7b}
+
+在这个模型中，我们将 3 个 LSTM
+层叠在一起，使模型能够学习更高层次的时间表示。
+
+前两个 LSTM
+返回完整的输出序列，但最后一个只返回输出序列的最后一步，从而降低了时间维度（即将输入序列转换成单个向量）。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{Sequential}
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{LSTM, Dense}
+\ImportTok{import} \NormalTok{numpy }\ImportTok{as} \NormalTok{np}
+
+\NormalTok{data_dim }\OperatorTok{=} \DecValTok{16}
+\NormalTok{timesteps }\OperatorTok{=} \DecValTok{8}
+\NormalTok{num_classes }\OperatorTok{=} \DecValTok{10}
+
+\CommentTok{# 期望输入数据尺寸: (batch_size, timesteps, data_dim)}
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(LSTM(}\DecValTok{32}\NormalTok{, return_sequences}\OperatorTok{=}\VariableTok{True}\NormalTok{,}
+               \NormalTok{input_shape}\OperatorTok{=}\NormalTok{(timesteps, data_dim)))  }\CommentTok{# 返回维度为 32 的向量序列}
+\NormalTok{model.add(LSTM(}\DecValTok{32}\NormalTok{, return_sequences}\OperatorTok{=}\VariableTok{True}\NormalTok{))  }\CommentTok{# 返回维度为 32 的向量序列}
+\NormalTok{model.add(LSTM(}\DecValTok{32}\NormalTok{))  }\CommentTok{# 返回维度为 32 的单个向量}
+\NormalTok{model.add(Dense(}\DecValTok{10}\NormalTok{, activation}\OperatorTok{=}\StringTok{'softmax'}\NormalTok{))}
+
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(loss}\OperatorTok{=}\StringTok{'categorical_crossentropy'}\NormalTok{,}
+              \NormalTok{optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{,}
+              \NormalTok{metrics}\OperatorTok{=}\NormalTok{[}\StringTok{'accuracy'}\NormalTok{])}
+
+\CommentTok{# 生成虚拟训练数据}
+\NormalTok{x_train }\OperatorTok{=} \NormalTok{np.random.random((}\DecValTok{1000}\NormalTok{, timesteps, data_dim))}
+\NormalTok{y_train }\OperatorTok{=} \NormalTok{np.random.random((}\DecValTok{1000}\NormalTok{, num_classes))}
+
+\CommentTok{# 生成虚拟验证数据}
+\NormalTok{x_val }\OperatorTok{=} \NormalTok{np.random.random((}\DecValTok{100}\NormalTok{, timesteps, data_dim))}
+\NormalTok{y_val }\OperatorTok{=} \NormalTok{np.random.random((}\DecValTok{100}\NormalTok{, num_classes))}
+
+\NormalTok{model.fit(x_train, y_train,}
+          \NormalTok{batch_size}\OperatorTok{=}\DecValTok{64}\NormalTok{, epochs}\OperatorTok{=}\DecValTok{5}\NormalTok{,}
+          \NormalTok{validation_data}\OperatorTok{=}\NormalTok{(x_val, y_val))}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsubsection{带有状态 (stateful) 的 相同的栈式 LSTM
+模型}\label{ux5e26ux6709ux72b6ux6001-stateful-ux7684-ux76f8ux540cux7684ux6808ux5f0f-lstm-ux6a21ux578b}
+
+有状态的循环神经网络模型中，在一个 batch
+的样本处理完成后，其内部状态（记忆）会被记录并作为下一个 batch
+的样本的初始状态。这允许处理更长的序列，同时保持计算复杂度的可控性。
+
+\hyperref[keras-faq]{你可以在 FAQ
+中查找更多关于 stateful RNNs 的信息。}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{Sequential}
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{LSTM, Dense}
+\ImportTok{import} \NormalTok{numpy }\ImportTok{as} \NormalTok{np}
+
+\NormalTok{data_dim }\OperatorTok{=} \DecValTok{16}
+\NormalTok{timesteps }\OperatorTok{=} \DecValTok{8}
+\NormalTok{num_classes }\OperatorTok{=} \DecValTok{10}
+\NormalTok{batch_size }\OperatorTok{=} \DecValTok{32}
+
+\CommentTok{# 期望输入数据尺寸: (batch_size, timesteps, data_dim)}
+\CommentTok{# 请注意，我们必须提供完整的 batch_input_shape，因为网络是有状态的。}
+\CommentTok{# 第 k 批数据的第 i 个样本是第 k-1 批数据的第 i 个样本的后续。}
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(LSTM(}\DecValTok{32}\NormalTok{, return_sequences}\OperatorTok{=}\VariableTok{True}\NormalTok{, stateful}\OperatorTok{=}\VariableTok{True}\NormalTok{,}
+               \NormalTok{batch_input_shape}\OperatorTok{=}\NormalTok{(batch_size, timesteps, data_dim)))}
+\NormalTok{model.add(LSTM(}\DecValTok{32}\NormalTok{, return_sequences}\OperatorTok{=}\VariableTok{True}\NormalTok{, stateful}\OperatorTok{=}\VariableTok{True}\NormalTok{))}
+\NormalTok{model.add(LSTM(}\DecValTok{32}\NormalTok{, stateful}\OperatorTok{=}\VariableTok{True}\NormalTok{))}
+\NormalTok{model.add(Dense(}\DecValTok{10}\NormalTok{, activation}\OperatorTok{=}\StringTok{'softmax'}\NormalTok{))}
+
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(loss}\OperatorTok{=}\StringTok{'categorical_crossentropy'}\NormalTok{,}
+              \NormalTok{optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{,}
+              \NormalTok{metrics}\OperatorTok{=}\NormalTok{[}\StringTok{'accuracy'}\NormalTok{])}
+
+\CommentTok{# 生成虚拟训练数据}
+\NormalTok{x_train }\OperatorTok{=} \NormalTok{np.random.random((batch_size }\OperatorTok{*} \DecValTok{10}\NormalTok{, timesteps, data_dim))}
+\NormalTok{y_train }\OperatorTok{=} \NormalTok{np.random.random((batch_size }\OperatorTok{*} \DecValTok{10}\NormalTok{, num_classes))}
+
+\CommentTok{# 生成虚拟验证数据}
+\NormalTok{x_val }\OperatorTok{=} \NormalTok{np.random.random((batch_size }\OperatorTok{*} \DecValTok{3}\NormalTok{, timesteps, data_dim))}
+\NormalTok{y_val }\OperatorTok{=} \NormalTok{np.random.random((batch_size }\OperatorTok{*} \DecValTok{3}\NormalTok{, num_classes))}
+
+\NormalTok{model.fit(x_train, y_train,}
+          \NormalTok{batch_size}\OperatorTok{=}\NormalTok{batch_size, epochs}\OperatorTok{=}\DecValTok{5}\NormalTok{, shuffle}\OperatorTok{=}\VariableTok{False}\NormalTok{,}
+          \NormalTok{validation_data}\OperatorTok{=}\NormalTok{(x_val, y_val))}
+\end{Highlighting}
+\end{Shaded}
+
+\newpage

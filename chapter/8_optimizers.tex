@@ -1,0 +1,350 @@
+\section{优化器 Optimizers}\label{optimizers}
+\subsection{优化器的用法}
+
+优化器(optimizer)是编译Keras模型的所需的两个参数之一：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{optimizers}
+
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Dense(}\DecValTok{64}\NormalTok{, kernel_initializer}\OperatorTok{=}\StringTok{'uniform'}\NormalTok{, input_shape}\OperatorTok{=}\NormalTok{(}\DecValTok{10}\NormalTok{,)))}
+\NormalTok{model.add(Activation(}\StringTok{'tanh'}\NormalTok{))}
+\NormalTok{model.add(Activation(}\StringTok{'softmax'}\NormalTok{))}
+
+\NormalTok{sgd }\OperatorTok{=} \NormalTok{optimizers.SGD(lr}\OperatorTok{=}\FloatTok{0.01}\NormalTok{, decay}\OperatorTok{=}\FloatTok{1e-6}\NormalTok{, momentum}\OperatorTok{=}\FloatTok{0.9}\NormalTok{, nesterov}\OperatorTok{=}\VariableTok{True}\NormalTok{)}
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(loss}\OperatorTok{=}\StringTok{'mean_squared_error'}\NormalTok{, optimizer}\OperatorTok{=}\NormalTok{sgd)}
+\end{Highlighting}
+\end{Shaded}
+
+你可以先实例化一个优化器对象，然后将它传入\texttt{model.compile()}，像上述示例中一样，
+或者你可以通过名称来调用优化器。在后一种情况下，将使用优化器的默认参数。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 传入优化器名称: 默认参数将被采用}
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(loss}\OperatorTok{=}\StringTok{'mean_squared_error'}\NormalTok{, optimizer}\OperatorTok{=}\StringTok{'sgd'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\subsection{Keras优化器的公共参数}\label{kerasux4f18ux5316ux5668ux7684ux516cux5171ux53c2ux6570}
+
+参数\texttt{clipnorm}和\texttt{clipvalue}能在所有的优化器中使用，用于控制梯度裁剪（Gradient
+Clipping）：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{optimizers}
+
+\CommentTok{# 所有参数梯度将被裁剪，让其l2范数最大为1：g * 1 / max(1, l2_norm)}
+\NormalTok{sgd }\OperatorTok{=} \NormalTok{optimizers.SGD(lr}\OperatorTok{=}\FloatTok{0.01}\NormalTok{, clipnorm}\OperatorTok{=}\DecValTok{1}\NormalTok{.)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras }\ImportTok{import} \NormalTok{optimizers}
+
+\CommentTok{# 所有参数d 梯度将被裁剪到数值范围内：}
+\CommentTok{# 最大值0.5}
+\CommentTok{# 最小值-0.5}
+\NormalTok{sgd }\OperatorTok{=} \NormalTok{optimizers.SGD(lr}\OperatorTok{=}\FloatTok{0.01}\NormalTok{, clipvalue}\OperatorTok{=}\FloatTok{0.5}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+
+ 
+\subsubsection{SGD {\href{https://github.com/keras-team/keras/blob/master/keras/optimizers.py\#L135}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.optimizers.SGD(lr}\OperatorTok{=}\FloatTok{0.01}\NormalTok{, momentum}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, decay}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, nesterov}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+随机梯度下降优化器
+
+包含扩展功能的支持： - 动量（momentum）优化, -
+学习率衰减（每次参数更新后） - Nestrov动量(NAG)优化
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{lr}: float \textgreater{}= 0. 学习率
+\item
+  \textbf{momentum}: float \textgreater{}= 0.
+  参数，用于加速SGD在相关方向上前进，并抑制震荡
+\item
+  \textbf{decay}: float \textgreater{}= 0. 每次参数更新后学习率衰减值.
+\item
+  \textbf{nesterov}: boolean. 是否使用Nesterov动量.
+\end{itemize}
+
+
+
+\subsubsection{RMSprop {\href{https://github.com/keras-team/keras/blob/master/keras/optimizers.py\#L198}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.optimizers.RMSprop(lr}\OperatorTok{=}\FloatTok{0.001}\NormalTok{, rho}\OperatorTok{=}\FloatTok{0.9}\NormalTok{, epsilon}\OperatorTok{=}\VariableTok{None}\NormalTok{, decay}\OperatorTok{=}\FloatTok{0.0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+RMSProp优化器.
+
+建议使用优化器的默认参数 （除了学习率lr，它可以被自由调节）
+
+这个优化器通常是训练循环神经网络RNN的不错选择。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{lr}: float \textgreater{}= 0. 学习率.
+\item
+  \textbf{rho}: float \textgreater{}= 0.
+  RMSProp梯度平方的移动均值的衰减率.
+\item
+  \textbf{epsilon}: float \textgreater{}= 0. 模糊因子. 若为
+  \texttt{None}, 默认为 \texttt{K.epsilon()}.
+\item
+  \textbf{decay}: float \textgreater{}= 0. 每次参数更新后学习率衰减值.
+\end{itemize}
+
+\textbf{引用}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{http://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf}{rmsprop:
+  Divide the gradient by a running average of its recent magnitude}
+\end{itemize}
+
+
+
+
+\subsubsection{Adagrad {\href{https://github.com/keras-team/keras/blob/master/keras/optimizers.py\#L265}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.optimizers.Adagrad(lr}\OperatorTok{=}\FloatTok{0.01}\NormalTok{, epsilon}\OperatorTok{=}\VariableTok{None}\NormalTok{, decay}\OperatorTok{=}\FloatTok{0.0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Adagrad优化器.
+
+建议使用优化器的默认参数。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{lr}: float \textgreater{}= 0. 学习率.
+\item
+  \textbf{epsilon}: float \textgreater{}= 0. 若为 \texttt{None}, 默认为
+  \texttt{K.epsilon()}.
+\item
+  \textbf{decay}: float \textgreater{}= 0. 每次参数更新后学习率衰减值.
+\end{itemize}
+
+\textbf{引用}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{http://www.jmlr.org/papers/volume12/duchi11a/duchi11a.pdf}{Adaptive
+  Subgradient Methods for Online Learning and Stochastic Optimization}
+\end{itemize}
+
+
+
+
+\subsubsection{Adadelta {\href{https://github.com/keras-team/keras/blob/master/keras/optimizers.py\#L324}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.optimizers.Adadelta(lr}\OperatorTok{=}\FloatTok{1.0}\NormalTok{, rho}\OperatorTok{=}\FloatTok{0.95}\NormalTok{, epsilon}\OperatorTok{=}\VariableTok{None}\NormalTok{, decay}\OperatorTok{=}\FloatTok{0.0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Adagrad优化器.
+
+建议使用优化器的默认参数。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{lr}: float \textgreater{}= 0. 学习率，建议保留默认值.
+\item
+  \textbf{rho}: float \textgreater{}= 0.
+  Adadelta梯度平方移动均值的衰减率
+\item
+  \textbf{epsilon}: float \textgreater{}= 0. 模糊因子. 若为
+  \texttt{None}, 默认为 \texttt{K.epsilon()}.
+\item
+  \textbf{decay}: float \textgreater{}= 0. 每次参数更新后学习率衰减值.
+\end{itemize}
+
+\textbf{引用}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{http://arxiv.org/abs/1212.5701}{Adadelta - an adaptive learning
+  rate method}
+\end{itemize}
+
+
+
+
+\subsubsection{Adam {\href{https://github.com/keras-team/keras/blob/master/keras/optimizers.py\#L397}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.optimizers.Adam(lr}\OperatorTok{=}\FloatTok{0.001}\NormalTok{, beta_1}\OperatorTok{=}\FloatTok{0.9}\NormalTok{, beta_2}\OperatorTok{=}\FloatTok{0.999}\NormalTok{, epsilon}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{4cm}\NormalTok{decay}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, amsgrad}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Adam优化器.
+
+默认参数遵循原论文中提供的值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{lr}: float \textgreater{}= 0. 学习率.
+\item
+  \textbf{beta\_1}: float, 0 \textless{} beta \textless{} 1. 通常接近于
+  1.
+\item
+  \textbf{beta\_2}: float, 0 \textless{} beta \textless{} 1. 通常接近于
+  1.
+\item
+  \textbf{epsilon}: float \textgreater{}= 0. 模糊因子. 若为
+  \texttt{None}, 默认为 \texttt{K.epsilon()}.
+\item
+  \textbf{decay}: float \textgreater{}= 0. 每次参数更新后学习率衰减值.
+\item
+  \textbf{amsgrad}: boolean. 是否应用此算法的AMSGrad变种，来自论文"On
+  the Convergence of Adam and Beyond".
+\end{itemize}
+
+\textbf{引用}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{http://arxiv.org/abs/1412.6980v8}{Adam - A Method for Stochastic
+  Optimization}
+\item
+  \href{https://openreview.net/forum?id=ryQu7f-RZ}{On the Convergence of
+  Adam and Beyond}
+\end{itemize}
+
+
+
+
+\subsubsection{Adamax {\href{https://github.com/keras-team/keras/blob/master/keras/optimizers.py\#L486}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.optimizers.Adamax(lr}\OperatorTok{=}\FloatTok{0.002}\NormalTok{, beta_1}\OperatorTok{=}\FloatTok{0.9}\NormalTok{, beta_2}\OperatorTok{=}\FloatTok{0.999}\NormalTok{, epsilon}\OperatorTok{=}\VariableTok{None}\NormalTok{, decay}\OperatorTok{=}\FloatTok{0.0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Adamax优化器，来自Adam论文的第七小节.
+
+它是Adam算法基于无穷范数（infinity norm）的变种。
+默认参数遵循论文中提供的值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{lr}: float \textgreater{}= 0. 学习率.
+\item
+  \textbf{beta\_1/beta\_2}: floats, 0 \textless{} beta \textless{} 1.
+  通常接近于 1.
+\item
+  \textbf{epsilon}: float \textgreater{}= 0. 模糊因子. 若为
+  \texttt{None}, 默认为 \texttt{K.epsilon()}.
+\item
+  \textbf{decay}: float \textgreater{}= 0. 每次参数更新后学习率衰减值.
+\end{itemize}
+
+\textbf{引用}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{http://arxiv.org/abs/1412.6980v8}{Adam - A Method for Stochastic
+  Optimization}
+\end{itemize}
+
+
+
+
+\subsubsection{Nadam {\href{https://github.com/keras-team/keras/blob/master/keras/optimizers.py\#L563}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.optimizers.Nadam(lr}\OperatorTok{=}\FloatTok{0.002}\NormalTok{, beta_1}\OperatorTok{=}\FloatTok{0.9}\NormalTok{, beta_2}\OperatorTok{=}\FloatTok{0.999}\NormalTok{, epsilon}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{4cm}\NormalTok{schedule_decay}\OperatorTok{=}\FloatTok{0.004}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Nesterov版本Adam优化器.
+
+正像Adam本质上是RMSProp与动量momentum的结合， Nadam是采用Nesterov
+momentum版本的Adam优化器。
+
+默认参数遵循论文中提供的值。 建议使用优化器的默认参数。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{lr}: float \textgreater{}= 0. 学习率.
+\item
+  \textbf{beta\_1/beta\_2}: floats, 0 \textless{} beta \textless{} 1.
+  通常接近于 1.
+\item
+  \textbf{epsilon}: float \textgreater{}= 0. 模糊因子. 若为
+  \texttt{None}, 默认为 \texttt{K.epsilon()}.
+\end{itemize}
+
+\textbf{引用}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{http://cs229.stanford.edu/proj2015/054_report.pdf}{Nadam report}
+\item
+  \href{http://www.cs.toronto.edu/~fritz/absps/momentum.pdf}{On the
+  importance of initialization and momentum in deep learning}
+\end{itemize}
+
+
+
+\subsubsection{TFOptimizer  {\href{https://github.com/keras-team/keras/blob/master/keras/optimizers.py\#L649}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.optimizers.TFOptimizer(optimizer)}
+\end{Highlighting}
+\end{Shaded}
+
+原生Tensorlfow优化器的包装类（wrapper class）。
+\newpage

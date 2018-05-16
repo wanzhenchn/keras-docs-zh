@@ -1,0 +1,1060 @@
+\subsection{循环层 Recurrent}\label{recurrent}
+
+
+\subsubsection{RNN {\href{https://github.com/keras-team/keras/blob/master/keras/layers/recurrent.py\#L201}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.RNN(cell, return_sequences}\OperatorTok{=}\VariableTok{False}\NormalTok{, return_state}\OperatorTok{=}\VariableTok{False}, \\
+\hspace{3cm}\NormalTok{go_backwards}\OperatorTok{=}\VariableTok{False}\NormalTok{, stateful}\OperatorTok{=}\VariableTok{False}\NormalTok{, unroll}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+循环神经网络层基类。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{cell}: 一个 RNN 单元实例。RNN 单元是一个具有以下项目的类：
+\item
+  一个~\texttt{call(input\_at\_t,\ states\_at\_t)} 方法， 它返回
+  \texttt{(output\_at\_t,\ states\_at\_t\_plus\_1)}。
+  单元的调用方法也可以采用可选参数 \texttt{constants}， 详见下面的小节
+  "关于传递外部常量的注意事项"。
+\item
+  一个~\texttt{state\_size} 属性。这可以是单个整数（单个状态），
+  在这种情况下，它是循环层状态的大小（应该与单元输出的大小相同）。
+  这也可以是整数的列表/元组（每个状态一个大小）。
+  在这种情况下，第一项（\texttt{state\_size\ {[}0{]}}）应该与单元输出的大小相同。
+  \texttt{cell} 也可能是 RNN 单元实例的列表，在这种情况下，RNN
+  的单元将堆叠在另一个单元上，实现高效的堆叠 RNN。
+\item
+  \textbf{return\_sequences}:
+  布尔值。是返回输出序列中的最后一个输出，还是全部序列。
+\item
+  \textbf{return\_state}: 布尔值。除了输出之外是否返回最后一个状态。
+\item
+  \textbf{go\_backwards}: 布尔值 (默认 False)。 如果为
+  True，则向后处理输入序列并返回相反的序列。
+\item
+  \textbf{stateful}: 布尔值 (默认 False)。 如果为 True，则批次中索引 i
+  处的每个样品的最后状态将用作下一批次中索引 i 样品的初始状态。
+\item
+  \textbf{unroll}: 布尔值 (默认 False)。 如果为
+  True，则网络将展开，否则将使用符号循环。 展开可以加速
+  RNN，但它往往会占用更多的内存。 展开只适用于短序列。
+\item
+  \textbf{input\_dim}: 输入的维度（整数）。
+  将此层用作模型中的第一层时，此参数（或者，关键字参数
+  \texttt{input\_shape}）是必需的。
+\item
+  \textbf{input\_length}: 输入序列的长度，在恒定时指定。
+  如果你要在上游连接 \texttt{Flatten} 和~\texttt{Dense} 层，
+  则需要此参数（如果没有它，无法计算全连接输出的尺寸）。
+  请注意，如果循环神经网络层不是模型中的第一层，
+  则需要在第一层的层级指定输入长度（例如，通过 \texttt{input\_shape}
+  参数）。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+3D 张量，尺寸为 \texttt{(batch\_size,\ timesteps,\ input\_dim)}。
+
+\textbf{输出尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 \texttt{return\_state} 为 True，则返回张量列表。
+  第一个张量为输出。剩余的张量为最后的状态， 每个张量的尺寸为
+  \texttt{(batch\_size,\ units)}。
+\item
+  否则，返回尺寸为 \texttt{(batch\_size,\ units)} 的 2D 张量。
+\end{itemize}
+
+\textbf{屏蔽覆盖}
+
+该层支持以可变数量的时间步长对输入数据进行屏蔽覆盖。
+要将屏蔽引入数据，请使用 \href{embeddings.md}{Embedding} 层，
+并将\texttt{mask\_zero} 参数设置为 \texttt{True}。
+
+\textbf{关于在 RNN 中使用状态的注意事项}
+
+你可以将 RNN 层设置为 \texttt{stateful}（有状态的），
+这意味着针对一批中的样本计算的状态将被重新用作下一批样品的初始状态。
+这假定在不同连续批次的样品之间有一对一的映射。
+
+为了使状态有效： - 在层构造器中指定 \texttt{stateful=True}。 -
+为你的模型指定一个固定的批次大小，
+如果是顺序模型，为你的模型的第一层传递一个
+\texttt{batch\_input\_shape=(...)} 参数。 -
+为你的模型指定一个固定的批次大小，
+如果是顺序模型，为你的模型的第一层传递一个
+\texttt{batch\_input\_shape=(...)}。 如果是带有 1 个或多个 Input
+层的函数式模型，为你的模型的所有第一层传递一个
+\texttt{batch\_shape=(...)}。
+这是你的输入的预期尺寸，\emph{包括批量维度}。 它应该是整数的元组，例如
+\texttt{(32,\ 10,\ 100)}。 - 在调用 \texttt{fit()} 是指定
+\texttt{shuffle=False}。
+
+要重置模型的状态，请在特定图层或整个模型上调用
+\texttt{.reset\_states()}。
+
+\textbf{关于指定 RNN 初始状态的注意事项}
+
+您可以通过使用关键字参数 \texttt{initial\_state} 调用它们来符号化地指定
+RNN 层的初始状态。 \texttt{initial\_state} 的值应该是表示 RNN
+层初始状态的张量或张量列表。
+
+您可以通过调用带有关键字参数 \texttt{states} 的 \texttt{reset\_states}
+方法来数字化地指定 RNN 层的初始状态。 \texttt{states} 的值应该是一个代表
+RNN 层初始状态的 Numpy 数组或者 Numpy 数组列表。
+
+\textbf{关于给 RNN 传递外部常量的注意事项}
+
+你可以使用 \texttt{RNN.\_\_call\_\_}（以及 \texttt{RNN.call}）的
+\texttt{constants} 关键字参数将「外部」常量传递给单元。 这要求
+\texttt{cell.call} 方法接受相同的关键字参数 \texttt{constants}。
+这些常数可用于调节附加静态输入（不随时间变化）上的单元转换，也可用于注意力机制。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 首先，让我们定义一个 RNN 单元，作为网络层子类。}
+
+\KeywordTok{class} \NormalTok{MinimalRNNCell(keras.layers.Layer):}
+
+    \KeywordTok{def} \FunctionTok{__init__}\NormalTok{(}\VariableTok{self}\NormalTok{, units, }\OperatorTok{**}\NormalTok{kwargs):}
+        \VariableTok{self}\NormalTok{.units }\OperatorTok{=} \NormalTok{units}
+        \VariableTok{self}\NormalTok{.state_size }\OperatorTok{=} \NormalTok{units}
+        \BuiltInTok{super}\NormalTok{(MinimalRNNCell, }\VariableTok{self}\NormalTok{).}\FunctionTok{__init__}\NormalTok{(}\OperatorTok{**}\NormalTok{kwargs)}
+
+    \KeywordTok{def} \NormalTok{build(}\VariableTok{self}\NormalTok{, input_shape):}
+        \VariableTok{self}\NormalTok{.kernel }\OperatorTok{=} \VariableTok{self}\NormalTok{.add_weight(shape}\OperatorTok{=}\NormalTok{(input_shape[}\OperatorTok{-}\DecValTok{1}\NormalTok{], }\VariableTok{self}\NormalTok{.units),}
+                                      \NormalTok{initializer}\OperatorTok{=}\StringTok{'uniform'}\NormalTok{,}
+                                      \NormalTok{name}\OperatorTok{=}\StringTok{'kernel'}\NormalTok{)}
+        \VariableTok{self}\NormalTok{.recurrent_kernel }\OperatorTok{=} \VariableTok{self}\NormalTok{.add_weight(}
+            \NormalTok{shape}\OperatorTok{=}\NormalTok{(}\VariableTok{self}\NormalTok{.units, }\VariableTok{self}\NormalTok{.units),}
+            \NormalTok{initializer}\OperatorTok{=}\StringTok{'uniform'}\NormalTok{,}
+            \NormalTok{name}\OperatorTok{=}\StringTok{'recurrent_kernel'}\NormalTok{)}
+        \VariableTok{self}\NormalTok{.built }\OperatorTok{=} \VariableTok{True}
+
+    \KeywordTok{def} \NormalTok{call(}\VariableTok{self}\NormalTok{, inputs, states):}
+        \NormalTok{prev_output }\OperatorTok{=} \NormalTok{states[}\DecValTok{0}\NormalTok{]}
+        \NormalTok{h }\OperatorTok{=} \NormalTok{K.dot(inputs, }\VariableTok{self}\NormalTok{.kernel)}
+        \NormalTok{output }\OperatorTok{=} \NormalTok{h }\OperatorTok{+} \NormalTok{K.dot(prev_output, }\VariableTok{self}\NormalTok{.recurrent_kernel)}
+        \ControlFlowTok{return} \NormalTok{output, [output]}
+
+\CommentTok{# 让我们在 RNN 层使用这个单元：}
+
+\NormalTok{cell }\OperatorTok{=} \NormalTok{MinimalRNNCell(}\DecValTok{32}\NormalTok{)}
+\NormalTok{x }\OperatorTok{=} \NormalTok{keras.Input((}\VariableTok{None}\NormalTok{, }\DecValTok{5}\NormalTok{))}
+\NormalTok{layer }\OperatorTok{=} \NormalTok{RNN(cell)}
+\NormalTok{y }\OperatorTok{=} \NormalTok{layer(x)}
+
+\CommentTok{# 以下是如何使用单元格构建堆叠的 RNN的方法：}
+
+\NormalTok{cells }\OperatorTok{=} \NormalTok{[MinimalRNNCell(}\DecValTok{32}\NormalTok{), MinimalRNNCell(}\DecValTok{64}\NormalTok{)]}
+\NormalTok{x }\OperatorTok{=} \NormalTok{keras.Input((}\VariableTok{None}\NormalTok{, }\DecValTok{5}\NormalTok{))}
+\NormalTok{layer }\OperatorTok{=} \NormalTok{RNN(cells)}
+\NormalTok{y }\OperatorTok{=} \NormalTok{layer(x)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+
+\subsubsection{SimpleRNN {\href{https://github.com/keras-team/keras/blob/master/keras/layers/recurrent.py\#L926}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.SimpleRNN(units, activation}\OperatorTok{=}\StringTok{'tanh'}\NormalTok{, use_bias}\OperatorTok{=}\VariableTok{True}, \\
+\hspace{3cm}\NormalTok{kernel_initializer}\OperatorTok{=}\StringTok{'glorot_uniform'}\NormalTok{, recurrent_initializer}\OperatorTok{=}\StringTok{'orthogonal'}, \\
+\hspace{3cm}\NormalTok{bias_initializer}\OperatorTok{=}\StringTok{'zeros'}\NormalTok{, kernel_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{recurrent_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{activity_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, kernel_constraint}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{recurrent_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_constraint}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{dropout}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, recurrent_dropout}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, return_sequences}\OperatorTok{=}\VariableTok{False}, \\
+\hspace{3cm}\NormalTok{return_state}\OperatorTok{=}\VariableTok{False}\NormalTok{, go_backwards}\OperatorTok{=}\VariableTok{False}\NormalTok{, stateful}\OperatorTok{=}\VariableTok{False}\NormalTok{, unroll}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+完全连接的 RNN，其输出将被反馈到输入。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{units}: 正整数，输出空间的维度。
+\item
+  \textbf{activation}: 要使用的激活函数 (详见
+  \hyperref[activations]{activations})。 如果传入
+  None，则不使用激活函数 (即 线性激活：\texttt{a(x)\ =\ x})。
+\item
+  \textbf{use\_bias}: 布尔值，该层是否使用偏置向量。
+\item
+  \textbf{kernel\_initializer}: kernel 权值矩阵的初始化器，
+  用于输入的线性转换 (详见 \hyperref[initializers]{initializers})。
+\item
+  \textbf{recurrent\_initializer}: \texttt{recurrent\_kernel} 权值矩阵
+  的初始化器，用于循环层状态的线性转换 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{bias\_initializer}:偏置向量的初始化器
+  (详见\hyperref[initializers]{initializers}).
+\item
+  \textbf{kernel\_regularizer}: 运用到 \texttt{kernel}
+  权值矩阵的正则化函数 (详见\hyperref[regularizers]{regularizer})。
+\item
+  \textbf{recurrent\_regularizer}: 运用到 \texttt{recurrent\_kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{bias\_regularizer}: 运用到偏置向量的正则化函数 (详见
+  \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{activity\_regularizer}: 运用到层输出（它的激活值）的正则化函数
+  (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{kernel\_constraint}: 运用到 \texttt{kernel} 权值矩阵的约束函数
+  (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{recurrent\_constraint}: 运用到 \texttt{recurrent\_kernel}
+  权值矩阵的约束函数 (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{bias\_constraint}: 运用到偏置向量的约束函数 (详见
+  \hyperref[constraints]{constraints})。
+\item
+  \textbf{dropout}: 在 0 和 1 之间的浮点数。
+  单元的丢弃比例，用于输入的线性转换。
+\item
+  \textbf{recurrent\_dropout}: 在 0 和 1 之间的浮点数。
+  单元的丢弃比例，用于循环层状态的线性转换。
+\item
+  \textbf{return\_sequences}:
+  布尔值。是返回输出序列中的最后一个输出，还是全部序列。
+\item
+  \textbf{return\_state}: 布尔值。除了输出之外是否返回最后一个状态。
+\item
+  \textbf{go\_backwards}: 布尔值 (默认 False)。 如果为
+  True，则向后处理输入序列并返回相反的序列。
+\item
+  \textbf{stateful}: 布尔值 (默认 False)。 如果为 True，则批次中索引 i
+  处的每个样品 的最后状态将用作下一批次中索引 i 样品的初始状态。
+\item
+  \textbf{unroll}: 布尔值 (默认 False)。 如果为
+  True，则网络将展开，否则将使用符号循环。 展开可以加速
+  RNN，但它往往会占用更多的内存。 展开只适用于短序列。
+\end{itemize}
+
+
+
+\subsubsection{GRU {\href{https://github.com/keras-team/keras/blob/master/keras/layers/recurrent.py\#L1378}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.GRU(units, activation}\OperatorTok{=}\StringTok{'tanh'}\NormalTok{, recurrent_activation}\OperatorTok{=}\StringTok{'hard_sigmoid'}, \\
+\hspace{3cm}\NormalTok{use_bias}\OperatorTok{=}\VariableTok{True}\NormalTok{, kernel_initializer}\OperatorTok{=}\StringTok{'glorot_uniform'}, \\
+\hspace{3cm}\NormalTok{recurrent_initializer}\OperatorTok{=}\StringTok{'orthogonal'}\NormalTok{, bias_initializer}\OperatorTok{=}\StringTok{'zeros'}, \\
+\hspace{3cm}\NormalTok{kernel_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, recurrent_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{bias_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, activity_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{kernel_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, recurrent_constraint}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{bias_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, dropout}\OperatorTok{=}\FloatTok{0.0}, \\
+\hspace{3cm}\NormalTok{recurrent_dropout}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, implementation}\OperatorTok{=}\DecValTok{1}, \\
+\hspace{3cm}\NormalTok{return_sequences}\OperatorTok{=}\VariableTok{False}\NormalTok{, return_state}\OperatorTok{=}\VariableTok{False}, \\
+\hspace{3cm}\NormalTok{go_backwards}\OperatorTok{=}\VariableTok{False}\NormalTok{, stateful}\OperatorTok{=}\VariableTok{False}\NormalTok{, unroll}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+门限循环单元网络 - Cho et al. 2014.
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{units}: 正整数，输出空间的维度。
+\item
+  \textbf{activation}: 要使用的激活函数 (详见
+  \hyperref[activations]{activations})。 如果传入
+  None，则不使用激活函数 (即 线性激活：\texttt{a(x)\ =\ x})。
+\item
+  \textbf{recurrent\_activation}: 用于循环时间步的激活函数 (详见
+  \hyperref[activations]{activations})。
+\item
+  \textbf{use\_bias}: 布尔值，该层是否使用偏置向量。
+\item
+  \textbf{kernel\_initializer}: kernel 权值矩阵的初始化器，
+  用于输入的线性转换 (详见 \hyperref[initializers]{initializers})。
+\item
+  \textbf{recurrent\_initializer}: \texttt{recurrent\_kernel} 权值矩阵
+  的初始化器，用于循环层状态的线性转换 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{bias\_initializer}:偏置向量的初始化器
+  (详见\hyperref[initializers]{initializers}).
+\item
+  \textbf{kernel\_regularizer}: 运用到 \texttt{kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{recurrent\_regularizer}: 运用到 \texttt{recurrent\_kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{bias\_regularizer}: 运用到偏置向量的正则化函数 (详见
+  \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{activity\_regularizer}: 运用到层输出（它的激活值）的正则化函数
+  (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{kernel\_constraint}: 运用到 \texttt{kernel} 权值矩阵的约束函数
+  (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{recurrent\_constraint}: 运用到 \texttt{recurrent\_kernel}
+  权值矩阵的约束函数 (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{bias\_constraint}: 运用到偏置向量的约束函数 (详见
+  \hyperref[constraints]{constraints})。
+\item
+  \textbf{dropout}: 在 0 和 1 之间的浮点数。
+  单元的丢弃比例，用于输入的线性转换。
+\item
+  \textbf{recurrent\_dropout}: 在 0 和 1 之间的浮点数。
+  单元的丢弃比例，用于循环层状态的线性转换。
+\item
+  \textbf{implementation}: 实现模式，1 或 2。 模式 1
+  将把它的操作结构化为更多的小的点积和加法操作， 而模式 2
+  将把它们分批到更少，更大的操作中。
+  这些模式在不同的硬件和不同的应用中具有不同的性能配置文件。
+\item
+  \textbf{return\_sequences}:
+  布尔值。是返回输出序列中的最后一个输出，还是全部序列。
+\item
+  \textbf{return\_state}: 布尔值。除了输出之外是否返回最后一个状态。
+\item
+  \textbf{go\_backwards}: 布尔值 (默认 False)。 如果为
+  True，则向后处理输入序列并返回相反的序列。
+\item
+  \textbf{stateful}: 布尔值 (默认 False)。 如果为 True，则批次中索引 i
+  处的每个样品的最后状态 将用作下一批次中索引 i 样品的初始状态。
+\item
+  \textbf{unroll}: 布尔值 (默认 False)。 如果为
+  True，则网络将展开，否则将使用符号循环。 展开可以加速
+  RNN，但它往往会占用更多的内存。 展开只适用于短序列。
+\end{itemize}
+
+\textbf{参考文献}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://arxiv.org/abs/1409.1259}{On the Properties of Neural
+  Machine Translation: Encoder-Decoder Approaches}
+\item
+  \href{http://arxiv.org/abs/1412.3555v1}{Empirical Evaluation of Gated
+  Recurrent Neural Networks on Sequence Modeling}
+\item
+  \href{http://arxiv.org/abs/1512.05287}{A Theoretically Grounded
+  Application of Dropout in Recurrent Neural Networks}
+\end{itemize}
+
+
+
+
+\subsubsection{LSTM {\href{https://github.com/keras-team/keras/blob/master/keras/layers/recurrent.py\#L1881}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.LSTM(units, activation}\OperatorTok{=}\StringTok{'tanh'}\NormalTok{, recurrent_activation}\OperatorTok{=}\StringTok{'hard_sigmoid'}, \\
+\hspace{3cm}\NormalTok{use_bias}\OperatorTok{=}\VariableTok{True}\NormalTok{, kernel_initializer}\OperatorTok{=}\StringTok{'glorot_uniform'}, \\
+\hspace{3cm}\NormalTok{recurrent_initializer}\OperatorTok{=}\StringTok{'orthogonal'}\NormalTok{, bias_initializer}\OperatorTok{=}\StringTok{'zeros'}, \\
+\hspace{3cm}\NormalTok{unit_forget_bias}\OperatorTok{=}\VariableTok{True}\NormalTok{, kernel_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{recurrent_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{activity_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, kernel_constraint}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{recurrent_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_constraint}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{dropout}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, recurrent_dropout}\OperatorTok{=}\FloatTok{0.0}, \\
+\hspace{3cm}\NormalTok{implementation}\OperatorTok{=}\DecValTok{1}\NormalTok{, return_sequences}\OperatorTok{=}\VariableTok{False}, \\
+\hspace{3cm}\NormalTok{return_state}\OperatorTok{=}\VariableTok{False}\NormalTok{, go_backwards}\OperatorTok{=}\VariableTok{False}\NormalTok{, stateful}\OperatorTok{=}\VariableTok{False}, \\
+\hspace{3cm}\NormalTok{unroll}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+长短期记忆网络层 - Hochreiter 1997.
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{units}: 正整数，输出空间的维度。
+\item
+  \textbf{activation}: 要使用的激活函数 (详见
+  \hyperref[activations]{activations})。 如果传入
+  None，则不使用激活函数 (即 线性激活：\texttt{a(x)\ =\ x})。
+\item
+  \textbf{recurrent\_activation}: 用于循环时间步的激活函数 (详见
+  \hyperref[activations]{activations})。
+\item
+  \textbf{use\_bias}: 布尔值，该层是否使用偏置向量。
+\item
+  \textbf{kernel\_initializer}: kernel 权值矩阵的初始化器，
+  用于输入的线性转换 (详见 \hyperref[initializers]{initializers})。
+\item
+  \textbf{recurrent\_initializer}: \texttt{recurrent\_kernel} 权值矩阵
+  的初始化器，用于循环层状态的线性转换 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{bias\_initializer}:偏置向量的初始化器
+  (详见\hyperref[initializers]{initializers}).
+\item
+  \textbf{unit\_forget\_bias}: 布尔值。 如果为
+  True，初始化时，将忘记门的偏置加 1。 将其设置为 True 同时还会强制
+  \texttt{bias\_initializer="zeros"}。 这个建议来自
+  \href{http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf}{Jozefowicz
+  et al.}。
+\item
+  \textbf{kernel\_regularizer}: 运用到 \texttt{kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{recurrent\_regularizer}: 运用到 \texttt{recurrent\_kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{bias\_regularizer}: 运用到偏置向量的正则化函数 (详见
+  \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{activity\_regularizer}: 运用到层输出（它的激活值）的正则化函数
+  (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{kernel\_constraint}: 运用到 \texttt{kernel} 权值矩阵的约束函数
+  (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{recurrent\_constraint}: 运用到 \texttt{recurrent\_kernel}
+  权值矩阵的约束函数 (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{bias\_constraint}: 运用到偏置向量的约束函数 (详见
+  \hyperref[constraints]{constraints})。
+\item
+  \textbf{dropout}: 在 0 和 1 之间的浮点数。
+  单元的丢弃比例，用于输入的线性转换。
+\item
+  \textbf{recurrent\_dropout}: 在 0 和 1 之间的浮点数。
+  单元的丢弃比例，用于循环层状态的线性转换。
+\item
+  \textbf{implementation}: 实现模式，1 或 2。 模式 1
+  将把它的操作结构化为更多的小的点积和加法操作， 而模式 2
+  将把它们分批到更少，更大的操作中。
+  这些模式在不同的硬件和不同的应用中具有不同的性能配置文件。
+\item
+  \textbf{return\_sequences}:
+  布尔值。是返回输出序列中的最后一个输出，还是全部序列。
+\item
+  \textbf{return\_state}: 布尔值。除了输出之外是否返回最后一个状态。
+\item
+  \textbf{go\_backwards}: 布尔值 (默认 False)。 如果为
+  True，则向后处理输入序列并返回相反的序列。
+\item
+  \textbf{stateful}: 布尔值 (默认 False)。 如果为 True，则批次中索引 i
+  处的每个样品的最后状态 将用作下一批次中索引 i 样品的初始状态。
+\item
+  \textbf{unroll}: 布尔值 (默认 False)。 如果为
+  True，则网络将展开，否则将使用符号循环。 展开可以加速
+  RNN，但它往往会占用更多的内存。 展开只适用于短序列。
+\end{itemize}
+
+\textbf{参考文献}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{http://www.bioinf.jku.at/publications/older/2604.pdf}{Long
+  short-term memory} (original 1997 paper)
+\item
+  \href{http://www.mitpressjournals.org/doi/pdf/10.1162/089976600300015015}{Learning
+  to forget: Continual prediction with LSTM}
+\item
+  \href{http://www.cs.toronto.edu/~graves/preprint.pdf}{Supervised
+  sequence labeling with recurrent neural networks}
+\item
+  \href{http://arxiv.org/abs/1512.05287}{A Theoretically Grounded
+  Application of Dropout in Recurrent Neural Networks}
+\end{itemize}
+
+
+
+
+\subsubsection{ConvLSTM2D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/convolutional_recurrent.py\#L169}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.ConvLSTM2D(filters, kernel_size, strides}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), padding}\OperatorTok{=}\StringTok{'valid'}, \\
+\hspace{3cm}\NormalTok{data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{, dilation_rate}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), activation}\OperatorTok{=}\StringTok{'tanh'}, \\
+\hspace{3cm}\NormalTok{recurrent_activation}\OperatorTok{=}\StringTok{'hard_sigmoid'}\NormalTok{, use_bias}\OperatorTok{=}\VariableTok{True}, \\
+\hspace{3cm}\NormalTok{kernel_initializer}\OperatorTok{=}\StringTok{'glorot_uniform'}\NormalTok{, recurrent_initializer}\OperatorTok{=}\StringTok{'orthogonal'}, \\
+\hspace{3cm}\NormalTok{bias_initializer}\OperatorTok{=}\StringTok{'zeros'}\NormalTok{, unit_forget_bias}\OperatorTok{=}\VariableTok{True}\NormalTok{, kernel_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{recurrent_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{activity_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, kernel_constraint}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{recurrent_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_constraint}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{return_sequences}\OperatorTok{=}\VariableTok{False}\NormalTok{, go_backwards}\OperatorTok{=}\VariableTok{False}\NormalTok{, stateful}\OperatorTok{=}\VariableTok{False}, \\
+\hspace{3cm}\NormalTok{dropout}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, recurrent_dropout}\OperatorTok{=}\FloatTok{0.0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+卷积 LSTM.
+
+它类似于 LSTM 层，但输入变换和循环变换都是卷积的。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{filters}: 整数，输出空间的维度 （即卷积中滤波器的输出数量）。
+\item
+  \textbf{kernel\_size}: 一个整数，或者单个整数表示的元组或列表， 指明
+  1D 卷积窗口的长度。
+\item
+  \textbf{strides}: 一个整数，或者单个整数表示的元组或列表，
+  指明卷积的步长。 指定任何 stride 值 != 1 与指定
+  \texttt{dilation\_rate} 值 != 1 两者不兼容。
+\item
+  \textbf{padding}: \texttt{"valid"} 或 \texttt{"same"} 之一
+  (大小写敏感)。
+\item
+  \textbf{data\_format}: 字符串， \texttt{channels\_last} (默认) 或
+  \texttt{channels\_first} 之一。 输入中维度的顺序。
+  \texttt{channels\_last} 对应输入尺寸为
+  \texttt{(batch,\ height,\ width,\ channels)}，
+  \texttt{channels\_first} 对应输入尺寸为
+  \texttt{(batch,\ channels,\ height,\ width)}。 它默认为从 Keras
+  配置文件 \texttt{\textasciitilde{}/.keras/keras.json} 中 找到的
+  \texttt{image\_data\_format} 值。 如果你从未设置它，将使用
+  "channels\_last"。
+\item
+  \textbf{dilation\_rate}: 一个整数，或 n
+  个整数的元组/列表，指定用于膨胀卷积的膨胀率。 目前，指定任何
+  \texttt{dilation\_rate} 值 != 1 与指定 stride 值 != 1 两者不兼容。
+\item
+  \textbf{activation}: 要使用的激活函数 (详见
+  \hyperref[activations]{activations})。 如果传入
+  None，则不使用激活函数 (即 线性激活：\texttt{a(x)\ =\ x})。
+\item
+  \textbf{recurrent\_activation}: 用于循环时间步的激活函数 (详见
+  \hyperref[activations]{activations})。
+\item
+  \textbf{use\_bias}: 布尔值，该层是否使用偏置向量。
+\item
+  \textbf{kernel\_initializer}: kernel 权值矩阵的初始化器，
+  用于输入的线性转换 (详见 \hyperref[initializers]{initializers})。
+\item
+  \textbf{recurrent\_initializer}: \texttt{recurrent\_kernel} 权值矩阵
+  的初始化器，用于循环层状态的线性转换 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{bias\_initializer}:偏置向量的初始化器
+  (详见\hyperref[initializers]{initializers}).
+\item
+  \textbf{unit\_forget\_bias}: 布尔值。 如果为
+  True，初始化时，将忘记门的偏置加 1。 将其设置为 True 同时还会强制
+  \texttt{bias\_initializer="zeros"}。 这个建议来自
+  \href{http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf}{Jozefowicz
+  et al.}。
+\item
+  \textbf{kernel\_regularizer}: 运用到 \texttt{kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{recurrent\_regularizer}: 运用到 \texttt{recurrent\_kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{bias\_regularizer}: 运用到偏置向量的正则化函数 (详见
+  \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{activity\_regularizer}: 运用到层输出（它的激活值）的正则化函数
+  (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{kernel\_constraint}: 运用到 \texttt{kernel} 权值矩阵的约束函数
+  (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{recurrent\_constraint}: 运用到 \texttt{recurrent\_kernel}
+  权值矩阵的约束函数 (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{bias\_constraint}: 运用到偏置向量的约束函数 (详见
+  \hyperref[constraints]{constraints})。
+\item
+  \textbf{return\_sequences}:
+  布尔值。是返回输出序列中的最后一个输出，还是全部序列。
+\item
+  \textbf{go\_backwards}: 布尔值 (默认 False)。 如果为
+  True，则向后处理输入序列并返回相反的序列。
+\item
+  \textbf{stateful}: 布尔值 (默认 False)。 如果为 True，则批次中索引 i
+  处的每个样品的最后状态 将用作下一批次中索引 i 样品的初始状态。
+\item
+  \textbf{dropout}: 在 0 和 1 之间的浮点数。
+  单元的丢弃比例，用于输入的线性转换。
+\item
+  \textbf{recurrent\_dropout}: 在 0 和 1 之间的浮点数。
+  单元的丢弃比例，用于循环层状态的线性转换。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 data\_format='channels\_first'， 返回 5D 张量，尺寸为：
+  \texttt{(samples,time,\ channels,\ rows,\ cols)}。
+\item
+  如果 data\_format='channels\_last'， 返回 5D 张量，尺寸为：
+  \texttt{(samples,time,\ rows,\ cols,\ channels)}。
+\end{itemize}
+
+\textbf{输出尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果 \texttt{return\_sequences}，
+\item
+  如果 data\_format='channels\_first'， 返回 5D 张量，尺寸为：
+  \texttt{(samples,\ time,\ filters,\ output\_row,\ output\_col)}。
+\item
+  如果 data\_format='channels\_last'， 返回 5D 张量，尺寸为：
+  \texttt{(samples,\ time,\ output\_row,\ output\_col,\ filters)}。
+\item
+  否则，
+\item
+  如果 data\_format ='channels\_first'， 返回 4D 张量，尺寸为：
+  \texttt{(samples,\ filters,\ output\_row,\ output\_col)}。
+\item
+  如果 data\_format='channels\_last'， 返回 4D 张量，尺寸为：
+  \texttt{(samples,\ output\_row,\ output\_col,\ filters)}。 o\_row 和
+  o\_col 依赖于过滤器的尺寸和填充。
+\end{itemize}
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 无效的构造参数。
+\end{itemize}
+
+\textbf{参考文献}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{http://arxiv.org/abs/1506.04214v1}{Convolutional LSTM Network: A
+  Machine Learning Approach for Precipitation Nowcasting}
+\end{itemize}
+
+当前的实现不包括单元输出的反馈回路。
+
+
+
+
+\subsubsection{SimpleRNNCell {\href{https://github.com/keras-team/keras/blob/master/keras/layers/recurrent.py\#L768}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.SimpleRNNCell(units, activation}\OperatorTok{=}\StringTok{'tanh'}\NormalTok{, use_bias}\OperatorTok{=}\VariableTok{True}, \\
+\hspace{3cm}\NormalTok{kernel_initializer}\OperatorTok{=}\StringTok{'glorot_uniform'}\NormalTok{, recurrent_initializer}\OperatorTok{=}\StringTok{'orthogonal'}, \\
+\hspace{3cm}\NormalTok{bias_initializer}\OperatorTok{=}\StringTok{'zeros'}\NormalTok{, kernel_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{recurrent_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, kernel_constraint}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{recurrent_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_constraint}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{dropout}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, recurrent_dropout}\OperatorTok{=}\FloatTok{0.0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+SimpleRNN 的单元类。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{units}: 正整数，输出空间的维度。
+\item
+  \textbf{activation}: 要使用的激活函数 (详见
+  \hyperref[activations]{activations})。 如果传入
+  None，则不使用激活函数 (即 线性激活：\texttt{a(x)\ =\ x})。
+\item
+  \textbf{use\_bias}: 布尔值，该层是否使用偏置向量。
+\item
+  \textbf{kernel\_initializer}: kernel 权值矩阵的初始化器，
+  用于输入的线性转换 (详见 \hyperref[initializers]{initializers})。
+\item
+  \textbf{recurrent\_initializer}: \texttt{recurrent\_kernel} 权值矩阵
+  的初始化器，用于循环层状态的线性转换 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{bias\_initializer}:偏置向量的初始化器
+  (详见\hyperref[initializers]{initializers}).
+\item
+  \textbf{kernel\_regularizer}: 运用到 \texttt{kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{recurrent\_regularizer}: 运用到 \texttt{recurrent\_kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{bias\_regularizer}: 运用到偏置向量的正则化函数 (详见
+  \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{kernel\_constraint}: 运用到 \texttt{kernel} 权值矩阵的约束函数
+  (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{recurrent\_constraint}: 运用到 \texttt{recurrent\_kernel}
+  权值矩阵的约束函数 (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{bias\_constraint}: 运用到偏置向量的约束函数 (详见
+  \hyperref[constraints]{constraints})。
+\item
+  \textbf{dropout}: 在 0 和 1 之间的浮点数。
+  单元的丢弃比例，用于输入的线性转换。
+\item
+  \textbf{recurrent\_dropout}: 在 0 和 1 之间的浮点数。
+  单元的丢弃比例，用于循环层状态的线性转换。
+\end{itemize}
+
+
+
+
+\subsubsection{GRUCell {\href{https://github.com/keras-team/keras/blob/master/keras/layers/recurrent.py\#L1138}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.GRUCell(units, activation}\OperatorTok{=}\StringTok{'tanh'}\NormalTok{, recurrent_activation}\OperatorTok{=}\StringTok{'hard_sigmoid'}, \\
+\hspace{3cm}\NormalTok{use_bias}\OperatorTok{=}\VariableTok{True}\NormalTok{, kernel_initializer}\OperatorTok{=}\StringTok{'glorot_uniform'}, \\
+\hspace{3cm}\NormalTok{recurrent_initializer}\OperatorTok{=}\StringTok{'orthogonal'}\NormalTok{, bias_initializer}\OperatorTok{=}\StringTok{'zeros'}, \\
+\hspace{3cm}\NormalTok{kernel_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, recurrent_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{bias_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, kernel_constraint}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{recurrent_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_constraint}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{dropout}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, recurrent_dropout}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, implementation}\OperatorTok{=}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+GRU 层的单元类。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{units}: 正整数，输出空间的维度。
+\item
+  \textbf{activation}: 要使用的激活函数 (详见
+  \hyperref[activations]{activations})。 如果传入
+  None，则不使用激活函数 (即 线性激活：\texttt{a(x)\ =\ x})。
+\item
+  \textbf{recurrent\_activation}: 用于循环时间步的激活函数 (详见
+  \hyperref[activations]{activations})。
+\item
+  \textbf{use\_bias}: 布尔值，该层是否使用偏置向量。
+\item
+  \textbf{kernel\_initializer}: kernel 权值矩阵的初始化器，
+  用于输入的线性转换 (详见 \hyperref[initializers]{initializers})。
+\item
+  \textbf{recurrent\_initializer}: \texttt{recurrent\_kernel} 权值矩阵
+  的初始化器，用于循环层状态的线性转换 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{bias\_initializer}:偏置向量的初始化器
+  (详见\hyperref[initializers]{initializers}).
+\item
+  \textbf{kernel\_regularizer}: 运用到 \texttt{kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{recurrent\_regularizer}: 运用到 \texttt{recurrent\_kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{bias\_regularizer}: 运用到偏置向量的正则化函数 (详见
+  \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{kernel\_constraint}: 运用到 \texttt{kernel} 权值矩阵的约束函数
+  (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{recurrent\_constraint}: 运用到 \texttt{recurrent\_kernel}
+  权值矩阵的约束函数 (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{bias\_constraint}: 运用到偏置向量的约束函数 (详见
+  \hyperref[constraints]{constraints})。
+\item
+  \textbf{dropout}: 在 0 和 1 之间的浮点数。
+  单元的丢弃比例，用于输入的线性转换。
+\item
+  \textbf{recurrent\_dropout}: 在 0 和 1 之间的浮点数。
+  单元的丢弃比例，用于循环层状态的线性转换。
+\item
+  \textbf{implementation}: 实现模式，1 或 2。 模式 1
+  将把它的操作结构化为更多的小的点积和加法操作， 而模式 2
+  将把它们分批到更少，更大的操作中。
+  这些模式在不同的硬件和不同的应用中具有不同的性能配置文件。
+\end{itemize}
+
+
+
+
+\subsubsection{LSTMCell {\href{https://github.com/keras-team/keras/blob/master/keras/layers/recurrent.py\#L1617}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.LSTMCell(units, activation}\OperatorTok{=}\StringTok{'tanh'}\NormalTok{, recurrent_activation}\OperatorTok{=}\StringTok{'hard_sigmoid'}, \\
+\hspace{3cm}\NormalTok{use_bias}\OperatorTok{=}\VariableTok{True}\NormalTok{, kernel_initializer}\OperatorTok{=}\StringTok{'glorot_uniform'}, \\
+\hspace{3cm}\NormalTok{recurrent_initializer}\OperatorTok{=}\StringTok{'orthogonal'}\NormalTok{, bias_initializer}\OperatorTok{=}\StringTok{'zeros'}, \\
+\hspace{3cm}\NormalTok{unit_forget_bias}\OperatorTok{=}\VariableTok{True}\NormalTok{, kernel_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{recurrent_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{kernel_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, recurrent_constraint}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{bias_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, dropout}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, recurrent_dropout}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, implementation}\OperatorTok{=}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+LSTM 层的单元类。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{units}: 正整数，输出空间的维度。
+\item
+  \textbf{activation}: 要使用的激活函数 (详见
+  \hyperref[activations]{activations})。 如果传入
+  None，则不使用激活函数 (即 线性激活：\texttt{a(x)\ =\ x})。
+\item
+  \textbf{recurrent\_activation}: 用于循环时间步的激活函数 (详见
+  \hyperref[activations]{activations})。
+\item
+  \textbf{use\_bias}: 布尔值，该层是否使用偏置向量。
+\item
+  \textbf{kernel\_initializer}: kernel 权值矩阵的初始化器，
+  用于输入的线性转换 (详见 \hyperref[initializers]{initializers})。
+\item
+  \textbf{recurrent\_initializer}: \texttt{recurrent\_kernel} 权值矩阵
+  的初始化器，用于循环层状态的线性转换 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{bias\_initializer}:偏置向量的初始化器
+  (详见\hyperref[initializers]{initializers}).
+\item
+  \textbf{unit\_forget\_bias}: 布尔值。 如果为
+  True，初始化时，将忘记门的偏置加 1。 将其设置为 True 同时还会强制
+  \texttt{bias\_initializer="zeros"}。 这个建议来自
+  \href{http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf}{Jozefowicz
+  et al.}。
+\item
+  \textbf{kernel\_regularizer}: 运用到 \texttt{kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{recurrent\_regularizer}: 运用到 \texttt{recurrent\_kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{bias\_regularizer}: 运用到偏置向量的正则化函数 (详见
+  \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{kernel\_constraint}: 运用到 \texttt{kernel} 权值矩阵的约束函数
+  (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{recurrent\_constraint}: 运用到 \texttt{recurrent\_kernel}
+  权值矩阵的约束函数 (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{bias\_constraint}: 运用到偏置向量的约束函数 (详见
+  \hyperref[constraints]{constraints})。
+\item
+  \textbf{dropout}: 在 0 和 1 之间的浮点数。
+  单元的丢弃比例，用于输入的线性转换。
+\item
+  \textbf{recurrent\_dropout}: 在 0 和 1 之间的浮点数。
+  单元的丢弃比例，用于循环层状态的线性转换。
+\item
+  \textbf{implementation}: 实现模式，1 或 2。 模式 1
+  将把它的操作结构化为更多的小的点积和加法操作， 而模式 2
+  将把它们分批到更少，更大的操作中。
+  这些模式在不同的硬件和不同的应用中具有不同的性能配置文件。
+\end{itemize}
+
+
+
+
+\subsubsection{StackedRNNCells {\href{https://github.com/keras-team/keras/blob/master/keras/layers/recurrent.py\#L25}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.StackedRNNCells(cells)}
+\end{Highlighting}
+\end{Shaded}
+
+允许将一堆 RNN 单元表现为一个单元的封装器。
+
+用于实现高效堆叠的 RNN。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{cells}: RNN 单元实例的列表。
+\end{itemize}
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cells }\OperatorTok{=} \NormalTok{[}
+    \NormalTok{keras.layers.LSTMCell(output_dim),}
+    \NormalTok{keras.layers.LSTMCell(output_dim),}
+    \NormalTok{keras.layers.LSTMCell(output_dim),}
+\NormalTok{]}
+
+\NormalTok{inputs }\OperatorTok{=} \NormalTok{keras.Input((timesteps, input_dim))}
+\NormalTok{x }\OperatorTok{=} \NormalTok{keras.layers.RNN(cells)(inputs)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+
+\subsubsection{CuDNNGRU {\href{https://github.com/keras-team/keras/blob/master/keras/layers/cudnn_recurrent.py\#L135}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.CuDNNGRU(units, kernel_initializer}\OperatorTok{=}\StringTok{'glorot_uniform'}, \\
+\hspace{3cm}\NormalTok{recurrent_initializer}\OperatorTok{=}\StringTok{'orthogonal'}\NormalTok{, bias_initializer}\OperatorTok{=}\StringTok{'zeros'}, \\
+\hspace{3cm}\NormalTok{kernel_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, recurrent_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{bias_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, activity_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{kernel_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, recurrent_constraint}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{bias_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, return_sequences}\OperatorTok{=}\VariableTok{False}, \\
+\hspace{3cm}\NormalTok{return_state}\OperatorTok{=}\VariableTok{False}\NormalTok{, stateful}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+由 \href{https://developer.nvidia.com/cudnn}{CuDNN} 支持的快速 GRU
+实现。
+
+只能以 TensorFlow 后端运行在 GPU 上。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{units}: 正整数，输出空间的维度。
+\item
+  \textbf{kernel\_initializer}: kernel 权值矩阵的初始化器，
+  用于输入的线性转换 (详见 \hyperref[initializers]{initializers})。
+\item
+  \textbf{recurrent\_initializer}: \texttt{recurrent\_kernel} 权值矩阵
+  的初始化器，用于循环层状态的线性转换 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{bias\_initializer}:偏置向量的初始化器
+  (详见\hyperref[initializers]{initializers}).
+\item
+  \textbf{kernel\_regularizer}: 运用到 \texttt{kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{recurrent\_regularizer}: 运用到 \texttt{recurrent\_kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{bias\_regularizer}: 运用到偏置向量的正则化函数 (详见
+  \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{activity\_regularizer}: Regularizer function applied to the
+  output of the layer (its "activation"). (see
+  \hyperref[regularizers]{regularizer}).
+\item
+  \textbf{kernel\_constraint}: 运用到 \texttt{kernel} 权值矩阵的约束函数
+  (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{recurrent\_constraint}: 运用到 \texttt{recurrent\_kernel}
+  权值矩阵的约束函数 (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{bias\_constraint}: 运用到偏置向量的约束函数 (详见
+  \hyperref[constraints]{constraints})。
+\item
+  \textbf{return\_sequences}:
+  布尔值。是返回输出序列中的最后一个输出，还是全部序列。
+\item
+  \textbf{return\_state}: 布尔值。除了输出之外是否返回最后一个状态。
+\item
+  \textbf{stateful}: 布尔值 (默认 False)。 如果为 True，则批次中索引 i
+  处的每个样品的最后状态 将用作下一批次中索引 i 样品的初始状态。
+\end{itemize}
+
+
+
+
+\subsubsection{CuDNNLSTM {\href{https://github.com/keras-team/keras/blob/master/keras/layers/cudnn_recurrent.py\#L324}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.CuDNNLSTM(units, kernel_initializer}\OperatorTok{=}\StringTok{'glorot_uniform'}, \\
+\hspace{3cm}\NormalTok{recurrent_initializer}\OperatorTok{=}\StringTok{'orthogonal'}\NormalTok{, bias_initializer}\OperatorTok{=}\StringTok{'zeros'}, \\
+\hspace{3cm}\NormalTok{unit_forget_bias}\OperatorTok{=}\VariableTok{True}\NormalTok{, kernel_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{recurrent_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{activity_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, kernel_constraint}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{recurrent_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_constraint}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{return_sequences}\OperatorTok{=}\VariableTok{False}\NormalTok{, return_state}\OperatorTok{=}\VariableTok{False}\NormalTok{, stateful}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+由 \href{https://developer.nvidia.com/cudnn}{CuDNN} 支持的快速 LSTM
+实现。
+
+只能以 TensorFlow 后端运行在 GPU 上。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{units}: 正整数，输出空间的维度。
+\item
+  \textbf{kernel\_initializer}: kernel 权值矩阵的初始化器，
+  用于输入的线性转换 (详见 \hyperref[initializers]{initializers})。
+\item
+  \textbf{unit\_forget\_bias}: 布尔值。 如果为
+  True，初始化时，将忘记门的偏置加 1。 将其设置为 True 同时还会强制
+  \texttt{bias\_initializer="zeros"}。 这个建议来自
+  \href{http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf}{Jozefowicz
+  et al.}。
+\item
+  \textbf{recurrent\_initializer}: \texttt{recurrent\_kernel} 权值矩阵
+  的初始化器，用于循环层状态的线性转换 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{bias\_initializer}:偏置向量的初始化器
+  (详见\hyperref[initializers]{initializers}).
+\item
+  \textbf{kernel\_regularizer}: 运用到 \texttt{kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{recurrent\_regularizer}: 运用到 \texttt{recurrent\_kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{bias\_regularizer}: 运用到偏置向量的正则化函数 (详见
+  \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{activity\_regularizer}: 运用到层输出（它的激活值）的正则化函数
+  (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{kernel\_constraint}: 运用到 \texttt{kernel} 权值矩阵的约束函数
+  (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{recurrent\_constraint}: 运用到 \texttt{recurrent\_kernel}
+  权值矩阵的约束函数 (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{bias\_constraint}: 运用到偏置向量的约束函数 (详见
+  \hyperref[constraints]{constraints})。
+\item
+  \textbf{return\_sequences}:
+  布尔值。是返回输出序列中的最后一个输出，还是全部序列。
+\item
+  \textbf{return\_state}: 布尔值。除了输出之外是否返回最后一个状态。
+\item
+  \textbf{stateful}: 布尔值 (默认 False)。 如果为 True，则批次中索引 i
+  处的每个样品的最后状态 将用作下一批次中索引 i 样品的初始状态。
+\end{itemize}
+
+\newpage

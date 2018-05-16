@@ -1,0 +1,330 @@
+
+\section{常用数据集 Datasets}\label{datasets}
+
+\subsection{CIFAR10
+小图像分类数据集}\label{cifar10-ux5c0fux56feux50cfux5206ux7c7bux6570ux636eux96c6}
+
+50,000 张 32x32 彩色训练图像数据，以及 10,000 张测试图像数据，总共分为
+10 个类别。
+
+\textbf{用法：}\label{ux7528ux6cd5}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.datasets }\ImportTok{import} \NormalTok{cifar10}
+
+\NormalTok{(x_train, y_train), (x_test, y_test) }\OperatorTok{=} \NormalTok{cifar10.load_data()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{返回：}
+\item
+  2 个元组：
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{x\_train, x\_test}: uint8 数组表示的 RGB 图像数据，尺寸为
+    (num\_samples, 3, 32, 32)。
+  \item
+    \textbf{y\_train, y\_test}: uint8 数组表示的类别标签（范围在 0-9
+    之间的整数），尺寸为 (num\_samples,)。
+  \end{itemize}
+\end{itemize}
+
+
+\subsection{CIFAR100
+小图像分类数据集}\label{cifar100-ux5c0fux56feux50cfux5206ux7c7bux6570ux636eux96c6}
+
+50,000 张 32x32 彩色训练图像数据，以及 10,000 张测试图像数据，总共分为
+100 个类别。
+
+\textbf{用法：}\label{ux7528ux6cd5-1}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.datasets }\ImportTok{import} \NormalTok{cifar100}
+
+\NormalTok{(x_train, y_train), (x_test, y_test) }\OperatorTok{=} \NormalTok{cifar100.load_data(label_mode}\OperatorTok{=}\StringTok{'fine'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{返回：}
+\item
+  2 个元组：
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{x\_train, x\_test}: uint8 数组表示的 RGB 图像数据，尺寸为
+    (num\_samples, 3, 32, 32)。
+  \item
+    \textbf{y\_train, y\_test}: uint8 数组表示的类别标签（范围在 0-9
+    之间的整数），尺寸为 (num\_samples,)。
+  \end{itemize}
+\item
+  \textbf{参数：}
+\item
+  \textbf{label\_mode}: "fine" 或者 "coarse"
+\end{itemize}
+
+
+\subsection{IMDB
+电影评论情感分类数据集}\label{imdb-ux7535ux5f71ux8bc4ux8bbaux60c5ux611fux5206ux7c7bux6570ux636eux96c6}
+
+数据集来自 IMDB 的 25,000
+条电影评论，以情绪（正面/负面）标记。每一条评论已经过预处理，并编码为词索引（整数）的\hyperref[preprocessing-sequence]{序列}表示。为了方便起见，将词按数据集中出现的频率进行索引，例如整数
+3 编码数据中第三个最频繁的词。这允许快速筛选操作，例如：「只考虑前
+10,000 个最常用的词，但排除前 20 个最常见的词」。
+
+作为惯例，0 不代表特定的单词，而是被用于编码任何未知单词。
+
+\textbf{用法}\label{ux7528ux6cd5-2}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.datasets }\ImportTok{import} \NormalTok{imdb}
+
+\NormalTok{(x_train, y_train), (x_test, y_test) }\OperatorTok{=} \NormalTok{imdb.load_data(path}\OperatorTok{=}\StringTok{"imdb.npz"}\NormalTok{,}
+                                                      \NormalTok{num_words}\OperatorTok{=}\VariableTok{None}\NormalTok{,}
+                                                      \NormalTok{skip_top}\OperatorTok{=}\DecValTok{0}\NormalTok{,}
+                                                      \NormalTok{maxlen}\OperatorTok{=}\VariableTok{None}\NormalTok{,}
+                                                      \NormalTok{seed}\OperatorTok{=}\DecValTok{113}\NormalTok{,}
+                                                      \NormalTok{start_char}\OperatorTok{=}\DecValTok{1}\NormalTok{,}
+                                                      \NormalTok{oov_char}\OperatorTok{=}\DecValTok{2}\NormalTok{,}
+                                                      \NormalTok{index_from}\OperatorTok{=}\DecValTok{3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{返回：}
+\item
+  2 个元组：
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{x\_train, x\_test}: 序列的列表，即词索引的列表。如果指定了
+    \texttt{num\_words} 参数，则可能的最大索引值是
+    \texttt{num\_words-1}。如果指定了 \texttt{maxlen}
+    参数，则可能的最大序列长度为 \texttt{maxlen}。
+  \item
+    \textbf{y\_train, y\_test}: 整数标签列表 (1 或 0)。
+  \end{itemize}
+\item
+  \textbf{参数:}
+\item
+  \textbf{path}: 如果你本地没有该数据集 (在
+  \texttt{\textquotesingle{}\textasciitilde{}/.keras/datasets/\textquotesingle{}\ +\ path})，它将被下载到此目录。
+\item
+  \textbf{num\_words}: 整数或
+  None。要考虑的最常用的词语。任何不太频繁的词将在序列数据中显示为
+  \texttt{oov\_char} 值。
+\item
+  \textbf{skip\_top}:
+  整数。要忽略的最常见的单词（它们将在序列数据中显示为
+  \texttt{oov\_char} 值）。
+\item
+  \textbf{maxlen}: 整数。最大序列长度。 任何更长的序列都将被截断。
+\item
+  \textbf{seed}: 整数。用于可重现数据混洗的种子。
+\item
+  \textbf{start\_char}: 整数。序列的开始将用这个字符标记。设置为 1，因为
+  0 通常作为填充字符。
+\item
+  \textbf{oov\_char}: 整数。由于 \texttt{num\_words} 或
+  \texttt{skip\_top} 限制而被删除的单词将被替换为此字符。
+\item
+  \textbf{index\_from}:
+  整数。使用此数以上更高的索引值实际词汇索引的开始。
+\end{itemize}
+
+
+\subsection{路透社新闻主题分类}\label{ux8defux900fux793eux65b0ux95fbux4e3bux9898ux5206ux7c7b}
+
+数据集来源于路透社的 11,228 条新闻文本，总共分为 46 个主题。与 IMDB
+数据集一样，每条新闻都被编码为一个词索引的序列（相同的约定）。
+
+\textbf{用法：}\label{ux7528ux6cd5-3}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.datasets }\ImportTok{import} \NormalTok{reuters}
+
+\NormalTok{(x_train, y_train), (x_test, y_test) }\OperatorTok{=} \NormalTok{reuters.load_data(path}\OperatorTok{=}\StringTok{"reuters.npz"}\NormalTok{,}
+                                                         \NormalTok{num_words}\OperatorTok{=}\VariableTok{None}\NormalTok{,}
+                                                         \NormalTok{skip_top}\OperatorTok{=}\DecValTok{0}\NormalTok{,}
+                                                         \NormalTok{maxlen}\OperatorTok{=}\VariableTok{None}\NormalTok{,}
+                                                         \NormalTok{test_split}\OperatorTok{=}\FloatTok{0.2}\NormalTok{,}
+                                                         \NormalTok{seed}\OperatorTok{=}\DecValTok{113}\NormalTok{,}
+                                                         \NormalTok{start_char}\OperatorTok{=}\DecValTok{1}\NormalTok{,}
+                                                         \NormalTok{oov_char}\OperatorTok{=}\DecValTok{2}\NormalTok{,}
+                                                         \NormalTok{index_from}\OperatorTok{=}\DecValTok{3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+规格与 IMDB 数据集的规格相同，但增加了：
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{test\_split}: 浮点型。用作测试集的数据比例。
+\end{itemize}
+
+该数据集还提供了用于编码序列的词索引：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{word_index }\OperatorTok{=} \NormalTok{reuters.get_word_index(path}\OperatorTok{=}\StringTok{"reuters_word_index.json"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\item
+  \textbf{返回：} 一个字典，其中键是单词（字符串），值是索引（整数）。
+  例如，\texttt{word\_index{[}"giraffe"{]}} 可能会返回 \texttt{1234}。
+\item
+  \textbf{参数：}
+\item
+  \textbf{path}: 如果在本地没有索引文件 (at
+  \texttt{\textquotesingle{}\textasciitilde{}/.keras/datasets/\textquotesingle{}\ +\ path}),
+  它将被下载到该目录。
+\end{itemize}
+
+
+\subsection{MNIST
+手写字符数据集}\label{mnist-ux624bux5199ux5b57ux7b26ux6570ux636eux96c6}
+
+训练集为 60,000 张 28x28 像素灰度图像，测试集为 10,000 同规格图像，总共
+10 类数字标签。
+
+\textbf{用法：}\label{ux7528ux6cd5-4}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.datasets }\ImportTok{import} \NormalTok{mnist}
+
+\NormalTok{(x_train, y_train), (x_test, y_test) }\OperatorTok{=} \NormalTok{mnist.load_data()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{返回：}
+\item
+  2 个元组：
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{x\_train, x\_test}: uint8 数组表示的灰度图像，尺寸为
+    (num\_samples, 28, 28)。
+  \item
+    \textbf{y\_train, y\_test}: uint8 数组表示的数字标签（范围在 0-9
+    之间的整数），尺寸为 (num\_samples,)。
+  \end{itemize}
+\item
+  \textbf{参数：}
+\item
+  \textbf{path}: 如果在本地没有索引文件 (at
+  \texttt{\textquotesingle{}\textasciitilde{}/.keras/datasets/\textquotesingle{}\ +\ path}),
+  它将被下载到该目录。
+\end{itemize}
+
+
+\subsection{Fashion-MNIST
+时尚物品数据集}\label{fashion-mnist-ux65f6ux5c1aux7269ux54c1ux6570ux636eux96c6}
+
+训练集为 60,000 张 28x28 像素灰度图像，测试集为 10,000 同规格图像，总共
+10 类时尚物品标签。该数据集可以用作 MNIST 的直接替代品。类别标签是：
+
+\begin{longtable}[c]{@{}lll@{}}
+\toprule
+类别 & 描述 & 中文\tabularnewline
+\midrule
+\endhead
+0 & T-shirt/top & T恤/上衣\tabularnewline
+1 & Trouser & 裤子\tabularnewline
+2 & Pullover & 套头衫\tabularnewline
+3 & Dress & 连衣裙\tabularnewline
+4 & Coat & 外套\tabularnewline
+5 & Sandal & 凉鞋\tabularnewline
+6 & Shirt & 衬衫\tabularnewline
+7 & Sneaker & 运动鞋\tabularnewline
+8 & Bag & 背包\tabularnewline
+9 & Ankle boot & 短靴\tabularnewline
+\bottomrule
+\end{longtable}
+
+\textbf{用法：}\label{ux7528ux6cd5-5}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.datasets }\ImportTok{import} \NormalTok{fashion_mnist}
+
+\NormalTok{(x_train, y_train), (x_test, y_test) }\OperatorTok{=} \NormalTok{fashion_mnist.load_data()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{返回：}
+\item
+  2 个元组：
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{x\_train, x\_test}: uint8 数组表示的灰度图像，尺寸为
+    (num\_samples, 28, 28)。
+  \item
+    \textbf{y\_train, y\_test}: uint8 数组表示的数字标签（范围在 0-9
+    之间的整数），尺寸为 (num\_samples,)。
+  \end{itemize}
+\end{itemize}
+
+
+\subsection{Boston
+房价回归数据集}\label{boston-ux623fux4ef7ux56deux5f52ux6570ux636eux96c6}
+
+数据集来自卡内基梅隆大学维护的 StatLib 库。
+
+样本包含 1970 年代的在波士顿郊区不同位置的房屋信息，总共有 13
+种房屋属性。 目标值是一个位置的房屋的中值（单位：k\$）。
+
+\textbf{用法：}\label{ux7528ux6cd5-6}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.datasets }\ImportTok{import} \NormalTok{boston_housing}
+
+\NormalTok{(x_train, y_train), (x_test, y_test) }\OperatorTok{=} \NormalTok{boston_housing.load_data()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\item
+  \textbf{参数：}
+\item
+  \textbf{path}: 缓存本地数据集的位置 (相对路径
+  \textasciitilde{}/.keras/datasets)。
+\item
+  \textbf{seed}: 在计算测试分割之前对数据进行混洗的随机种子。
+\item
+  \textbf{test\_split}: 需要保留作为测试数据的比例。
+\item
+  \textbf{返回：} Numpy 数组的元组:
+  \texttt{(x\_train,\ y\_train),\ (x\_test,\ y\_test)}。
+\end{itemize}
+
+\newpage

@@ -1,0 +1,76 @@
+\subsection{标准化层 Normalization}
+    
+\subsubsection{BatchNormalization {\href{https://github.com/keras-team/keras/blob/master/keras/layers/normalization.py\#L16}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.BatchNormalization(axis}\OperatorTok{=-}\DecValTok{1}\NormalTok{, momentum}\OperatorTok{=}\FloatTok{0.99}\NormalTok{, epsilon}\OperatorTok{=}\FloatTok{0.001}, \\
+\hspace{3cm}\NormalTok{center}\OperatorTok{=}\VariableTok{True}\NormalTok{, scale}\OperatorTok{=}\VariableTok{True}\NormalTok{, beta_initializer}\OperatorTok{=}\StringTok{'zeros'}, \\
+\hspace{3cm}\NormalTok{gamma_initializer}\OperatorTok{=}\StringTok{'ones'}\NormalTok{, moving_mean_initializer}\OperatorTok{=}\StringTok{'zeros'}, \\
+\hspace{3cm}\NormalTok{moving_variance_initializer}\OperatorTok{=}\StringTok{'ones'}\NormalTok{, beta_regularizer}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{gamma_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, beta_constraint}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{3cm}\NormalTok{gamma_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+批量标准化层 (Ioffe and Szegedy, 2014)。
+
+在每一个批次的数据中标准化前一层的激活项，
+即，应用一个维持激活项平均值接近 0，标准差接近 1 的转换。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{axis}: 整数，需要标准化的轴 （通常是特征轴）。 例如，在
+  \texttt{data\_format="channels\_first"} 的 \texttt{Conv2D} 层之后， 在
+  \texttt{BatchNormalization} 中设置 \texttt{axis=1}。
+\item
+  \textbf{momentum}: 移动均值和移动方差的动量。
+\item
+  \textbf{epsilon}: 增加到方差的小的浮点数，以避免除以零。
+\item
+  \textbf{center}: 如果为 True，把 \texttt{beta}
+  的偏移量加到标准化的张量上。 如果为 False， \texttt{beta} 被忽略。
+\item
+  \textbf{scale}: 如果为 True，乘以 \texttt{gamma}。 如果为
+  False，\texttt{gamma} 不使用。 当下一层为线性层（或者例如
+  \texttt{nn.relu}）， 这可以被禁用，因为缩放将由下一层完成。
+\item
+  \textbf{beta\_initializer}: beta 权重的初始化方法。
+\item
+  \textbf{gamma\_initializer}: gamma 权重的初始化方法。
+\item
+  \textbf{moving\_mean\_initializer}: 移动均值的初始化方法。
+\item
+  \textbf{moving\_variance\_initializer}: 移动方差的初始化方法。
+\item
+  \textbf{beta\_regularizer}: 可选的 beta 权重的正则化方法。
+\item
+  \textbf{gamma\_regularizer}: 可选的 gamma 权重的正则化方法。
+\item
+  \textbf{beta\_constraint}: 可选的 beta 权重的约束方法。
+\item
+  \textbf{gamma\_constraint}: 可选的 gamma 权重的约束方法。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+可以是任意的。如果将这一层作为模型的第一层， 则需要指定 input\_shape
+参数 （整数元组，不包含样本数量的维度）。
+
+\textbf{输出尺寸}
+
+与输入相同。
+
+\textbf{参考文献}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://arxiv.org/abs/1502.03167}{Batch Normalization:
+  Accelerating Deep Network Training by Reducing Internal Covariate
+  Shift}
+\end{itemize}
+\newpage

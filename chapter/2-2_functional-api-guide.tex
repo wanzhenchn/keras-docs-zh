@@ -1,0 +1,487 @@
+\subsection{函数式 API 指引}
+\subsubsection{开始使用 Keras 函数式 API}\label{functional-api-guide}
+
+Keras 函数式 API
+是定义复杂模型（如多输出模型、有向无环图，或具有共享层的模型）的方法。
+
+这部分文档假设你已经对 Sequential 顺序模型比较熟悉。
+
+让我们先从一些简单的例子开始。
+
+
+\subsubsection{例一：全连接网络}\label{ux4f8bux4e00ux5168ux8fdeux63a5ux7f51ux7edc}
+
+\texttt{Sequential}
+模型可能是实现这种网络的一个更好选择，但这个例子能够帮助我们进行一些简单的理解。
+
+\begin{itemize}
+\tightlist
+\item
+  网络层的实例是可调用的，它以张量为参数，并且返回一个张量
+\item
+  输入和输出均为张量，它们都可以用来定义一个模型（\texttt{Model}）
+\item
+  这样的模型同 Keras 的 \texttt{Sequential} 模型一样，都可以被训练
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Input, Dense}
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{Model}
+
+\CommentTok{# 这部分返回一个张量}
+\NormalTok{inputs }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{784}\NormalTok{,))}
+
+\CommentTok{# 层的实例是可调用的，它以张量为参数，并且返回一个张量}
+\NormalTok{x }\OperatorTok{=} \NormalTok{Dense(}\DecValTok{64}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{)(inputs)}
+\NormalTok{x }\OperatorTok{=} \NormalTok{Dense(}\DecValTok{64}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{)(x)}
+\NormalTok{predictions }\OperatorTok{=} \NormalTok{Dense(}\DecValTok{10}\NormalTok{, activation}\OperatorTok{=}\StringTok{'softmax'}\NormalTok{)(x)}
+
+\CommentTok{# 这部分创建了一个包含输入层和三个全连接层的模型}
+\NormalTok{model }\OperatorTok{=} \NormalTok{Model(inputs}\OperatorTok{=}\NormalTok{inputs, outputs}\OperatorTok{=}\NormalTok{predictions)}
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{,}
+              \NormalTok{loss}\OperatorTok{=}\StringTok{'categorical_crossentropy'}\NormalTok{,}
+              \NormalTok{metrics}\OperatorTok{=}\NormalTok{[}\StringTok{'accuracy'}\NormalTok{])}
+\NormalTok{model.fit(data, labels)  }\CommentTok{# 开始训练}
+\end{Highlighting}
+\end{Shaded}
+
+
+\subsubsection{所有的模型都可调用，就像网络层一样}\label{ux6240ux6709ux7684ux6a21ux578bux90fdux53efux8c03ux7528ux5c31ux50cfux7f51ux7edcux5c42ux4e00ux6837}
+
+利用函数式
+API，可以轻易地重用训练好的模型：可以将任何模型看作是一个层，然后通过传递一个张量来调用它。注意，在调用模型时，您不仅重用模型的\emph{结构}，还重用了它的权重。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{x }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{784}\NormalTok{,))}
+\CommentTok{# 这是可行的，并且返回上面定义的 10-way softmax。}
+\NormalTok{y }\OperatorTok{=} \NormalTok{model(x)}
+\end{Highlighting}
+\end{Shaded}
+
+这种方式能允许我们快速创建可以处理\emph{序列输入}的模型。只需一行代码，你就将图像分类模型转换为视频分类模型。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{TimeDistributed}
+
+\CommentTok{# 输入张量是 20 个时间步的序列，每一个时间为一个 784 维的向量}
+\NormalTok{input_sequences }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{20}\NormalTok{, }\DecValTok{784}\NormalTok{))}
+
+\CommentTok{# 这部分将我们之前定义的模型应用于输入序列中的每个时间步。}
+\CommentTok{# 之前定义的模型的输出是一个 10-way softmax，}
+\CommentTok{# 因而下面的层的输出将是维度为 10 的 20 个向量的序列。}
+\NormalTok{processed_sequences }\OperatorTok{=} \NormalTok{TimeDistributed(model)(input_sequences)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\subsubsection{多输入多输出模型}\label{ux591aux8f93ux5165ux591aux8f93ux51faux6a21ux578b}
+
+以下是函数式 API 的一个很好的例子：具有多个输入和输出的模型。函数式 API
+使处理大量交织的数据流变得容易。
+
+来考虑下面的模型。我们试图预测 Twitter
+上的一条新闻标题有多少转发和点赞数。模型的主要输入将是新闻标题本身，即一系列词语，但是为了增添趣味，我们的模型还添加了其他的辅助输入来接收额外的数据，例如新闻标题的发布的时间等。
+该模型也将通过两个损失函数进行监督学习。较早地在模型中使用主损失函数，是深度学习模型的一个良好正则方法。
+
+模型结构如下图所示：
+
+让我们用函数式 API 来实现它。
+
+主要输入接收新闻标题本身，即一个整数序列（每个整数编码一个词）。
+这些整数在 1 到 10,000 之间（10,000 个词的词汇表），且序列长度为 100
+个词。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Input, Embedding, LSTM, Dense}
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{Model}
+
+\CommentTok{# 标题输入：接收一个含有 100 个整数的序列，每个整数在 1 到 10000 之间。}
+\CommentTok{# 注意我们可以通过传递一个 `name` 参数来命名任何层。}
+\NormalTok{main_input }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{100}\NormalTok{,), dtype}\OperatorTok{=}\StringTok{'int32'}\NormalTok{, name}\OperatorTok{=}\StringTok{'main_input'}\NormalTok{)}
+
+\CommentTok{# Embedding 层将输入序列编码为一个稠密向量的序列，每个向量维度为 512。}
+\NormalTok{x }\OperatorTok{=} \NormalTok{Embedding(output_dim}\OperatorTok{=}\DecValTok{512}\NormalTok{, input_dim}\OperatorTok{=}\DecValTok{10000}\NormalTok{, input_length}\OperatorTok{=}\DecValTok{100}\NormalTok{)(main_input)}
+
+\CommentTok{# LSTM 层把向量序列转换成单个向量，它包含整个序列的上下文信息}
+\NormalTok{lstm_out }\OperatorTok{=} \NormalTok{LSTM(}\DecValTok{32}\NormalTok{)(x)}
+\end{Highlighting}
+\end{Shaded}
+
+在这里，我们插入辅助损失，使得即使在模型主损失很高的情况下，LSTM 层和
+Embedding 层都能被平稳地训练。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{auxiliary_output }\OperatorTok{=} \NormalTok{Dense(}\DecValTok{1}\NormalTok{, activation}\OperatorTok{=}\StringTok{'sigmoid'}\NormalTok{, name}\OperatorTok{=}\StringTok{'aux_output'}\NormalTok{)(lstm_out)}
+\end{Highlighting}
+\end{Shaded}
+
+此时，我们将辅助输入数据与 LSTM 层的输出连接起来，输入到模型中：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{auxiliary_input }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{5}\NormalTok{,), name}\OperatorTok{=}\StringTok{'aux_input'}\NormalTok{)}
+\NormalTok{x }\OperatorTok{=} \NormalTok{keras.layers.concatenate([lstm_out, auxiliary_input])}
+
+\CommentTok{# 堆叠多个全连接网络层}
+\NormalTok{x }\OperatorTok{=} \NormalTok{Dense(}\DecValTok{64}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{)(x)}
+\NormalTok{x }\OperatorTok{=} \NormalTok{Dense(}\DecValTok{64}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{)(x)}
+\NormalTok{x }\OperatorTok{=} \NormalTok{Dense(}\DecValTok{64}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{)(x)}
+
+\CommentTok{# 最后添加主要的逻辑回归层}
+\NormalTok{main_output }\OperatorTok{=} \NormalTok{Dense(}\DecValTok{1}\NormalTok{, activation}\OperatorTok{=}\StringTok{'sigmoid'}\NormalTok{, name}\OperatorTok{=}\StringTok{'main_output'}\NormalTok{)(x)}
+\end{Highlighting}
+\end{Shaded}
+
+然后定义一个具有两个输入和两个输出的模型：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model }\OperatorTok{=} \NormalTok{Model(inputs}\OperatorTok{=}\NormalTok{[main_input, auxiliary_input], outputs}\OperatorTok{=}\NormalTok{[main_output, auxiliary_output])}
+\end{Highlighting}
+\end{Shaded}
+
+现在编译模型，并给辅助损失分配一个 0.2
+的权重。如果要为不同的输出指定不同的 \texttt{loss\_weights} 或
+\texttt{loss}，可以使用列表或字典。 在这里，我们给 \texttt{loss}
+参数传递单个损失函数，这个损失将用于所有的输出。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{, loss}\OperatorTok{=}\StringTok{'binary_crossentropy'}\NormalTok{,}
+              \NormalTok{loss_weights}\OperatorTok{=}\NormalTok{[}\DecValTok{1}\NormalTok{., }\FloatTok{0.2}\NormalTok{])}
+\end{Highlighting}
+\end{Shaded}
+
+我们可以通过传递输入数组和目标数组的列表来训练模型：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model.fit([headline_data, additional_data], [labels, labels],}
+          \NormalTok{epochs}\OperatorTok{=}\DecValTok{50}\NormalTok{, batch_size}\OperatorTok{=}\DecValTok{32}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+由于输入和输出均被命名了（在定义时传递了一个 \texttt{name}
+参数），我们也可以通过以下方式编译模型：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{,}
+     \NormalTok{loss}\OperatorTok{=}\NormalTok{\{}\StringTok{'main_output'}\NormalTok{: }\StringTok{'binary_crossentropy'}\NormalTok{, }\StringTok{'aux_output'}\NormalTok{: }\StringTok{'binary_crossentropy'}\NormalTok{\},}
+    \NormalTok{loss_weights}\OperatorTok{=}\NormalTok{\{}\StringTok{'main_output'}\NormalTok{: }\DecValTok{1}\NormalTok{., }\StringTok{'aux_output'}\NormalTok{: }\FloatTok{0.2}\NormalTok{\})}
+
+\CommentTok{# 然后使用以下方式训练：}
+\NormalTok{model.fit(\{}\StringTok{'main_input'}\NormalTok{: headline_data, }\StringTok{'aux_input'}\NormalTok{: additional_data\},}
+    \NormalTok{\{}\StringTok{'main_output'}\NormalTok{: labels, }\StringTok{'aux_output'}\NormalTok{: labels\},}
+     \NormalTok{epochs}\OperatorTok{=}\DecValTok{50}\NormalTok{, batch_size}\OperatorTok{=}\DecValTok{32}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\subsubsection{共享网络层}\label{the-concept-of-layer-node}
+
+函数式 API 的另一个用途是使用共享网络层的模型。我们来看看共享层。
+
+来考虑推特推文数据集。我们想要建立一个模型来分辨两条推文是否来自同一个人（例如，通过推文的相似性来对用户进行比较）。
+
+实现这个目标的一种方法是建立一个模型，将两条推文编码成两个向量，连接向量，然后添加逻辑回归层；这将输出两条推文来自同一作者的概率。模型将接收一对对正负表示的推特数据。
+
+由于这个问题是对称的，编码第一条推文的机制应该被完全重用来编码第二条推文。这里我们使用一个共享的
+LSTM 层来编码推文。
+
+让我们使用函数式 API 来构建它。首先我们将一条推特转换为一个尺寸为
+\texttt{(140,\ 256)} 的矩阵，即每条推特 140 字符，每个字符为 256 维的
+one-hot 编码 （取 256 个常用字符）。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{import} \NormalTok{keras}
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Input, LSTM, Dense}
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{Model}
+
+\NormalTok{tweet_a }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{140}\NormalTok{, }\DecValTok{256}\NormalTok{))}
+\NormalTok{tweet_b }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{140}\NormalTok{, }\DecValTok{256}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+要在不同的输入上共享同一个层，只需实例化该层一次，然后根据需要传入你想要的输入即可：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 这一层可以输入一个矩阵，并返回一个 64 维的向量}
+\NormalTok{shared_lstm }\OperatorTok{=} \NormalTok{LSTM(}\DecValTok{64}\NormalTok{)}
+
+\CommentTok{# 当我们重用相同的图层实例多次，图层的权重也会被重用 (它其实就是同一层)}
+\NormalTok{encoded_a }\OperatorTok{=} \NormalTok{shared_lstm(tweet_a)}
+\NormalTok{encoded_b }\OperatorTok{=} \NormalTok{shared_lstm(tweet_b)}
+
+\CommentTok{# 然后再连接两个向量：}
+\NormalTok{merged_vector }\OperatorTok{=} \NormalTok{keras.layers.concatenate([encoded_a, encoded_b], axis}\OperatorTok{=-}\DecValTok{1}\NormalTok{)}
+
+\CommentTok{# 再在上面添加一个逻辑回归层}
+\NormalTok{predictions }\OperatorTok{=} \NormalTok{Dense(}\DecValTok{1}\NormalTok{, activation}\OperatorTok{=}\StringTok{'sigmoid'}\NormalTok{)(merged_vector)}
+
+\CommentTok{# 定义一个连接推特输入和预测的可训练的模型}
+\NormalTok{model }\OperatorTok{=} \NormalTok{Model(inputs}\OperatorTok{=}\NormalTok{[tweet_a, tweet_b], outputs}\OperatorTok{=}\NormalTok{predictions)}
+
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{,}
+              \NormalTok{loss}\OperatorTok{=}\StringTok{'binary_crossentropy'}\NormalTok{,}
+              \NormalTok{metrics}\OperatorTok{=}\NormalTok{[}\StringTok{'accuracy'}\NormalTok{])}
+\NormalTok{model.fit([data_a, data_b], labels, epochs}\OperatorTok{=}\DecValTok{10}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+让我们暂停一会，看看如何读取共享层的输出或输出尺寸。
+
+
+\subsubsection{层「节点」的概念}\label{ux5c42ux8282ux70b9ux7684ux6982ux5ff5}
+
+每当你在某个输入上调用一个层时，都将创建一个新的张量（层的输出），并且为该层添加一个「节点」，将输入张量连接到输出张量。当多次调用同一个图层时，该图层将拥有多个节点索引
+(0, 1, 2...)。
+
+在之前版本的 Keras 中，可以通过 \texttt{layer.get\_output()}
+来获得层实例的输出张量，或者通过 \texttt{layer.output\_shape}
+来获取其输出形状。现在你依然可以这么做（除了 \texttt{get\_output()}
+已经被 \texttt{output} 属性替代）。但是如果一个层与多个输入连接呢？
+
+只要一个层只连接到一个输入，就不会有困惑，\texttt{.output}
+会返回层的唯一输出：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{a }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{140}\NormalTok{, }\DecValTok{256}\NormalTok{))}
+
+\NormalTok{lstm }\OperatorTok{=} \NormalTok{LSTM(}\DecValTok{32}\NormalTok{)}
+\NormalTok{encoded_a }\OperatorTok{=} \NormalTok{lstm(a)}
+
+\ControlFlowTok{assert} \NormalTok{lstm.output }\OperatorTok{==} \NormalTok{encoded_a}
+\end{Highlighting}
+\end{Shaded}
+
+但是如果该层有多个输入，那就会出现问题：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{a }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{140}\NormalTok{, }\DecValTok{256}\NormalTok{))}
+\NormalTok{b }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{140}\NormalTok{, }\DecValTok{256}\NormalTok{))}
+
+\NormalTok{lstm }\OperatorTok{=} \NormalTok{LSTM(}\DecValTok{32}\NormalTok{)}
+\NormalTok{encoded_a }\OperatorTok{=} \NormalTok{lstm(a)}
+\NormalTok{encoded_b }\OperatorTok{=} \NormalTok{lstm(b)}
+
+\NormalTok{lstm.output}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+>> AttributeError: Layer lstm_1 has multiple inbound nodes,
+hence the notion of "layer output" is ill-defined.
+Use `get_output_at(node_index)` instead.
+\end{verbatim}
+
+好吧，通过下面的方法可以解决：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ControlFlowTok{assert} \NormalTok{lstm.get_output_at(}\DecValTok{0}\NormalTok{) }\OperatorTok{==} \NormalTok{encoded_a}
+\ControlFlowTok{assert} \NormalTok{lstm.get_output_at(}\DecValTok{1}\NormalTok{) }\OperatorTok{==} \NormalTok{encoded_b}
+\end{Highlighting}
+\end{Shaded}
+
+够简单，对吧？
+
+\texttt{input\_shape} 和 \texttt{output\_shape}
+这两个属性也是如此：只要该层只有一个节点，或者只要所有节点具有相同的输入/输出尺寸，那么「层输出/输入尺寸」的概念就被很好地定义，并且将由
+\texttt{layer.output\_shape} / \texttt{layer.input\_shape}
+返回。但是比如说，如果将一个 \texttt{Conv2D} 层先应用于尺寸为
+\texttt{(32，32，3)} 的输入，再应用于尺寸为 \texttt{(64,\ 64,\ 3)}
+的输入，那么这个层就会有多个输入/输出尺寸，你将不得不通过指定它们所属节点的索引来获取它们：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{a }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{32}\NormalTok{, }\DecValTok{32}\NormalTok{, }\DecValTok{3}\NormalTok{))}
+\NormalTok{b }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{64}\NormalTok{, }\DecValTok{64}\NormalTok{, }\DecValTok{3}\NormalTok{))}
+
+\NormalTok{conv }\OperatorTok{=} \NormalTok{Conv2D(}\DecValTok{16}\NormalTok{, (}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{), padding}\OperatorTok{=}\StringTok{'same'}\NormalTok{)}
+\NormalTok{conved_a }\OperatorTok{=} \NormalTok{conv(a)}
+
+\CommentTok{# 到目前为止只有一个输入，以下可行：}
+\ControlFlowTok{assert} \NormalTok{conv.input_shape }\OperatorTok{==} \NormalTok{(}\VariableTok{None}\NormalTok{, }\DecValTok{32}\NormalTok{, }\DecValTok{32}\NormalTok{, }\DecValTok{3}\NormalTok{)}
+
+\NormalTok{conved_b }\OperatorTok{=} \NormalTok{conv(b)}
+\CommentTok{# 现在 `.input_shape` 属性不可行，但是这样可以：}
+\ControlFlowTok{assert} \NormalTok{conv.get_input_shape_at(}\DecValTok{0}\NormalTok{) }\OperatorTok{==} \NormalTok{(}\VariableTok{None}\NormalTok{, }\DecValTok{32}\NormalTok{, }\DecValTok{32}\NormalTok{, }\DecValTok{3}\NormalTok{)}
+\ControlFlowTok{assert} \NormalTok{conv.get_input_shape_at(}\DecValTok{1}\NormalTok{) }\OperatorTok{==} \NormalTok{(}\VariableTok{None}\NormalTok{, }\DecValTok{64}\NormalTok{, }\DecValTok{64}\NormalTok{, }\DecValTok{3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\subsubsection{更多的例子}\label{ux66f4ux591aux7684ux4f8bux5b50}
+
+代码示例仍然是起步的最佳方式，所以这里还有更多的例子。
+
+\subsubsubsection{Inception 模型}\label{inception-ux6a21ux578b}
+
+有关 Inception 结构的更多信息，请参阅
+\href{http://arxiv.org/abs/1409.4842}{Going Deeper with Convolutions}。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Conv2D, MaxPooling2D, Input}
+
+\NormalTok{input_img }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{256}\NormalTok{, }\DecValTok{256}\NormalTok{, }\DecValTok{3}\NormalTok{))}
+
+\NormalTok{tower_1 }\OperatorTok{=} \NormalTok{Conv2D(}\DecValTok{64}\NormalTok{, (}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), padding}\OperatorTok{=}\StringTok{'same'}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{)(input_img)}
+\NormalTok{tower_1 }\OperatorTok{=} \NormalTok{Conv2D(}\DecValTok{64}\NormalTok{, (}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{), padding}\OperatorTok{=}\StringTok{'same'}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{)(tower_1)}
+
+\NormalTok{tower_2 }\OperatorTok{=} \NormalTok{Conv2D(}\DecValTok{64}\NormalTok{, (}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), padding}\OperatorTok{=}\StringTok{'same'}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{)(input_img)}
+\NormalTok{tower_2 }\OperatorTok{=} \NormalTok{Conv2D(}\DecValTok{64}\NormalTok{, (}\DecValTok{5}\NormalTok{, }\DecValTok{5}\NormalTok{), padding}\OperatorTok{=}\StringTok{'same'}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{)(tower_2)}
+
+\NormalTok{tower_3 }\OperatorTok{=} \NormalTok{MaxPooling2D((}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{), strides}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), padding}\OperatorTok{=}\StringTok{'same'}\NormalTok{)(input_img)}
+\NormalTok{tower_3 }\OperatorTok{=} \NormalTok{Conv2D(}\DecValTok{64}\NormalTok{, (}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), padding}\OperatorTok{=}\StringTok{'same'}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{)(tower_3)}
+
+\NormalTok{output }\OperatorTok{=} \NormalTok{keras.layers.concatenate([tower_1, tower_2, tower_3], axis}\OperatorTok{=}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsubsection{卷积层上的残差连接}\label{ux5377ux79efux5c42ux4e0aux7684ux6b8bux5deeux8fdeux63a5}
+
+有关残差网络 (Residual Network) 的更多信息，请参阅
+\href{http://arxiv.org/abs/1512.03385}{Deep Residual Learning for Image
+Recognition}。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Conv2D, Input}
+
+\CommentTok{# 输入张量为 3 通道 256x256 图像}
+\NormalTok{x }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{256}\NormalTok{, }\DecValTok{256}\NormalTok{, }\DecValTok{3}\NormalTok{))}
+\CommentTok{# 3 输出通道（与输入通道相同）的 3x3 卷积核}
+\NormalTok{y }\OperatorTok{=} \NormalTok{Conv2D(}\DecValTok{3}\NormalTok{, (}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{), padding}\OperatorTok{=}\StringTok{'same'}\NormalTok{)(x)}
+\CommentTok{# 返回 x + y}
+\NormalTok{z }\OperatorTok{=} \NormalTok{keras.layers.add([x, y])}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsubsection{共享视觉模型}\label{ux5171ux4eabux89c6ux89c9ux6a21ux578b}
+
+该模型在两个输入上重复使用同一个图像处理模块，以判断两个 MNIST
+数字是否为相同的数字。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Conv2D, MaxPooling2D, Input, Dense, Flatten}
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{Model}
+
+\CommentTok{# 首先，定义视觉模型}
+\NormalTok{digit_input }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{27}\NormalTok{, }\DecValTok{27}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\NormalTok{x }\OperatorTok{=} \NormalTok{Conv2D(}\DecValTok{64}\NormalTok{, (}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{))(digit_input)}
+\NormalTok{x }\OperatorTok{=} \NormalTok{Conv2D(}\DecValTok{64}\NormalTok{, (}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{))(x)}
+\NormalTok{x }\OperatorTok{=} \NormalTok{MaxPooling2D((}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{))(x)}
+\NormalTok{out }\OperatorTok{=} \NormalTok{Flatten()(x)}
+
+\NormalTok{vision_model }\OperatorTok{=} \NormalTok{Model(digit_input, out)}
+
+\CommentTok{# 然后，定义区分数字的模型}
+\NormalTok{digit_a }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{27}\NormalTok{, }\DecValTok{27}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\NormalTok{digit_b }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{27}\NormalTok{, }\DecValTok{27}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+
+\CommentTok{# 视觉模型将被共享，包括权重和其他所有}
+\NormalTok{out_a }\OperatorTok{=} \NormalTok{vision_model(digit_a)}
+\NormalTok{out_b }\OperatorTok{=} \NormalTok{vision_model(digit_b)}
+
+\NormalTok{concatenated }\OperatorTok{=} \NormalTok{keras.layers.concatenate([out_a, out_b])}
+\NormalTok{out }\OperatorTok{=} \NormalTok{Dense(}\DecValTok{1}\NormalTok{, activation}\OperatorTok{=}\StringTok{'sigmoid'}\NormalTok{)(concatenated)}
+
+\NormalTok{classification_model }\OperatorTok{=} \NormalTok{Model([digit_a, digit_b], out)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsubsection{视觉问答模型}\label{ux89c6ux89c9ux95eeux7b54ux6a21ux578b}
+
+当被问及关于图片的自然语言问题时，该模型可以选择正确的单词作答。
+
+它通过将问题和图像编码成向量，然后连接两者，在上面训练一个逻辑回归，来从词汇表中挑选一个可能的单词作答。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Conv2D, MaxPooling2D, Flatten}
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{Input, LSTM, Embedding, Dense}
+\ImportTok{from} \NormalTok{keras.models }\ImportTok{import} \NormalTok{Model, Sequential}
+
+\CommentTok{# 首先，让我们用 Sequential 来定义一个视觉模型。}
+\CommentTok{# 这个模型会把一张图像编码为向量。}
+\NormalTok{vision_model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{vision_model.add(Conv2D(}\DecValTok{64}\NormalTok{, (}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{), activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{, padding}\OperatorTok{=}\StringTok{'same'}, \\
+\hspace{3cm}\NormalTok{input_shape}\OperatorTok{=}\NormalTok{(}\DecValTok{224}\NormalTok{, }\DecValTok{224}\NormalTok{, }\DecValTok{3}\NormalTok{)))}
+\NormalTok{vision_model.add(Conv2D(}\DecValTok{64}\NormalTok{, (}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{), activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{))}
+\NormalTok{vision_model.add(MaxPooling2D((}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{)))}
+\NormalTok{vision_model.add(Conv2D(}\DecValTok{128}\NormalTok{, (}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{), activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{, padding}\OperatorTok{=}\StringTok{'same'}\NormalTok{))}
+\NormalTok{vision_model.add(Conv2D(}\DecValTok{128}\NormalTok{, (}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{), activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{))}
+\NormalTok{vision_model.add(MaxPooling2D((}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{)))}
+\NormalTok{vision_model.add(Conv2D(}\DecValTok{256}\NormalTok{, (}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{), activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{, padding}\OperatorTok{=}\StringTok{'same'}\NormalTok{))}
+\NormalTok{vision_model.add(Conv2D(}\DecValTok{256}\NormalTok{, (}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{), activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{))}
+\NormalTok{vision_model.add(Conv2D(}\DecValTok{256}\NormalTok{, (}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{), activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{))}
+\NormalTok{vision_model.add(MaxPooling2D((}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{)))}
+\NormalTok{vision_model.add(Flatten())}
+
+\CommentTok{# 现在让我们用视觉模型来得到一个输出张量：}
+\NormalTok{image_input }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{224}\NormalTok{, }\DecValTok{224}\NormalTok{, }\DecValTok{3}\NormalTok{))}
+\NormalTok{encoded_image }\OperatorTok{=} \NormalTok{vision_model(image_input)}
+
+\CommentTok{# 接下来，定义一个语言模型来将问题编码成一个向量。}
+\CommentTok{# 每个问题最长 100 个词，词的索引从 1 到 9999.}
+\NormalTok{question_input }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{100}\NormalTok{,), dtype}\OperatorTok{=}\StringTok{'int32'}\NormalTok{)}
+\NormalTok{embedded_question }\OperatorTok{=} \NormalTok{Embedding(input_dim}\OperatorTok{=}\DecValTok{10000}\NormalTok{, output_dim}\OperatorTok{=}\DecValTok{256}, \\
+\hspace{3cm}\NormalTok{input_length}\OperatorTok{=}\DecValTok{100}\NormalTok{)(question_input)}
+\NormalTok{encoded_question }\OperatorTok{=} \NormalTok{LSTM(}\DecValTok{256}\NormalTok{)(embedded_question)}
+
+\CommentTok{# 连接问题向量和图像向量：}
+\NormalTok{merged }\OperatorTok{=} \NormalTok{keras.layers.concatenate([encoded_question, encoded_image])}
+
+\CommentTok{# 然后在上面训练一个 1000 词的逻辑回归模型：}
+\NormalTok{output }\OperatorTok{=} \NormalTok{Dense(}\DecValTok{1000}\NormalTok{, activation}\OperatorTok{=}\StringTok{'softmax'}\NormalTok{)(merged)}
+
+\CommentTok{# 最终模型：}
+\NormalTok{vqa_model }\OperatorTok{=} \NormalTok{Model(inputs}\OperatorTok{=}\NormalTok{[image_input, question_input], outputs}\OperatorTok{=}\NormalTok{output)}
+
+\CommentTok{# 下一步就是在真实数据上训练模型。}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsubsection{视频问答模型}\label{ux89c6ux9891ux95eeux7b54ux6a21ux578b}
+
+现在我们已经训练了图像问答模型，我们可以很快地将它转换为视频问答模型。在适当的训练下，你可以给它展示一小段视频（例如
+100
+帧的人体动作），然后问它一个关于这段视频的问题（例如，「这个人在做什么运动？」
+-\textgreater{} 「足球」）。
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from} \NormalTok{keras.layers }\ImportTok{import} \NormalTok{TimeDistributed}
+
+\NormalTok{video_input }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{100}\NormalTok{, }\DecValTok{224}\NormalTok{, }\DecValTok{224}\NormalTok{, }\DecValTok{3}\NormalTok{))}
+\CommentTok{# 这是基于之前定义的视觉模型（权重被重用）构建的视频编码}
+\NormalTok{encoded_frame_sequence }\OperatorTok{=} \NormalTok{TimeDistributed(vision_model)(video_input)  }\CommentTok{# 输出为向量的序列}
+\NormalTok{encoded_video }\OperatorTok{=} \NormalTok{LSTM(}\DecValTok{256}\NormalTok{)(encoded_frame_sequence)  }\CommentTok{# 输出为一个向量}
+
+\CommentTok{# 这是问题编码器的模型级表示，重复使用与之前相同的权重：}
+\NormalTok{question_encoder }\OperatorTok{=} \NormalTok{Model(inputs}\OperatorTok{=}\NormalTok{question_input, outputs}\OperatorTok{=}\NormalTok{encoded_question)}
+
+\CommentTok{# 让我们用它来编码这个问题：}
+\NormalTok{video_question_input }\OperatorTok{=} \NormalTok{Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{100}\NormalTok{,), dtype}\OperatorTok{=}\StringTok{'int32'}\NormalTok{)}
+\NormalTok{encoded_video_question }\OperatorTok{=} \NormalTok{question_encoder(video_question_input)}
+
+\CommentTok{# 这就是我们的视频问答模式：}
+\NormalTok{merged }\OperatorTok{=} \NormalTok{keras.layers.concatenate([encoded_video, encoded_video_question])}
+\NormalTok{output }\OperatorTok{=} \NormalTok{Dense(}\DecValTok{1000}\NormalTok{, activation}\OperatorTok{=}\StringTok{'softmax'}\NormalTok{)(merged)}
+\NormalTok{video_qa_model }\OperatorTok{=} \NormalTok{Model(inputs}\OperatorTok{=}\NormalTok{[video_input, video_question_input], outputs}\OperatorTok{=}\NormalTok{output)}
+\end{Highlighting}
+\end{Shaded}
+
+\newpage

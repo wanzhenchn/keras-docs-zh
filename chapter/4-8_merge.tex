@@ -1,0 +1,395 @@
+
+\subsection{融合层 Merge}
+\subsubsection{Add {\href{https://github.com/keras-team/keras/blob/master/keras/layers/merge.py\#L193}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Add()}
+\end{Highlighting}
+\end{Shaded}
+
+计算一个列表的输入张量的和。
+
+相加层接受一个列表的张量， 所有的张量必须有相同的输入尺寸，
+然后返回一个张量（和输入张量尺寸相同）。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{import} \NormalTok{keras}
+
+\NormalTok{input1 }\OperatorTok{=} \NormalTok{keras.layers.Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{16}\NormalTok{,))}
+\NormalTok{x1 }\OperatorTok{=} \NormalTok{keras.layers.Dense(}\DecValTok{8}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{)(input1)}
+\NormalTok{input2 }\OperatorTok{=} \NormalTok{keras.layers.Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{32}\NormalTok{,))}
+\NormalTok{x2 }\OperatorTok{=} \NormalTok{keras.layers.Dense(}\DecValTok{8}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{)(input2)}
+\NormalTok{added }\OperatorTok{=} \NormalTok{keras.layers.Add()([x1, x2])  }\CommentTok{# 相当于 added = keras.layers.add([x1, x2])}
+
+\NormalTok{out }\OperatorTok{=} \NormalTok{keras.layers.Dense(}\DecValTok{4}\NormalTok{)(added)}
+\NormalTok{model }\OperatorTok{=} \NormalTok{keras.models.Model(inputs}\OperatorTok{=}\NormalTok{[input1, input2], outputs}\OperatorTok{=}\NormalTok{out)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+
+\subsubsection{Subtract {\href{https://github.com/keras-team/keras/blob/master/keras/layers/merge.py\#L223}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Subtract()}
+\end{Highlighting}
+\end{Shaded}
+
+计算两个输入张量的差。
+
+相减层接受一个长度为 2 的张量列表，
+两个张量必须有相同的尺寸，然后返回一个值为 (inputs{[}0{]} -
+inputs{[}1{]}) 的张量， 输出张量和输入张量尺寸相同。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{import} \NormalTok{keras}
+
+\NormalTok{input1 }\OperatorTok{=} \NormalTok{keras.layers.Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{16}\NormalTok{,))}
+\NormalTok{x1 }\OperatorTok{=} \NormalTok{keras.layers.Dense(}\DecValTok{8}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{)(input1)}
+\NormalTok{input2 }\OperatorTok{=} \NormalTok{keras.layers.Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{32}\NormalTok{,))}
+\NormalTok{x2 }\OperatorTok{=} \NormalTok{keras.layers.Dense(}\DecValTok{8}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{)(input2)}
+\CommentTok{# 相当于 subtracted = keras.layers.subtract([x1, x2])}
+\NormalTok{subtracted }\OperatorTok{=} \NormalTok{keras.layers.Subtract()([x1, x2])}
+
+\NormalTok{out }\OperatorTok{=} \NormalTok{keras.layers.Dense(}\DecValTok{4}\NormalTok{)(subtracted)}
+\NormalTok{model }\OperatorTok{=} \NormalTok{keras.models.Model(inputs}\OperatorTok{=}\NormalTok{[input1, input2], outputs}\OperatorTok{=}\NormalTok{out)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+
+\subsubsection{Multiply {\href{https://github.com/keras-team/keras/blob/master/keras/layers/merge.py\#L260}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Multiply()}
+\end{Highlighting}
+\end{Shaded}
+
+计算一个列表的输入张量的（逐元素间的）乘积。
+
+相乘层接受一个列表的张量， 所有的张量必须有相同的输入尺寸，
+然后返回一个张量（和输入张量尺寸相同）。
+
+
+
+
+\subsubsection{Average {\href{https://github.com/keras-team/keras/blob/master/keras/layers/merge.py\#L275}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Average()}
+\end{Highlighting}
+\end{Shaded}
+
+计算一个列表的输入张量的平均值。
+
+平均层接受一个列表的张量， 所有的张量必须有相同的输入尺寸，
+然后返回一个张量（和输入张量尺寸相同）。
+
+
+
+
+\subsubsection{Maximum {\href{https://github.com/keras-team/keras/blob/master/keras/layers/merge.py\#L290}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Maximum()}
+\end{Highlighting}
+\end{Shaded}
+
+计算一个列表的输入张量的（逐元素间的）最大值。
+
+最大层接受一个列表的张量， 所有的张量必须有相同的输入尺寸，
+然后返回一个张量（和输入张量尺寸相同）。
+
+
+
+
+\subsubsection{Concatenate {\href{https://github.com/keras-team/keras/blob/master/keras/layers/merge.py\#L320}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Concatenate(axis}\OperatorTok{=-}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+串联一个列表的输入张量。
+
+串联层接受一个列表的张量， 除了串联轴之外，其他的尺寸都必须相同，
+然后返回一个由所有输入张量串联起来的输出张量。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{axis}: 串联的轴。
+\item
+  \_\_**kwargs\_\_: 层关键字参数。
+\end{itemize}
+
+
+
+
+\subsubsection{Dot {\href{https://github.com/keras-team/keras/blob/master/keras/layers/merge.py\#L408}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Dot(axes, normalize}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+计算两个张量之间样本的点积。
+
+例如，如果作用于输入尺寸为 \texttt{(batch\_size,\ n)} 的两个张量
+\texttt{a} 和 \texttt{b}， 那么输出结果就会是尺寸为
+\texttt{(batch\_size,\ 1)} 的一个张量。 在这个张量中，每一个条目
+\texttt{i} 是 \texttt{a{[}i{]}} 和 \texttt{b{[}i{]}} 之间的点积。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{axes}: 整数或者整数元组， 一个或者几个进行点积的轴。
+\item
+  \textbf{normalize}: 是否在点积之前对即将进行点积的轴进行 L2 标准化。
+  如果设置成 True，那么输出两个样本之间的余弦相似值。
+\item
+  \_\_**kwargs\_\_: 层关键字参数。
+\end{itemize}
+
+
+\subsubsection{add}\label{add}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.add(inputs)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{Add} 层的函数式接口。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{inputs}: 一个列表的输入张量（列表大小至少为 2）。
+\item
+  \_\_**kwargs\_\_: 层关键字参数。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量，所有输入张量的和。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{import} \NormalTok{keras}
+
+\NormalTok{input1 }\OperatorTok{=} \NormalTok{keras.layers.Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{16}\NormalTok{,))}
+\NormalTok{x1 }\OperatorTok{=} \NormalTok{keras.layers.Dense(}\DecValTok{8}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{)(input1)}
+\NormalTok{input2 }\OperatorTok{=} \NormalTok{keras.layers.Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{32}\NormalTok{,))}
+\NormalTok{x2 }\OperatorTok{=} \NormalTok{keras.layers.Dense(}\DecValTok{8}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{)(input2)}
+\NormalTok{added }\OperatorTok{=} \NormalTok{keras.layers.add([x1, x2])}
+
+\NormalTok{out }\OperatorTok{=} \NormalTok{keras.layers.Dense(}\DecValTok{4}\NormalTok{)(added)}
+\NormalTok{model }\OperatorTok{=} \NormalTok{keras.models.Model(inputs}\OperatorTok{=}\NormalTok{[input1, input2], outputs}\OperatorTok{=}\NormalTok{out)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{subtract}\label{subtract}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.subtract(inputs)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{Subtract} 层的函数式接口。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{inputs}: 一个列表的输入张量（列表大小准确为 2）。
+\item
+  \_\_**kwargs\_\_: 层的关键字参数。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量，两个输入张量的差。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{import} \NormalTok{keras}
+
+\NormalTok{input1 }\OperatorTok{=} \NormalTok{keras.layers.Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{16}\NormalTok{,))}
+\NormalTok{x1 }\OperatorTok{=} \NormalTok{keras.layers.Dense(}\DecValTok{8}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{)(input1)}
+\NormalTok{input2 }\OperatorTok{=} \NormalTok{keras.layers.Input(shape}\OperatorTok{=}\NormalTok{(}\DecValTok{32}\NormalTok{,))}
+\NormalTok{x2 }\OperatorTok{=} \NormalTok{keras.layers.Dense(}\DecValTok{8}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{)(input2)}
+\NormalTok{subtracted }\OperatorTok{=} \NormalTok{keras.layers.subtract([x1, x2])}
+
+\NormalTok{out }\OperatorTok{=} \NormalTok{keras.layers.Dense(}\DecValTok{4}\NormalTok{)(subtracted)}
+\NormalTok{model }\OperatorTok{=} \NormalTok{keras.models.Model(inputs}\OperatorTok{=}\NormalTok{[input1, input2], outputs}\OperatorTok{=}\NormalTok{out)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsection{multiply}\label{multiply}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.multiply(inputs)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{Multiply} 层的函数式接口。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{inputs}: 一个列表的输入张量（列表大小至少为 2）。
+\item
+  \_\_**kwargs\_\_: 层的关键字参数。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量，所有输入张量的逐元素乘积。
+
+
+
+\subsubsection{average}\label{average}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.average(inputs)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{Average} 层的函数式接口。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{inputs}: 一个列表的输入张量（列表大小至少为 2）。
+\item
+  \_\_**kwargs\_\_: 层的关键字参数。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量，所有输入张量的平均值。
+
+
+
+\subsubsection{maximum}\label{maximum}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.maximum(inputs)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{Maximum} 层的函数式接口。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{inputs}: 一个列表的输入张量（列表大小至少为 2）。
+\item
+  \_\_**kwargs\_\_: 层的关键字参数。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量，所有张量的逐元素的最大值。
+
+
+
+\subsubsection{concatenate}\label{concatenate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.concatenate(inputs, axis}\OperatorTok{=-}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{Concatenate} 层的函数式接口。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{inputs}: 一个列表的输入张量（列表大小至少为 2）。
+\item
+  \textbf{axis}: 串联的轴。
+\item
+  \_\_**kwargs\_\_: 层的关键字参数。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量，所有输入张量通过 \texttt{axis} 轴串联起来的输出张量。
+
+
+
+\subsubsection{dot}\label{dot}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.dot(inputs, axes, normalize}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{Dot} 层的函数式接口。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{inputs}: 一个列表的输入张量（列表大小至少为 2）。
+\item
+  \textbf{axes}: 整数或者整数元组， 一个或者几个进行点积的轴。
+\item
+  \textbf{normalize}: 是否在点积之前对即将进行点积的轴进行 L2 标准化。
+  如果设置成 True，那么输出两个样本之间的余弦相似值。
+\item
+  \_\_**kwargs\_\_: 层的关键字参数。
+\end{itemize}
+
+\textbf{返回}
+
+一个张量，所有输入张量样本之间的点积。
+
+\newpage

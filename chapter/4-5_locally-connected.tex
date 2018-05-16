@@ -1,0 +1,199 @@
+\subsection{局部连接层 Locally-connected}
+   
+\subsubsection{ LocallyConnected1D  {\href{https://github.com/keras-team/keras/blob/master/keras/layers/local.py\#L19}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.LocallyConnected1D(filters, kernel_size, strides}\OperatorTok{=}\DecValTok{1}\NormalTok{, padding}\OperatorTok{=}\StringTok{'valid'},\\
+\hspace{3cm}\NormalTok{data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{, activation}\OperatorTok{=}\VariableTok{None}\NormalTok{, use_bias}\OperatorTok{=}\VariableTok{True},\\
+\hspace{3cm}\NormalTok{kernel_initializer}\OperatorTok{=}\StringTok{'glorot_uniform'}\NormalTok{, bias_initializer}\OperatorTok{=}\StringTok{'zeros'},\\
+\hspace{3cm}\NormalTok{kernel_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_regularizer}\OperatorTok{=}\VariableTok{None},\\
+\hspace{3cm}\NormalTok{activity_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, kernel_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+1D 输入的局部连接层。
+
+\texttt{LocallyConnected1D} 层与 \texttt{Conv1D}
+层的工作方式相同，除了权值不共享外，
+也就是说，在输入的每个不同部分应用不同的一组过滤器。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 将长度为 3 的非共享权重 1D 卷积应用于}
+\CommentTok{# 具有 10 个时间步长的序列，并使用 64个 输出滤波器}
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(LocallyConnected1D(}\DecValTok{64}\NormalTok{, }\DecValTok{3}\NormalTok{, input_shape}\OperatorTok{=}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{32}\NormalTok{)))}
+\CommentTok{# 现在 model.output_shape == (None, 8, 64)}
+\CommentTok{# 在上面再添加一个新的 conv1d}
+\NormalTok{model.add(LocallyConnected1D(}\DecValTok{32}\NormalTok{, }\DecValTok{3}\NormalTok{))}
+\CommentTok{# 现在 model.output_shape == (None, 6, 32)}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{filters}: 整数，输出空间的维度 （即卷积中滤波器的输出数量）。
+\item
+  \textbf{kernel\_size}: 一个整数，或者单个整数表示的元组或列表， 指明
+  1D 卷积窗口的长度。
+\item
+  \textbf{strides}: 一个整数，或者单个整数表示的元组或列表，
+  指明卷积的步长。 指定任何 stride 值 != 1 与指定
+  \texttt{dilation\_rate} 值 != 1 两者不兼容。
+\item
+  \textbf{padding}: 当前仅支持 \texttt{"valid"} (大小写敏感)。
+  \texttt{"same"} 可能会在未来支持。
+\item
+  \textbf{activation}: 要使用的激活函数 (详见
+  \hyperref[activations]{activations})。
+  如果你不指定，则不使用激活函数 (即线性激活： \texttt{a(x)\ =\ x})。
+\item
+  \textbf{use\_bias}: 布尔值，该层是否使用偏置向量。
+\item
+  \textbf{kernel\_initializer}: \texttt{kernel} 权值矩阵的初始化器 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{bias\_initializer}: 偏置向量的初始化器 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{kernel\_regularizer}: 运用到 \texttt{kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{bias\_regularizer}: 运用到偏置向量的正则化函数 (详见
+  \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{activity\_regularizer}: 运用到层输出（它的激活值）的正则化函数
+  (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{kernel\_constraint}: 运用到 \texttt{kernel} 权值矩阵的约束函数
+  (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{bias\_constraint}: 运用到偏置向量的约束函数 (详见
+  \hyperref[constraints]{constraints})。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+3D 张量，尺寸为： \texttt{(batch\_size,\ steps,\ input\_dim)}。
+
+\textbf{输出尺寸}
+
+3D 张量~，尺寸为：\texttt{(batch\_size,\ new\_steps,\ filters)}，
+\texttt{steps} 值可能因填充或步长而改变。
+
+
+
+\subsubsection{ LocallyConnected2D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/local.py\#L181}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.LocallyConnected2D(filters, kernel_size, strides}\OperatorTok{=}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), padding}\OperatorTok{=}\StringTok{'valid'},\\
+\hspace{3cm}\NormalTok{data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{, activation}\OperatorTok{=}\VariableTok{None}\NormalTok{, use_bias}\OperatorTok{=}\VariableTok{True},\\
+\hspace{3cm}\NormalTok{kernel_initializer}\OperatorTok{=}\StringTok{'glorot_uniform'}\NormalTok{, bias_initializer}\OperatorTok{=}\StringTok{'zeros'},\\
+\hspace{3cm}\NormalTok{kernel_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, bias_regularizer}\OperatorTok{=}\VariableTok{None},\\
+\hspace{3cm}\NormalTok{activity_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, kernel_constraint}\OperatorTok{=}\VariableTok{None},\\
+\hspace{3cm}\NormalTok{bias_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+2D 输入的局部连接层。
+
+\texttt{LocallyConnected2D} 层与 \texttt{Conv2D}
+层的工作方式相同，除了权值不共享外，
+也就是说，在输入的每个不同部分应用不同的一组过滤器。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 在 32x32 图像上应用 3x3 非共享权值和64个输出过滤器的卷积}
+\CommentTok{# 数据格式 `data_format="channels_last"`：}
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(LocallyConnected2D(}\DecValTok{64}\NormalTok{, (}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{), input_shape}\OperatorTok{=}\NormalTok{(}\DecValTok{32}\NormalTok{, }\DecValTok{32}\NormalTok{, }\DecValTok{3}\NormalTok{)))}
+\CommentTok{# 现在 model.output_shape == (None, 30, 30, 64)}
+\CommentTok{# 注意这一层的参数数量为 (30*30)*(3*3*3*64) + (30*30)*64}
+
+\CommentTok{# 在上面再加一个 3x3 非共享权值和 32 个输出滤波器的卷积：}
+\NormalTok{model.add(LocallyConnected2D(}\DecValTok{32}\NormalTok{, (}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{)))}
+\CommentTok{# 现在 model.output_shape == (None, 28, 28, 32)}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{filters}: 整数，输出空间的维度 （即卷积中滤波器的输出数量）。
+\item
+  \textbf{kernel\_size}: 一个整数，或者 2 个整数表示的元组或列表， 指明
+  2D 卷积窗口的宽度和高度。 可以是一个整数，为所有空间维度指定相同的值。
+\item
+  \textbf{strides}: 一个整数，或者 2 个整数表示的元组或列表，
+  指明卷积沿宽度和高度方向的步长。
+  可以是一个整数，为所有空间维度指定相同的值。
+\item
+  \textbf{padding}: 当前仅支持 \texttt{"valid"} (大小写敏感)。
+  \texttt{"same"} 可能会在未来支持。
+\item
+  \textbf{data\_format}: 字符串， \texttt{channels\_last} (默认) 或
+  \texttt{channels\_first} 之一。 输入中维度的顺序。
+  \texttt{channels\_last} 对应输入尺寸为
+  \texttt{(batch,\ height,\ width,\ channels)}，
+  \texttt{channels\_first} 对应输入尺寸为
+  \texttt{(batch,\ channels,\ height,\ width)}。 它默认为从 Keras
+  配置文件 \texttt{\textasciitilde{}/.keras/keras.json} 中 找到的
+  \texttt{image\_data\_format} 值。 如果你从未设置它，将使用
+  "channels\_last"。
+\item
+  \textbf{activation}: 要使用的激活函数 (详见
+  \hyperref[activations]{activations})。
+  如果你不指定，则不使用激活函数 (即线性激活： \texttt{a(x)\ =\ x})。
+\item
+  \textbf{use\_bias}: 布尔值，该层是否使用偏置向量。
+\item
+  \textbf{kernel\_initializer}: \texttt{kernel} 权值矩阵的初始化器 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{bias\_initializer}: 偏置向量的初始化器 (详见
+  \hyperref[initializers]{initializers})。
+\item
+  \textbf{kernel\_regularizer}: 运用到 \texttt{kernel}
+  权值矩阵的正则化函数 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{bias\_regularizer}: 运用到偏置向量的正则化函数 (详见
+  \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{activity\_regularizer}: 运用到层输出（它的激活值）的正则化函数
+  (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{kernel\_constraint}: 运用到 \texttt{kernel} 权值矩阵的约束函数
+  (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{bias\_constraint}: 运用到偏置向量的约束函数 (详见
+  \hyperref[constraints]{constraints})。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+4D 张量，尺寸为： \texttt{(samples,\ channels,\ rows,\ cols)}，如果
+data\_format='channels\_first'； 或者 4D 张量，尺寸为：
+\texttt{(samples,\ rows,\ cols,\ channels)}，如果
+data\_format='channels\_last'。
+
+\textbf{输出尺寸}
+
+4D 张量，尺寸为：
+\texttt{(samples,\ filters,\ new\_rows,\ new\_cols)}，如果
+data\_format='channels\_first'； 或者 4D 张量，尺寸为：
+\texttt{(samples,\ new\_rows,\ new\_cols,\ filters)}，如果
+data\_format='channels\_last'。 \texttt{rows} 和 \texttt{cols}
+的值可能因填充而改变。
+
+\newpage

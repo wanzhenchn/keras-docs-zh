@@ -1,0 +1,224 @@
+\subsection{文本预处理}
+\subsubsection{text\_to\_word\_sequence}\label{textux5ftoux5fwordux5fsequence}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.preprocessing.text.text_to_word_sequence(text,}
+\hspace{4cm}\NormalTok{filters}\OperatorTok{=}\StringTok{'!"#$\%\&()*+,-./:;<=>?@[}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{]^_`\{|\}~}\CharTok{\textbackslash{}t\textbackslash{}n}\StringTok{'}\NormalTok{,}
+\hspace{4cm}\NormalTok{lower}\OperatorTok{=}\VariableTok{True}\NormalTok{,}
+\hspace{4cm}\NormalTok{split}\OperatorTok{=}\StringTok{" "}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+将一个句子划分为词的列表。
+
+\begin{itemize}
+\item
+  \textbf{返回}: 词的列表（字符串）。
+\item
+  \textbf{参数}：
+\item
+  \textbf{text}: 字符串。
+\item
+  \textbf{filters}: 需要过滤掉的字符列表（或连接）。
+  默认：!"\#\$\%\&()*+,-./:;\textless{}=\textgreater{}?@{[}\textbackslash{}{]}\^{}\_`\{\textbar{}\}\textasciitilde{}$\backslash$t $\backslash$n，
+  包含基本标点符号、制表符、换行符。
+\item
+  \textbf{lower}: 布尔值。是否将文本转换为小写。
+\item
+  \textbf{split}: 字符串。词的分隔符。
+\end{itemize}
+
+\subsubsection{one\_hot}\label{oneux5fhot}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.preprocessing.text.one_hot(text,}
+                                 \NormalTok{n,}
+                                 \NormalTok{filters}\OperatorTok{=}\StringTok{'!"#$\%&()*+,-./:;<=>?@[}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{]^_`\{|\}~}\CharTok{\textbackslash{}t\textbackslash{}n}\StringTok{'}\NormalTok{,}
+                                 \NormalTok{lower}\OperatorTok{=}\VariableTok{True}\NormalTok{,}
+                                 \NormalTok{split}\OperatorTok{=}\StringTok{" "}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+One-hot 将文本编码为大小为 n 的词汇表中的词索引列表。
+
+这是使用 \texttt{hash} 作为散列函数的 \texttt{hashing\_trick}
+函数的封装器。
+
+\begin{itemize}
+\item
+  \textbf{返回}: 整数列表 {[}1,
+  n{]}。每个整数编码一个词（唯一性无法保证）。
+\item
+  \textbf{参数}:
+\item
+  \textbf{text}: 字符串。
+\item
+  \textbf{n}: 整数。词汇表大小。
+\item
+  \textbf{filters}: 需要过滤掉的字符列表（或连接）。
+  默认：!"\#\$\%\&()*+,-./:;\textless{}=\textgreater{}?@{[}\textbackslash{}{]}\^{}\_`\{\textbar{}\}\textasciitilde{}$\backslash$t $\backslash$n，
+  包含基本标点符号、制表符、换行符。
+\item
+  \textbf{lower}: 布尔值。是否将文本转换为小写。
+\item
+  \textbf{split}: 字符串。词的分隔符。
+\end{itemize}
+
+\subsubsection{hashing\_trick}\label{hashingux5ftrick}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.preprocessing.text.hashing_trick(text, }
+                                       \NormalTok{n,}
+                                       \NormalTok{hash_function}\OperatorTok{=}\VariableTok{None}\NormalTok{,}
+                                       \NormalTok{filters}\OperatorTok{=}\StringTok{'!"\#\$\%\&()*+,-./:;<=>?@[}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{]^_`\{|\}~}\CharTok{\textbackslash{}t\textbackslash{}n}\StringTok{'}\NormalTok{,}
+                                       \NormalTok{lower}\OperatorTok{=}\VariableTok{True}\NormalTok{,}
+                                       \NormalTok{split}\OperatorTok{=}\StringTok{' '}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+将文本转换为固定大小散列空间中的索引序列。
+
+\begin{itemize}
+\item
+  \textbf{返回}: 词索引的列表（唯一性无法保证）。
+\item
+  \textbf{参数}:
+\item
+  \textbf{text}: 字符串。
+\item
+  \textbf{n}: 散列空间的维度。
+\item
+  \textbf{hash\_function}:默认为 Python \texttt{hash} 函数， 可以是
+  'md5' 或任何接受输入字符串并返回 int 的函数。 注意 \texttt{hash}
+  是一个不稳定的散列函数， 因而它在不同的运行环境下是不一致的， 而
+  \texttt{md5} 是一个稳定的散列函数。
+\item
+  \textbf{filters}: 需要过滤掉的字符列表（或连接）。
+  默认：!"\#\$\%\&()*+,-./:;\textless{}=\textgreater{}?@{[}\textbackslash{}{]}\^{}\_`\{\textbar{}\}\textasciitilde{}$\backslash$t $\backslash$n，
+  包含基本标点符号、制表符、换行符。
+\item
+  \textbf{lower}: 布尔值。是否将文本转换为小写。
+\item
+  \textbf{split}: 字符串。词的分隔符。
+\end{itemize}
+
+\subsubsection{Tokenizer}\label{tokenizer}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.preprocessing.text.Tokenizer(num_words}\OperatorTok{=}\VariableTok{None}\NormalTok{,}
+                                   \NormalTok{filters}\OperatorTok{=}\StringTok{'!"#$\%\&()*+,-./:;<=>?@[}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{]^_`\{|\}~}\CharTok{\textbackslash{}t\textbackslash{}n}\StringTok{'}\NormalTok{,}
+                                   \NormalTok{lower}\OperatorTok{=}\VariableTok{True}\NormalTok{,}
+                                   \NormalTok{split}\OperatorTok{=}\StringTok{" "}\NormalTok{,}\NormalTok{char_level}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+将文本向量化的类，或/且
+将文本转化为序列（词索引的列表，其中在数据集中的第 i
+个首次出现的单词索引为 i，从 1 开始）。
+
+\begin{itemize}
+\item
+  \textbf{参数}: 与上面的 \texttt{text\_to\_word\_sequence} 相同。
+\item
+  \textbf{num\_words}: None 或 整型。 要使用的最大词数
+  （如果设置，标记化过程将会局限在数据集中最常出现的词中）。
+\item
+  \textbf{char\_level}: 如果 True，每一个字符都被作为一个标记。
+\item
+  \textbf{方法}:
+\item
+  \textbf{fit\_on\_texts(texts)}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{参数}:
+  \item
+    \textbf{texts}: 需要训练的文本列表。
+  \end{itemize}
+\item
+  \textbf{texts\_to\_sequences(texts)}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{参数}:
+  \item
+    \textbf{texts}: 需要转换为序列的文本列表。
+  \item
+    \textbf{返回}: 序列的列表（每个文本输入一个序列）。
+  \end{itemize}
+\item
+  \textbf{texts\_to\_sequences\_generator(texts)}:
+  以上方法的生成器版本。
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{返回}: 每一次文本输入返回一个序列。
+  \end{itemize}
+\item
+  \textbf{texts\_to\_matrix(texts)}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{返回}: numpy array of shape
+    \texttt{(len(texts),\ num\_words)}.
+  \item
+    \textbf{参数}:
+  \item
+    \textbf{texts}: 需要向量化的文本列表。
+  \item
+    \textbf{mode}: "binary", "count", "tfidf", "freq" 之一 (默认:
+    "binary")。
+  \end{itemize}
+\item
+  \textbf{fit\_on\_sequences(sequences)}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{参数}:
+  \item
+    \textbf{sequences}: 需要训练的文本列表。
+  \end{itemize}
+\item
+  \textbf{sequences\_to\_matrix(sequences)}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{返回}: 尺寸为 \texttt{(len(sequences),\ num\_words)} 的
+    numpy 数组。
+  \item
+    \textbf{参数}:
+  \item
+    \textbf{sequences}: 需要向量化的序列列表。
+  \item
+    \textbf{mode}: "binary", "count", "tfidf", "freq" 之一 (默认:
+    "binary")。
+  \end{itemize}
+\item
+  \textbf{属性}:
+\item
+  \textbf{word\_counts}:
+  在训练时将词（字符串）映射到其出现次数的字典。只在调用
+  \texttt{fit\_on\_text} 后才被设置。
+\item
+  \textbf{word\_docs}:
+  在训练时将词（字符串）映射到其出现的文档/文本数的字典。只在调用
+  \texttt{fit\_on\_text} 后才被设置。
+\item
+  \textbf{word\_index}: 将词（字符串）映射到索引（整型）的字典。只在调用
+  \texttt{fit\_on\_text} 后才被设置。
+\item
+  \textbf{document\_count}:
+  整型。标志器训练的文档（文本/序列）数量。只在调用
+  \texttt{fit\_on\_text} 或 \texttt{fit\_on\_sequences} 后才被设置。
+\end{itemize}
+\newpage

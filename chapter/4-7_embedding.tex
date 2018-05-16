@@ -1,0 +1,83 @@
+\subsection{嵌入层 Embedding}
+\subsubsection{Embedding {\href{https://github.com/keras-team/keras/blob/master/keras/layers/embeddings.py\#L15}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.Embedding(input_dim, output_dim, embeddings_initializer}\OperatorTok{=}\StringTok{'uniform'},\\
+\hspace{3cm}\NormalTok{embeddings_regularizer}\OperatorTok{=}\VariableTok{None}\NormalTok{, activity_regularizer}\OperatorTok{=}\VariableTok{None},\\
+\hspace{3cm}\NormalTok{embeddings_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, mask_zero}\OperatorTok{=}\VariableTok{False}\NormalTok{, input_length}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+将正整数（索引值）转换为固定尺寸的稠密向量。 例如： {[}{[}4{]},
+{[}20{]}{]} -\textgreater{} {[}{[}0.25, 0.1{]}, {[}0.6, -0.2{]}{]}
+
+该层只能用作模型中的第一层。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Embedding(}\DecValTok{1000}\NormalTok{, }\DecValTok{64}\NormalTok{, input_length}\OperatorTok{=}\DecValTok{10}\NormalTok{))}
+\CommentTok{# 模型将输入一个大小为 (batch, input_length) 的整数矩阵。}
+\CommentTok{# 输入中最大的整数（即词索引）不应该大于 999 （词汇表大小）}
+\CommentTok{# 现在 model.output_shape == (None, 10, 64)，其中 None 是 batch 的维度。}
+
+\NormalTok{input_array }\OperatorTok{=} \NormalTok{np.random.randint(}\DecValTok{1000}\NormalTok{, size}\OperatorTok{=}\NormalTok{(}\DecValTok{32}\NormalTok{, }\DecValTok{10}\NormalTok{))}
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(}\StringTok{'rmsprop'}\NormalTok{, }\StringTok{'mse'}\NormalTok{)}
+\NormalTok{output_array }\OperatorTok{=} \NormalTok{model.predict(input_array)}
+\ControlFlowTok{assert} \NormalTok{output_array.shape }\OperatorTok{==} \NormalTok{(}\DecValTok{32}\NormalTok{, }\DecValTok{10}\NormalTok{, }\DecValTok{64}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{input\_dim}: int \textgreater{} 0。词汇表大小， 即，最大整数
+  index + 1。
+\item
+  \textbf{output\_dim}: int \textgreater{}= 0。词向量的维度。
+\item
+  \textbf{embeddings\_initializer}: \texttt{embeddings} 矩阵的初始化方法
+  (详见 \hyperref[initializers]{initializers})。
+\item
+  \textbf{embeddings\_regularizer}: \texttt{embeddings} matrix
+  的正则化方法 (详见 \hyperref[regularizers]{regularizer})。
+\item
+  \textbf{embeddings\_constraint}: \texttt{embeddings} matrix 的约束函数
+  (详见 \hyperref[constraints]{constraints})。
+\item
+  \textbf{mask\_zero}: 是否把 0 看作为一个应该被遮蔽的特殊的 "padding"
+  值。 这对于可变长的 \hyperref[recurrent]{循环神经网络层} 十分有用。
+  如果设定为 \texttt{True}，那么接下来的所有层都必须支持
+  masking，否则就会抛出异常。 如果 mask\_zero 为
+  \texttt{True}，作为结果，索引 0 就不能被用于词汇表中 （input\_dim
+  应该与 vocabulary + 1 大小相同）。
+\item
+  \textbf{input\_length}: 输入序列的长度，当它是固定的时。
+  如果你需要连接 \texttt{Flatten} 和 \texttt{Dense}
+  层，则这个参数是必须的 （没有它，dense 层的输出尺寸就无法计算）。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+尺寸为 \texttt{(batch\_size,\ sequence\_length)} 的 2D 张量。
+
+\textbf{输出尺寸}
+
+尺寸为 \texttt{(batch\_size,\ sequence\_length,\ output\_dim)} 的 3D
+张量。
+
+\textbf{参考文献}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{http://arxiv.org/abs/1512.05287}{A Theoretically Grounded
+  Application of Dropout in Recurrent Neural Networks}
+\end{itemize}
+
+\newpage

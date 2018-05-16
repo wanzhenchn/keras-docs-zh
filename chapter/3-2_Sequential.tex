@@ -1,0 +1,590 @@
+\subsection{Sequential 顺序模型 API}\label{sequential-api}
+
+\subsubsection{Sequential 顺序模型 API}
+在阅读这片文档前，请先阅读
+\hyperref[sequential-model-guide]{Keras Sequential模型指引}。
+
+\subsubsection{常用 Sequential 属性}\label{ux5e38ux7528-sequential-ux5c5eux6027}
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{model.layers} 是添加到模型的层的列表。
+\end{itemize}
+
+
+
+\subsubsection{Sequential 模型方法}\label{sequential-ux6a21ux578bux65b9ux6cd5}
+
+\subsubsubsection{compile}\label{compile}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\BuiltInTok{compile}\NormalTok{(}\VariableTok{self}\NormalTok{, optimizer, loss, metrics}\OperatorTok{=}\VariableTok{None}\NormalTok{, sample_weight_mode}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{1.4cm} \NormalTok{weighted_metrics}\OperatorTok{=}\VariableTok{None}\NormalTok{, target_tensors}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+用于配置训练模型。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{optimizer}: 字符串（优化器名）或者优化器对象。详见
+  \hyperref[optimizers]{optimizers}。
+\item
+  \textbf{loss}: 字符串（目标函数名）或目标函数。详见
+  \hyperref[losses]{losses}。
+  如果模型具有多个输出，则可以通过传递损失函数的字典或列表，在每个输出上使用不同的损失。模型将最小化的损失值将是所有单个损失的总和。
+\item
+  \textbf{metrics}: 在训练和测试期间的模型评估标准。通常你会使用
+  \texttt{metrics\ =\ {[}\textquotesingle{}accuracy\textquotesingle{}{]}}。
+  要为多输出模型的不同输出指定不同的评估标准，还可以传递一个字典，如
+  \texttt{metrics\ =\ \{\textquotesingle{}output\_a\textquotesingle{}：\textquotesingle{}accuracy\textquotesingle{}\}}。
+\item
+  \textbf{sample\_weight\_mode}:
+  如果你需要执行按时间步采样权重（2D权重），请将其设置为
+  \texttt{temporal}。 默认为
+  \texttt{None}，为采样权重（1D）。如果模型有多个输出，则可以通过传递
+  mode 的字典或列表，以在每个输出上使用不同的
+  \texttt{sample\_weight\_mode}。
+\item
+  \textbf{weighted\_metrics}: 在训练和测试期间，由 sample\_weight 或
+  class\_weight 评估和加权的度量标准列表。
+\item
+  \textbf{target\_tensors}: 默认情况下，Keras
+  将为模型的目标创建一个占位符，在训练过程中将使用目标数据。相反，如果你想使用自己的目标张量（反过来说，Keras
+  在训练期间不会载入这些目标张量的外部 Numpy 数据），您可以通过
+  \texttt{target\_tensors} 参数指定它们。它应该是单个张量（对于单输出
+  Sequential 模型）。
+\item
+  \_\_**kwargs\_\_: 当使用 Theano/CNTK 后端时，这些参数被传入
+  \texttt{K.function}。当使用 TensorFlow 后端时，这些参数被传递到
+  \texttt{tf.Session.run}。
+\end{itemize}
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ValueError}: 如果 \texttt{optimizer}, \texttt{loss},
+  \texttt{metrics} 或 \texttt{sample\_weight\_mode} 这些参数不合法。
+\end{itemize}
+
+\textbf{例}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model }\OperatorTok{=} \NormalTok{Sequential()}
+\NormalTok{model.add(Dense(}\DecValTok{32}\NormalTok{, input_shape}\OperatorTok{=}\NormalTok{(}\DecValTok{500}\NormalTok{,)))}
+\NormalTok{model.add(Dense(}\DecValTok{10}\NormalTok{, activation}\OperatorTok{=}\StringTok{'softmax'}\NormalTok{))}
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(optimizer}\OperatorTok{=}\StringTok{'rmsprop'}\NormalTok{,}
+              \NormalTok{loss}\OperatorTok{=}\StringTok{'categorical_crossentropy'}\NormalTok{,}
+              \NormalTok{metrics}\OperatorTok{=}\NormalTok{[}\StringTok{'accuracy'}\NormalTok{])}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsubsection{fit}\label{fit}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fit(}\VariableTok{self}\NormalTok{, x}\OperatorTok{=}\VariableTok{None}\NormalTok{, y}\OperatorTok{=}\VariableTok{None}\NormalTok{, batch_size}\OperatorTok{=}\VariableTok{None}\NormalTok{, epochs}\OperatorTok{=}\DecValTok{1}\NormalTok{, verbose}\OperatorTok{=}\DecValTok{1}\NormalTok{, callbacks}\OperatorTok{=}\VariableTok{None},\\ 
+\hspace{0.6cm} \NormalTok{ validation_split}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, validation_data}\OperatorTok{=}\VariableTok{None}\NormalTok{, shuffle}\OperatorTok{=}\VariableTok{True}\NormalTok{, class_weight}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{0.8cm} \NormalTok{sample_weight}\OperatorTok{=}\VariableTok{None}\NormalTok{, initial_epoch}\OperatorTok{=}\DecValTok{0}\NormalTok{, steps_per_epoch}\OperatorTok{=}\VariableTok{None}\NormalTok{, validation_steps}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+以固定数量的轮次（数据集上的迭代）训练模型。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 训练数据的 Numpy 数组。
+  如果模型中的输入层被命名，你也可以传递一个字典，将输入层名称映射到
+  Numpy 数组。 如果从本地框架张量馈送（例如 TensorFlow 数据张量）数据，x
+  可以是 \texttt{None}（默认）。
+\item
+  \textbf{y}: 目标（标签）数据的 Numpy 数组。
+  如果模型中的输出层被命名，你也可以传递一个字典，将输出层名称映射到
+  Numpy 数组。 如果从本地框架张量馈送（例如 TensorFlow 数据张量）数据，y
+  可以是 \texttt{None}（默认）。
+\item
+  \textbf{batch\_size}: 整数或
+  \texttt{None}。每次提度更新的样本数。如果未指定，默认为 32.
+\item
+  \textbf{epochs}: 整数。训练模型迭代轮次。一个轮次是在整个 \texttt{x}
+  或 \texttt{y} 上的一轮迭代。请注意，与 \texttt{initial\_epoch}
+  一起，\texttt{epochs} 被理解为 「最终轮次」。模型并不是训练了
+  \texttt{epochs} 轮，而是到第 \texttt{epochs} 轮停止训练。
+\item
+  \textbf{verbose}: 0, 1 或 2。日志显示模式。 0 = 安静模式, 1 = 进度条,
+  2 = 每轮一行。
+\item
+  \textbf{callbacks}: 一系列的 \texttt{keras.callbacks.Callback}
+  实例。一系列可以在训练时使用的回调函数。详见
+  \hyperref[callbacks]{callbacks}。
+\item
+  \textbf{validation\_split}: 在 0 和 1
+  之间浮动。用作验证集的训练数据的比例。模型将分出一部分不会被训练的验证数据，并将在每一轮结束时评估这些验证数据的误差和任何其他模型指标。验证数据是混洗之前
+  \texttt{x} 和\texttt{y} 数据的最后一部分样本中。
+\item
+  \textbf{validation\_data}: 元组 \texttt{(x\_val，y\_val)} 或元组
+  \texttt{(x\_val，y\_val，val\_sample\_weights)}，用来评估损失，以及在每轮结束时的任何模型度量指标。模型将不会在这个数据上进行训练。这个参数会覆盖
+  \texttt{validation\_split}。
+\item
+  \textbf{shuffle}: 布尔值（是否在每轮迭代之前混洗数据）或者 字符串
+  (\texttt{batch})。\texttt{batch} 是处理 HDF5
+  数据限制的特殊选项，它对一个 batch 内部的数据进行混洗。当
+  \texttt{steps\_per\_epoch} 非 \texttt{None} 时，这个参数无效。
+\item
+  \textbf{class\_weight}:
+  可选的字典，用来映射类索引（整数）到权重（浮点）值，用于加权损失函数（仅在训练期间）。这可能有助于告诉模型
+  「更多关注」来自代表性不足的类的样本。
+\item
+  \textbf{sample\_weight}: 训练样本的可选 Numpy
+  权重数组，用于对损失函数进行加权（仅在训练期间）。您可以传递与输入样本长度相同的平坦（1D）Numpy
+  数组（权重和样本之间的 1：1
+  映射），或者在时序数据的情况下，可以传递尺寸为
+  \texttt{(samples,\ sequence\_length)} 的 2D
+  数组，以对每个样本的每个时间步施加不同的权重。在这种情况下，你应该确保在
+  \texttt{compile()} 中指定 \texttt{sample\_weight\_mode="temporal"}。
+\item
+  \textbf{initial\_epoch}: 开始训练的轮次（有助于恢复之前的训练）。
+\item
+  \textbf{steps\_per\_epoch}:
+  在声明一个轮次完成并开始下一个轮次之前的总步数（样品批次）。使用
+  TensorFlow 数据张量等输入张量进行训练时，默认值 \texttt{None}
+  等于数据集中样本的数量除以 batch 的大小，如果无法确定，则为 1。
+\item
+  \textbf{validation\_steps}: 只有在指定了
+  \texttt{steps\_per\_epoch}时才有用。停止前要验证的总步数（批次样本）。
+\end{itemize}
+
+\textbf{返回}
+
+一个 \texttt{History} 对象。其 \texttt{History.history} 属性是连续 epoch
+训练损失和评估值，以及验证集损失和评估值的记录（如果适用）​​。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{RuntimeError}: 如果模型从未编译。
+\item
+  \textbf{ValueError}: 在提供的输入数据与模型期望的不匹配的情况下。
+\end{itemize}
+
+
+
+\subsubsubsection{evaluate}\label{evaluate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{evaluate(}\VariableTok{self}\NormalTok{, x}\OperatorTok{=}\VariableTok{None}\NormalTok{, y}\OperatorTok{=}\VariableTok{None}\NormalTok{, batch_size}\OperatorTok{=}\VariableTok{None}\NormalTok{, verbose}\OperatorTok{=}\DecValTok{1}\NormalTok{, sample_weight}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{2cm}\NormalTok{steps}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+计算一些输入数据的误差，逐批次。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 输入数据，Numpy 数组或列表（如果模型有多输入）。
+  如果从本地框架张量馈送（例如 TensorFlow 数据张量）数据，x 可以是
+  \texttt{None}（默认）。
+\item
+  \textbf{y}: 标签，Numpy 数组。 如果从本地框架张量馈送（例如 TensorFlow
+  数据张量）数据，y 可以是 \texttt{None}（默认）。
+\item
+  \textbf{batch\_size}: 整数。每次梯度更新的样本数。如果未指定，默认为
+  32。
+\item
+  \textbf{verbose}: 日志显示模式，0 或 1。
+\item
+  \textbf{sample\_weight}: 样本权重，Numpy 数组。
+\item
+  \textbf{steps}: 整数或 \texttt{None}。
+  声明评估结束之前的总步数（批次样本）。默认值 \texttt{None}。
+\end{itemize}
+
+\textbf{返回}
+
+标量测试误差（如果模型没有评估指标）或标量列表（如果模型计算其他指标）。
+属性 \texttt{model.metrics\_names} 将提供标量输出的显示标签。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{RuntimeError}: 如果模型从未编译。
+\end{itemize}
+
+
+
+\subsubsubsection{predict}\label{predict}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{predict(}\VariableTok{self}\NormalTok{, x, batch_size}\OperatorTok{=}\VariableTok{None}\NormalTok{, verbose}\OperatorTok{=}\DecValTok{0}\NormalTok{, steps}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+为输入样本生成输出预测。
+
+输入样本逐批处理。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 输入数据，Numpy 数组。
+\item
+  \textbf{batch\_size}: 整数。如未指定，默认为 32。
+\item
+  \textbf{verbose}: 日志显示模式，0 或 1。
+\item
+  \textbf{steps}: 声明预测结束之前的总步数（批次样本）。默认值
+  \texttt{None}。
+\end{itemize}
+
+\textbf{返回}
+
+预测的 Numpy 数组。
+
+
+
+\subsubsubsection{train\_on\_batch}\label{trainux5fonux5fbatch}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{train_on_batch(}\VariableTok{self}\NormalTok{, x, y, class_weight}\OperatorTok{=}\VariableTok{None}\NormalTok{, sample_weight}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+一批样品的单次梯度更新。
+
+\textbf{Arguments}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 输入数据，Numpy 数组或列表（如果模型有多输入）。
+\item
+  \textbf{y}: 标签，Numpy 数组。
+\item
+  \textbf{class\_weight}:
+  将类别映射为权重的字典，用于在训练时缩放损失函数。
+\item
+  \textbf{sample\_weight}: 样本权重，Numpy 数组。
+\end{itemize}
+
+\textbf{返回}
+
+标量训练误差（如果模型没有评估指标）或标量列表（如果模型计算其他指标）。
+属性 \texttt{model.metrics\_names} 将提供标量输出的显示标签。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{RuntimeError}: 如果模型从未编译。
+\end{itemize}
+
+
+
+\subsubsubsection{test\_on\_batch}\label{testux5fonux5fbatch}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{test_on_batch(}\VariableTok{self}\NormalTok{, x, y, sample_weight}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+在一批样本上评估模型。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 输入数据，Numpy 数组或列表（如果模型有多输入）。
+\item
+  \textbf{y}: 标签，Numpy 数组。
+\item
+  \textbf{sample\_weight}: 样本权重，Numpy 数组。
+\end{itemize}
+
+\textbf{返回}
+
+标量测试误差（如果模型没有评估指标）或标量列表（如果模型计算其他指标）。
+属性 \texttt{model.metrics\_names} 将提供标量输出的显示标签。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{RuntimeError}: 如果模型从未编译。
+\end{itemize}
+
+
+
+\subsubsubsection{predict\_on\_batch}\label{predictux5fonux5fbatch}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{predict_on_batch(}\VariableTok{self}\NormalTok{, x)}
+\end{Highlighting}
+\end{Shaded}
+
+返回一批样本的模型预测值。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{x}: 输入数据，Numpy 数组或列表（如果模型有多输入）。
+\end{itemize}
+
+\textbf{返回}
+
+预测值的 Numpy 数组。
+
+
+
+\subsubsubsection{fit\_generator}\label{fitux5fgenerator}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fit_generator(}\VariableTok{self}\NormalTok{, generator, steps_per_epoch}\OperatorTok{=}\VariableTok{None}\NormalTok{, epochs}\OperatorTok{=}\DecValTok{1}\NormalTok{, verbose}\OperatorTok{=}\DecValTok{1}, \\
+\hspace{1cm}\NormalTok{callbacks}\OperatorTok{=}\VariableTok{None}\NormalTok{, validation_data}\OperatorTok{=}\VariableTok{None}\NormalTok{, validation_steps}\OperatorTok{=}\VariableTok{None}\NormalTok{, class_weight}\OperatorTok{=}\VariableTok{None}, \\
+\hspace{1cm}\NormalTok{max_queue_size}\OperatorTok{=}\DecValTok{10}\NormalTok{, workers}\OperatorTok{=}\DecValTok{1}\NormalTok{, use_multiprocessing}\OperatorTok{=}\VariableTok{False}\NormalTok{, shuffle}\OperatorTok{=}\VariableTok{True}, \\
+\hspace{1cm}\NormalTok{initial_epoch}\OperatorTok{=}\DecValTok{0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+使用 Python 生成器逐批生成的数据，按批次训练模型。
+
+生成器与模型并行运行，以提高效率。 例如，这可以让你在 CPU
+上对图像进行实时数据增强，以在 GPU 上训练模型。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{generator}: 一个生成器。 生成器的输出应该为以下之一：
+\item
+  一个 (inputs, targets) 元组
+\item
+  一个 (inputs, targets, sample\_weights) 元组。
+  所有的数组都必须包含同样数量的样本。生成器将无限地在数据集上循环。当运行到第
+  \texttt{steps\_per\_epoch} 时，记一个 epoch 结束。
+\item
+  \textbf{steps\_per\_epoch}: 在声明一个 epoch 完成并开始下一个 epoch
+  之前从 \texttt{generator}
+  产生的总步数（批次样本）。它通常应该等于你的数据集的样本数量除以批量大小。可选参数
+  \texttt{Sequence}：如果未指定，将使用\texttt{len(generator)}
+  作为步数。
+\item
+  \textbf{epochs}: 整数，数据的迭代总轮数。请注意，与 initial\_epoch
+  一起，参数 \texttt{epochs} 应被理解为 「最终轮数」。模型并不是训练了
+  \texttt{epochs} 轮，而是到第 \texttt{epochs} 轮停止训练。
+\item
+  \textbf{verbose}: 日志显示模式。0，1 或 2。
+\item
+  \textbf{callbacks}: 在训练时调用的一系列回调函数。
+\item
+  \textbf{validation\_data}: 它可以是以下之一：
+\item
+  验证数据的生成器
+\item
+  一个 (inputs, targets) 元组
+\item
+  一个 (inputs, targets, sample\_weights) 元组。
+\item
+  \textbf{validation\_steps}: 仅当 \texttt{validation\_data}
+  是一个生成器时才可用。 每个 epoch
+  结束时验证集生成器产生的步数。它通常应该等于你的数据集的样本数量除以批量大小。可选参数
+  \texttt{Sequence}：如果未指定，将使用\texttt{len(generator)}
+  作为步数。
+\item
+  \textbf{class\_weight}: 将类别映射为权重的字典。
+\item
+  \textbf{max\_queue\_size}: 生成器队列的最大尺寸。
+\item
+  \textbf{workers}: 使用的最大进程数量。
+\item
+  \textbf{use\_multiprocessing}: 如果 True，则使用基于进程的多线程。
+  请注意，因为此实现依赖于多进程，所以不应将不可传递的参数传递给生成器，因为它们不能被轻易地传递给子进程。
+\item
+  \textbf{shuffle}: 是否在每轮迭代之前打乱 batch 的顺序。只能与
+  \texttt{Sequence} (keras.utils.Sequence) 实例同用。
+\item
+  \textbf{initial\_epoch}: 开始训练的轮次（有助于恢复之前的训练）。
+\end{itemize}
+
+\textbf{返回}
+
+一个 \texttt{History} 对象。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{RuntimeError}: 如果模型从未编译。
+\end{itemize}
+
+\textbf{例}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{def} \NormalTok{generate_arrays_from_file(path):}
+    \ControlFlowTok{while} \DecValTok{1}\NormalTok{:}
+        \NormalTok{f }\OperatorTok{=} \BuiltInTok{open}\NormalTok{(path)}
+        \ControlFlowTok{for} \NormalTok{line }\OperatorTok{in} \NormalTok{f:}
+            \CommentTok{# create Numpy arrays of input data}
+            \CommentTok{# and labels, from each line in the file}
+            \NormalTok{x, y }\OperatorTok{=} \NormalTok{process_line(line)}
+            \ControlFlowTok{yield} \NormalTok{(x, y)}
+        \NormalTok{f.close()}
+
+\NormalTok{model.fit_generator(generate_arrays_from_file(}\StringTok{'/my_file.txt'}\NormalTok{),}
+                    \NormalTok{steps_per_epoch}\OperatorTok{=}\DecValTok{1000}\NormalTok{, epochs}\OperatorTok{=}\DecValTok{10}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+
+
+\subsubsubsection{evaluate\_generator}\label{evaluateux5fgenerator}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{evaluate_generator(}\VariableTok{self}\NormalTok{, generator, steps}\OperatorTok{=}\VariableTok{None}\NormalTok{, max_queue_size}\OperatorTok{=}\DecValTok{10}\NormalTok{, workers}\OperatorTok{=}\DecValTok{1}, \\
+\hspace{4cm}\NormalTok{use_multiprocessing}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+在数据生成器上评估模型。
+
+这个生成器应该返回与 \texttt{test\_on\_batch} 所接收的同样的数据。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{generator}: 生成器，生成 (inputs, targets) 或 (inputs,
+  targets, sample\_weights)
+\item
+  \textbf{steps}: 在停止之前，来自 \texttt{generator} 的总步数
+  (样本批次)。 可选参数
+  \texttt{Sequence}：如果未指定，将使用\texttt{len(generator)}
+  作为步数。
+\item
+  \textbf{max\_queue\_size}: 生成器队列的最大尺寸。
+\item
+  \textbf{workers}: 使用的最大进程数量。
+\item
+  \textbf{use\_multiprocessing}: 如果 True，则使用基于进程的多线程。
+  请注意，因为此实现依赖于多进程，所以不应将不可传递的参数传递给生成器，因为它们不能被轻易地传递给子进程。
+\end{itemize}
+
+\textbf{返回}
+
+标量测试误差（如果模型没有评估指标）或标量列表（如果模型计算其他指标）。
+属性 \texttt{model.metrics\_names} 将提供标量输出的显示标签。
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{RuntimeError}: 如果模型从未编译。
+\end{itemize}
+
+
+
+\subsubsubsection{predict\_generator}\label{predictux5fgenerator}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{predict_generator(}\VariableTok{self}\NormalTok{, generator, steps}\OperatorTok{=}\VariableTok{None}\NormalTok{, max_queue_size}\OperatorTok{=}\DecValTok{10}\NormalTok{, workers}\OperatorTok{=}\DecValTok{1}, \\
+\hspace{4cm}\NormalTok{use_multiprocessing}\OperatorTok{=}\VariableTok{False}\NormalTok{, verbose}\OperatorTok{=}\DecValTok{0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+为来自数据生成器的输入样本生成预测。
+
+这个生成器应该返回与 \texttt{predict\_on\_batch} 所接收的同样的数据。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{generator}: 返回批量输入样本的生成器。
+\item
+  \textbf{steps}: 在停止之前，来自 \texttt{generator} 的总步数
+  (样本批次)。 可选参数
+  \texttt{Sequence}：如果未指定，将使用\texttt{len(generator)}
+  作为步数。
+\item
+  \textbf{max\_queue\_size}: 生成器队列的最大尺寸。
+\item
+  \textbf{workers}: 使用的最大进程数量。
+\item
+  \textbf{use\_multiprocessing}: 如果 True，则使用基于进程的多线程。
+  请注意，因为此实现依赖于多进程，所以不应将不可传递的参数传递给生成器，因为它们不能被轻易地传递给子进程。
+\item
+  \textbf{verbose}: 日志显示模式， 0 或 1。
+\end{itemize}
+
+\textbf{返回}
+
+预测值的 Numpy 数组。
+
+
+
+\subsubsubsection{get\_layer}\label{getux5flayer}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{get_layer(}\VariableTok{self}\NormalTok{, name}\OperatorTok{=}\VariableTok{None}\NormalTok{, index}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+提取模型的某一层。
+
+根据网络层的名称（唯一）或其索引返回该层。索引是基于水平图遍历的顺序（自下而上）。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{name}: 字符串，层的名字。
+\item
+  \textbf{index}: 整数，层的索引。
+\end{itemize}
+
+\textbf{返回}
+
+一个层实例。
+\newpage
