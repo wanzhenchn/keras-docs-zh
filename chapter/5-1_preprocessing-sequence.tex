@@ -1,159 +1,269 @@
 \section{数据预处理}
 \subsection{序列预处理}
-\subsubsection{pad\_sequences}\label{preprocessing-sequence}
+\subsubsection{TimeseriesGenerator}\label{preprocessing-sequence}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{keras.preprocessing.sequence.pad_sequences(sequences, maxlen}\OperatorTok{=}\VariableTok{None}\NormalTok{, dtype}\OperatorTok{=}\StringTok{'int32'}\NormalTok{,}
-    \NormalTok{padding}\OperatorTok{=}\StringTok{'pre'}\NormalTok{, truncating}\OperatorTok{=}\StringTok{'pre'}\NormalTok{, value}\OperatorTok{=}\DecValTok{0}\NormalTok{.)}
+\NormalTok{keras.preprocessing.sequence.TimeseriesGenerator(data, targets, length, 
+sampling_rate}\OperatorTok{=}\DecValTok{1,}
+\NormalTok{                                           stride}\OperatorTok{=}\DecValTok{1,}
+\NormalTok{                                           start_index}\OperatorTok{=}\DecValTok{0,}
+\NormalTok{                                           end_index}\OperatorTok{=}\VariableTok{None,}
+\NormalTok{                                           shuffle}\OperatorTok{=}\VariableTok{False,}
+\NormalTok{                                           reverse}\OperatorTok{=}\VariableTok{False,}
+\NormalTok{                                           batch_size}\OperatorTok{=}\DecValTok{128}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
-Transform a list of \texttt{num\_samples} sequences (lists of scalars)
-into a 2D Numpy array of shape \texttt{(num\_samples,\ num\_timesteps)}.
-\texttt{num\_timesteps} is either the \texttt{maxlen} argument if
-provided, or the length of the longest sequence otherwise. Sequences
-that are shorter than \texttt{num\_timesteps} are padded with
-\texttt{value} at the end. Sequences longer than \texttt{num\_timesteps}
-are truncated so that it fits the desired length. Position where padding
-or truncation happens is determined by \texttt{padding} or
-\texttt{truncating}, respectively.
+用于生成批量时序数据的实用工具类。
+
+这个类以一系列由相等间隔以及一些时间序列参数（例如步长、历史长度等）汇集的数据点作为输入，以生成用于训练/验证的批次数据。
+
+\textbf{参数}
 
 \begin{itemize}
+\tightlist
 \item
-  \textbf{Return}: 2D Numpy array of shape
-  \texttt{(num\_samples,\ num\_timesteps)}.
+  data: 可索引的生成器（例如列表或 Numpy
+  数组），包含连续数据点（时间步）。数据应该是 2D 的，且第 0
+  个轴为时间维度。
 \item
-  \textbf{Arguments}:
-
-  \begin{itemize}
-  \tightlist
-  \item
-    \textbf{sequences}: List of lists of int or float.
-  \item
-    \textbf{maxlen}: None or int. Maximum sequence length, longer
-    sequences are truncated and shorter sequences are padded with zeros
-    at the end.
-  \item
-    \textbf{dtype}: datatype of the Numpy array returned.
-  \item
-    \textbf{padding}: 'pre' or 'post', pad either before or after each
-    sequence.
-  \item
-    \textbf{truncating}: 'pre' or 'post', remove values from sequences
-    larger than maxlen either in the beginning or in the end of the
-    sequence
-  \item
-    \textbf{value}: float, value to pad the sequences to the desired
-    value.
-  \end{itemize}
+  targets: 对应于 \texttt{data} 的时间步的目标值。它应该与 \texttt{data}
+  的长度相同。
+\item
+  length: 输出序列的长度（以时间步数表示）。
+\item
+  sampling\_rate: 序列内连续各个时间步之间的周期。对于周期 \texttt{r},
+  时间步 \texttt{data{[}i{]}}, \texttt{data{[}i-r{]}}, \ldots{}
+  \texttt{data{[}i\ -\ length{]}} 被用于生成样本序列。
+\item
+  stride: 连续输出序列之间的周期. 对于周期 \texttt{s}, 连续输出样本将为
+  \texttt{data{[}i{]}}, \texttt{data{[}i+s{]}}, \texttt{data{[}i+2*s{]}}
+  等。
+\item
+  start\_index: 在 \texttt{start\_index}
+  之前的数据点在输出序列中将不被使用。这对保留部分数据以进行测试或验证很有用。
+\item
+  end\_index: 在 \texttt{end\_index}
+  之后的数据点在输出序列中将不被使用。这对保留部分数据以进行测试或验证很有用。
+\item
+  shuffle: 是否打乱输出样本，还是按照时间顺序绘制它们。
+\item
+  reverse: 布尔值: 如果 \texttt{true},
+  每个输出样本中的时间步将按照时间倒序排列。
+\item
+  batch\_size: 每个批次中的时间序列样本数（可能除最后一个外）。
 \end{itemize}
+
+\textbf{返回}
+
+一个 \href{https://keras.io/zh/utils/\#sequence}{Sequence} 实例。
+
+\textbf{例子}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from}\NormalTok{ keras.preprocessing.sequence }\ImportTok{import}\NormalTok{ TimeseriesGenerator}
+\ImportTok{import}\NormalTok{ numpy }\ImportTok{as}\NormalTok{ np}
+
+\NormalTok{data }\OperatorTok{=}\NormalTok{ np.array([[i] }\ControlFlowTok{for}\NormalTok{ i }\KeywordTok{in} \BuiltInTok{range}\NormalTok{(}\DecValTok{50}\NormalTok{)])}
+\NormalTok{targets }\OperatorTok{=}\NormalTok{ np.array([[i] }\ControlFlowTok{for}\NormalTok{ i }\KeywordTok{in} \BuiltInTok{range}\NormalTok{(}\DecValTok{50}\NormalTok{)])}
+
+\NormalTok{data_gen }\OperatorTok{=}\NormalTok{ TimeseriesGenerator(data, targets,}
+\NormalTok{                               length}\OperatorTok{=}\DecValTok{10}\NormalTok{, sampling_rate}\OperatorTok{=}\DecValTok{2}\NormalTok{,}
+\NormalTok{                               batch_size}\OperatorTok{=}\DecValTok{2}\NormalTok{)}
+\ControlFlowTok{assert} \BuiltInTok{len}\NormalTok{(data_gen) }\OperatorTok{==} \DecValTok{20}
+
+\NormalTok{batch_0 }\OperatorTok{=}\NormalTok{ data_gen[}\DecValTok{0}\NormalTok{]}
+\NormalTok{x, y }\OperatorTok{=}\NormalTok{ batch_0}
+\ControlFlowTok{assert}\NormalTok{ np.array_equal(x,}
+\NormalTok{                      np.array([[[}\DecValTok{0}\NormalTok{], [}\DecValTok{2}\NormalTok{], [}\DecValTok{4}\NormalTok{], [}\DecValTok{6}\NormalTok{], [}\DecValTok{8}\NormalTok{]],}
+\NormalTok{                                [[}\DecValTok{1}\NormalTok{], [}\DecValTok{3}\NormalTok{], [}\DecValTok{5}\NormalTok{], [}\DecValTok{7}\NormalTok{], [}\DecValTok{9}\NormalTok{]]]))}
+\ControlFlowTok{assert}\NormalTok{ np.array_equal(y,}
+\NormalTok{                      np.array([[}\DecValTok{10}\NormalTok{], [}\DecValTok{11}\NormalTok{]]))}
+\end{Highlighting}
+\end{Shaded}
+
+
+\subsubsection{pad\_sequences}\label{pad_sequences}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.preprocessing.sequence.pad_sequences(sequences, maxlen}\OperatorTok{=}\VariableTok{None,}
+\NormalTok{                                            dtype}\OperatorTok{=}\StringTok{'int32',}
+\NormalTok{                                            padding}\OperatorTok{=}\StringTok{'pre',}
+\NormalTok{                                            truncating}\OperatorTok{=}\StringTok{'pre',}
+\NormalTok{                                            value}\OperatorTok{=}\FloatTok{0.0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+将多个序列截断或补齐为相同长度。
+
+该函数将一个 \texttt{num\_samples} 的序列（整数列表）转化为一个 2D Numpy
+矩阵，其尺寸为 \texttt{(num\_samples,\ num\_timesteps)}。
+\texttt{num\_timesteps} 要么是给定的 \texttt{maxlen}
+参数，要么是最长序列的长度。
+
+比 \texttt{num\_timesteps} 短的序列将在末端以 \texttt{value} 值补齐。
+
+比 \texttt{num\_timesteps}
+长的序列将会被截断以满足所需要的长度。补齐或截断发生的位置分别由参数
+\texttt{pading} 和 \texttt{truncating} 决定。
+
+向前补齐为默认操作。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{sequences}: 列表的列表，每一个元素是一个序列。
+\item
+  \textbf{maxlen}: 整数，所有序列的最大长度。
+\item
+  \textbf{dtype}: 输出序列的类型。
+\item
+  \textbf{padding}: 字符串，`pre' 或 `post'
+  ，表示长度不足时是在序列的前端补齐还是在后端补齐。
+\item
+  \textbf{truncating}: 字符串，`pre' 或 `post' ，移除长度大于
+  \texttt{maxlen} 的序列的值，要么在序列前端截断，要么在后端。
+\item
+  \textbf{value}: 浮点数，表示用来补齐的值。
+\end{itemize}
+
+\textbf{返回}
+
+\begin{itemize}
+\tightlist
+\item
+  x: Numpy 矩阵，尺寸为 \texttt{(len(sequences),\ maxlen)}。
+\end{itemize}
+
+\textbf{异常}
+
+\begin{itemize}
+\tightlist
+\item
+  ValueError: 如果截断或补齐的值无效，或者序列条目的形状无效。
+\end{itemize}
+
 
 \subsubsection{skipgrams}\label{skipgrams}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{keras.preprocessing.sequence.skipgrams(sequence, vocabulary_size,}
-    \NormalTok{window_size}\OperatorTok{=}\DecValTok{4}\NormalTok{, negative_samples}\OperatorTok{=}\DecValTok{1}\NormalTok{., shuffle}\OperatorTok{=}\VariableTok{True}\NormalTok{,}
-    \NormalTok{categorical}\OperatorTok{=}\VariableTok{False}\NormalTok{, sampling_table}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\NormalTok{keras.preprocessing.sequence.skipgrams(sequence, vocabulary_size, 
+window_size}\OperatorTok{=}\DecValTok{4,}
+\NormalTok{                                           negative_samples}\OperatorTok{=}\FloatTok{1.0,}
+\NormalTok{                                           shuffle}\OperatorTok{=}\VariableTok{True,}
+\NormalTok{                                           categorical}\OperatorTok{=}\VariableTok{False,}
+\NormalTok{                                           sampling_table}\OperatorTok{=}\VariableTok{None,}
+\NormalTok{                                           seed}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
-Transforms a sequence of word indexes (list of int) into couples of the
-form:
+生成 skipgram 词对。
+
+该函数将一个单词索引序列（整数列表）转化为以下形式的单词元组：
 
 \begin{itemize}
 \tightlist
 \item
-  (word, word in the same window), with label 1 (positive samples).
+  （单词, 同窗口的单词），标签为 1（正样本）。
 \item
-  (word, random word from the vocabulary), with label 0 (negative
-  samples).
+  （单词, 来自词汇表的随机单词），标签为 0（负样本）。
 \end{itemize}
 
-Read more about Skipgram in this gnomic paper by Mikolov et al.:
-\href{http://arxiv.org/pdf/1301.3781v3.pdf}{Efficient Estimation of Word
-Representations in Vector Space}
+若要了解更多和 Skipgram 有关的知识，请参阅这份由 Mikolov 等人发表的经典论文：
+\href{http://arxiv.org/pdf/1301.3781v3.pdf}{Efficient Estimation of Word Representations in Vector Space}
+
+\textbf{参数}
 
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Return}: tuple \texttt{(couples,\ labels)}.
-
-  \begin{itemize}
-  \tightlist
-  \item
-    \texttt{couples} is a list of 2-elements lists of int:
-    \texttt{{[}word\_index,\ other\_word\_index{]}}.
-  \item
-    \texttt{labels} is a list of 0 and 1, where 1 indicates that
-    \texttt{other\_word\_index} was found in the same window as
-    \texttt{word\_index}, and 0 indicates that
-    \texttt{other\_word\_index} was random.
-  \item
-    if categorical is set to True, the labels are categorical, ie. 1
-    becomes {[}0,1{]}, and 0 becomes {[}1, 0{]}.
-  \end{itemize}
+  sequence: 一个编码为单词索引（整数）列表的词序列（句子）。如果使用一个
+  \texttt{sampling\_table}，词索引应该以一个相关数据集的词的排名匹配（例如，10
+  将会编码为第 10 个最长出现的词）。注意词汇表中的索引 0
+  是非单词，将被跳过。
 \item
-  \textbf{Arguments}:
-
-  \begin{itemize}
-  \tightlist
-  \item
-    \textbf{sequence}: list of int indexes. If using a sampling\_table,
-    the index of a word should be its the rank in the dataset (starting
-    at 1).
-  \item
-    \textbf{vocabulary\_size}: int.
-  \item
-    \textbf{window\_size}: int. maximum distance between two words in a
-    positive couple.
-  \item
-    \textbf{negative\_samples}: float \textgreater{}= 0. 0 for no
-    negative (=random) samples. 1 for same number as positive samples.
-    etc.
-  \item
-    \textbf{shuffle}: boolean. Whether to shuffle the samples.
-  \item
-    \textbf{categorical}: boolean. Whether to make the returned labels
-    categorical.
-  \item
-    \textbf{sampling\_table}: Numpy array of shape
-    \texttt{(vocabulary\_size,)} where \texttt{sampling\_table{[}i{]}}
-    is the probability of sampling the word with index i (assumed to be
-    i-th most common word in the dataset).
-  \end{itemize}
+  vocabulary\_size: 整数，最大可能词索引 + 1
+\item
+  window\_size: 整数，采样窗口大小（技术上是半个窗口）。词 \texttt{w\_i}
+  的窗口是 \texttt{{[}i\ -\ window\_size,\ i\ +\ window\_size+1{]}}。
+\item
+  negative\_samples: 大于等于 0 的浮点数。0 表示非负（即随机）采样。1
+  表示与正样本数相同。
+\item
+  shuffle: 是否在返回之前将这些词语打乱。
+\item
+  categorical: 布尔值。如果 False，标签将为整数（例如
+  \texttt{{[}0,\ 1,\ 1\ ..\ {]}}），如果 True，标签将为分类，例如
+  \texttt{{[}{[}1,0{]},{[}0,1{]},{[}0,1{]}\ ..\ {]}}。
+\item
+  sampling\_table: 尺寸为 \texttt{vocabulary\_size} 的 1D 数组，其中第 i
+  项编码了排名为 i 的词的采样概率。
+\item
+  seed: 随机种子。
 \end{itemize}
 
+\textbf{返回}
 
-\subsubsection{make\_sampling\_table}\label{makeux5fsamplingux5ftable}
+couples, labels: 其中 \texttt{couples} 是整数对，\texttt{labels} 是 0 或
+1。
+
+\textbf{注意}
+
+按照惯例，词汇表中的索引 0 是非单词，将被跳过。
+
+
+\subsubsection{make\_sampling\_table}\label{make_sampling_table}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{keras.preprocessing.sequence.make_sampling_table(size, sampling_factor}\OperatorTok{=}\FloatTok{1e-5}\NormalTok{)}
+\NormalTok{keras.preprocessing.sequence.make_sampling_table(size, sampling_factor}\OperatorTok{=}\FloatTok{1e-05}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
-Used for generating the \texttt{sampling\_table} argument for
-\texttt{skipgrams}. \texttt{sampling\_table{[}i{]}} is the probability
-of sampling the word i-th most common word in a dataset (more common
-words should be sampled less frequently, for balance).
+生成一个基于单词的概率采样表。
+
+用来生成 \texttt{skipgrams} 的 \texttt{sampling\_table}
+参数。\texttt{sampling\_table{[}i{]}} 是数据集中第 i
+个最常见词的采样概率（出于平衡考虑，出现更频繁的词应该被更少地采样）。
+
+采样概率根据 word2vec 中使用的采样分布生成：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{p(word) }\OperatorTok{=}\NormalTok{ (}\BuiltInTok{min}\NormalTok{(}\DecValTok{1}\NormalTok{, sqrt(word_frequency }\OperatorTok{/}\NormalTok{ sampling_factor) }\OperatorTok{/}
+\NormalTok{    (word_frequency }\OperatorTok{/}\NormalTok{ sampling_factor)))}
+\end{Highlighting}
+\end{Shaded}
+
+我们假设单词频率遵循 Zipf 定律（s=1），来导出 frequency(rank)
+的数值近似：
+
+\texttt{frequency(rank)\ \textasciitilde{}\ 1/(rank\ *\ (log(rank)\ +\ gamma)\ +\ 1/2\ -\ 1/(12*rank))}，其中
+\texttt{gamma} 为 Euler-Mascheroni 常量。
+
+\textbf{参数}
 
 \begin{itemize}
+\tightlist
 \item
-  \textbf{Return}: Numpy array of shape \texttt{(size,)}.
+  \textbf{size}: 整数，可能采样的单词数量。
 \item
-  \textbf{Arguments}:
-
-  \begin{itemize}
-  \tightlist
-  \item
-    \textbf{size}: size of the vocabulary considered.
-  \item
-    \textbf{sampling\_factor}: lower values result in a longer
-    probability decay (common words will be sampled less frequently). If
-    set to 1, no subsampling will be performed (all sampling
-    probabilities will be 1).
-  \end{itemize}
+  \textbf{sampling\_factor}: word2vec 公式中的采样因子。
 \end{itemize}
+
+\textbf{返回}
+
+A 1D Numpy array of length size where the ith entry is the probability
+that a word of rank i should be sampled.
+
+一个长度为 \texttt{size} 大小的 1D Numpy 数组，其中第 i 项是排名为 i
+的单词的采样概率。
+
+
 \newpage
