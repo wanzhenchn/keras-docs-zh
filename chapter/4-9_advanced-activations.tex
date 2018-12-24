@@ -208,4 +208,32 @@ Softmax 激活函数。
   \textbf{axis}: 整数，应用 softmax 标准化的轴。
 \end{itemize}
 
+
+\subsubsection{ReLU{\href{https://github.com/keras-team/keras/blob/master/keras/layers/advanced_activations.py\#L262}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.ReLU(max_value}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+ReLU 激活函数。
+
+\textbf{输入尺寸}
+
+可以是任意的。如果将这一层作为模型的第一层， 则需要指定
+\texttt{input\_shape} 参数 （整数元组，不包含样本数量的维度）。
+
+\textbf{输出尺寸}
+
+与输入相同。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{max\_value}: 浮点数，最大的输出值。
+\end{itemize}
+
 \newpage
