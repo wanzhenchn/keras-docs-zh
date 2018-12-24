@@ -316,7 +316,9 @@ tar, tar.gz, tar.bz, 以及 zip 格式的文件也可以被解压。
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{keras.utils.multi_gpu_model(model, gpus)}
+\NormalTok{keras.utils.multi_gpu_model(model, gpus}\OperatorTok{=}\VariableTok{None},
+\NormalTok{cpu_merge}\OperatorTok{=}\VariableTok{True},
+\NormalTok{cpu_relocation}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -352,12 +354,21 @@ tar, tar.gz, tar.bz, 以及 zip 格式的文件也可以被解压。
 \item
   \textbf{gpus}: 整数 \textgreater{}= 2 或整数列表，创建模型副本的 GPU
   数量， 或 GPU ID 的列表。
+\item
+  \textbf{cpu\_merge}: 一个布尔值，用于标识是否强制合并 CPU
+  范围内的模型权重。
+\item
+  \textbf{cpu\_relocation}: 一个布尔值，用来确定是否在 CPU
+  的范围内创建模型的权重。如果模型没有在任何一个设备范围内定义，您仍然可以通过激活这个选项来拯救它。
 \end{itemize}
 
 \textbf{返回}
 
 一个 Keras \texttt{Model} 实例，它可以像初始 \texttt{model}
 参数一样使用，但它将工作负载分布在多个 GPU 上。
+
+
+
 
 \textbf{例子}
 
@@ -401,6 +412,8 @@ tar, tar.gz, tar.bz, 以及 zip 格式的文件也可以被解压。
 \NormalTok{model.save(}\StringTok{'my_model.h5'}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
+
+
 
 \textbf{关于模型保存}
 
