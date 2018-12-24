@@ -1,11 +1,8 @@
-\section{为什么选择 Keras？}\label{ux4e3aux4ec0ux4e48ux9009ux62e9-keras}
-
-在如今无数深度学习框架中，为什么要使用 Keras 而非其他？以下是 Keras
-与现有替代品的一些比较。
+\section{为什么选择 Keras？}
+在如今无数深度学习框架中，为什么要使用 Keras 而非其他？以下是 Keras与现有替代品的一些比较。
 
 
-\subsection{Keras
-优先考虑开发人员的经验}\label{keras-ux4f18ux5148ux8003ux8651ux5f00ux53d1ux4ebaux5458ux7684ux7ecfux9a8c}
+\subsection{Keras优先考虑开发人员的经验}
 
 \begin{itemize}
 \item
@@ -24,36 +21,39 @@
 \end{itemize}
 
 
-\subsection{Keras
-被工业界和学术界广泛采用}\label{keras-ux88abux5de5ux4e1aux754cux548cux5b66ux672fux754cux5e7fux6cdbux91c7ux7528}
+\subsection{Keras被工业界和学术界广泛采用}
 
-截至 2017 年 11 月，拥有超过 200,000 个人用户的 Keras 是除 TensorFlow
-外被工业界和学术界最多使用的深度学习框架（且 Keras 往往与 TensorFlow
-结合使用）。
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=\textwidth]{figure/framework_rank.png}
+\end{center}
+\caption{Deep learning 框架排名，由 Jeff Hale 基于 7 个分类的 11 个数据源计算得出}
+\end{figure}
 
-你已经在不断与 Keras 构建的功能进行交互 - 它正在被 Netflix, Uber, Yelp,
+截至 2018 年中期，Keras 拥有超过 250,000 名个人用户。与其他任何深度学习框架相比，Keras 在行业和研究领域的应用率更高（除 TensorFlow 之外，且 Keras API 是 TensorFlow 的官方前端，通过 \texttt{tf.keras} 模块使用）。
+
+您已经不断与使用 Keras 构建的功能进行交互 - 它在 Netflix, Uber, Yelp,
 Instacart, Zocdoc, Square
-等其他机构使用。它尤其受以深度学习作为产品核心的创业公司的欢迎。
+等众多网站上使用。它尤其受以深度学习作为产品核心的创业公司的欢迎。
 
-Keras 也大受深度学习研究者的喜爱。在上传到学术论文网站
+Keras也是深度学习研究人员的最爱，在上载到预印本服务器
 \href{https://arxiv.org/archive/cs}{arXiv.org}
-的论文中被提及的次数位居第二：
+的科学论文中被提及的次数位居第二。Keras
+还被大型科学组织的研究人员采用，特别是 CERN 和 NASA。
 
-Keras 还被大型科研机构的研究者所采用，特别是 CERN 和 NASA。
 
 
-\subsection{Keras
-可以轻松将模型转化为产品}\label{keras-ux53efux4ee5ux8f7bux677eux5c06ux6a21ux578bux8f6cux5316ux4e3aux4ea7ux54c1}
 
-与任何其他深度学习框架相比，你的 Keras
-模型可以轻松部署在更广泛的平台上：
+\subsection{Keras 可以轻松将模型转化为产品}
+
+与任何其他深度学习框架相比，你的 Keras 模型可以轻松部署在更广泛的平台上：
 
 \begin{itemize}
 \tightlist
 \item
   在 iOS 上，通过
   \href{https://developer.apple.com/documentation/coreml}{Apple's
-  CoreML}（苹果为 Keras 提供官方支持）。
+  CoreML}（苹果为 Keras 提供官方支持）。这里有一个\href{https://www.pyimagesearch.com/2018/04/23/running-keras-models-on-ios-with-coreml/}{教程}。
 \item
   在安卓 上，通过 TensorFlow Android
   runtime，例如：\href{https://medium.com/@timanglade/how-hbos-silicon-valley-built-not-hotdog-with-mobile-tensorflow-keras-react-native-ef03260747f3}{Not
@@ -66,8 +66,7 @@ Keras 还被大型科研机构的研究者所采用，特别是 CERN 和 NASA。
   在 Google Cloud 上，通过
   \href{https://www.tensorflow.org/serving/}{TensorFlow-Serving}。
 \item
-    \href{https://blog.keras.io/building-a-simple-keras-deep-learning-rest-api.html}{在 Python 网页应用后端（比如 Flask
-  app）中}。
+  \href{https://blog.keras.io/building-a-simple-keras-deep-learning-rest-api.html}{在 Python 网页应用后端（比如 Flask app）中}。
 \item
   在 JVM，通过
   \href{https://deeplearning4j.org/model-import-keras}{SkyMind 提供的
