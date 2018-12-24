@@ -41,6 +41,8 @@
     \hyperref[where-is-the-keras-configuration-file-stored]{Keras 配置文件保存在哪里？}
 \item
     \hyperref[how-can-i-obtain-reproducible-results-using-keras-during-development]{如何在 Keras 开发过程中获取可复现的结果？}
+\item
+    \hyperref[how-can-i-install-HDF5-or-h5py-to-save-my-models-in-Keras]{如何在 Keras 中安装 HDF5 或 h5py 来保存我的模型？}
 \end{itemize}
 
 
@@ -757,8 +759,7 @@ Keras配置文件是存储在 \texttt{\$HOME/.keras/keras.json} 中的 JSON
 
 
 
-\subsubsection{如何在 Keras
-开发过程中获取可复现的结果？}\label{how-can-i-obtain-reproducible-results-using-keras-during-development}
+\subsubsection{如何在 Keras开发过程中获取可复现的结果？}\label{how-can-i-obtain-reproducible-results-using-keras-during-development}
 
 在模型的开发过程中，能够在一次次的运行中获得可复现的结果，以确定性能的变化是来自模型还是数据集的变化，或者仅仅是一些新的随机样本点带来的结果，有时候是很有用处的。下面的代码片段提供了一个如何获得可复现结果的例子
 - 针对 Python 3 环境的 TensorFlow 后端。
@@ -806,5 +807,23 @@ Keras配置文件是存储在 \texttt{\$HOME/.keras/keras.json} 中的 JSON
 \CommentTok{# 剩余代码 ...}
 \end{Highlighting}
 \end{Shaded}
+
+
+
+\subsubsection{如何在 Keras 中安装 HDF5 或 h5py 来保存我的模型？}\label{how-can-i-install-HDF5-or-h5py-to-save-my-models-in-Keras}
+
+为了将你的 Keras 模型保存为 HDF5 文件，例如通过 \texttt{keras.callbacks.ModelCheckpoint}，Keras 使用了 h5py Python 包。h5py 是 Keras 的依赖项，应默认被安装。在基于 Debian 的发行版本上，你需要再额外安装 \texttt{libhdf5}：
+
+\begin{verbatim}
+sudo apt-get install libhdf5-serial-dev
+\end{verbatim}
+
+如果你不确定是否安装了 h5py，则可以打开 Python shell 并通过下面的命令加载模块
+
+\begin{verbatim}
+import h5py
+\end{verbatim}
+
+如果模块导入没有错误，那么模块已经安装成功，否则你可以在 http://docs.h5py.org/en/latest/build.html 中找到详细的安装说明。
 
 \newpage
