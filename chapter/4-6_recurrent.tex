@@ -251,8 +251,7 @@ RNN 层初始状态的 Numpy 数组或者 Numpy 数组列表。
 \end{itemize}
 
 
-
-\subsubsection{GRU {\href{https://github.com/keras-team/keras/blob/master/keras/layers/recurrent.py\#L1378}{{[}source{]}}}}
+\subsubsection{GRU {\href{https://github.com/keras-team/keras/blob/master/keras/layers/recurrent.py\#L1426}{{[}source{]}}}}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -265,11 +264,22 @@ RNN 层初始状态的 Numpy 数组或者 Numpy 数组列表。
 \hspace{3cm}\NormalTok{bias_constraint}\OperatorTok{=}\VariableTok{None}\NormalTok{, dropout}\OperatorTok{=}\FloatTok{0.0}, \\
 \hspace{3cm}\NormalTok{recurrent_dropout}\OperatorTok{=}\FloatTok{0.0}\NormalTok{, implementation}\OperatorTok{=}\DecValTok{1}, \\
 \hspace{3cm}\NormalTok{return_sequences}\OperatorTok{=}\VariableTok{False}\NormalTok{, return_state}\OperatorTok{=}\VariableTok{False}, \\
-\hspace{3cm}\NormalTok{go_backwards}\OperatorTok{=}\VariableTok{False}\NormalTok{, stateful}\OperatorTok{=}\VariableTok{False}\NormalTok{, unroll}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
+\hspace{3cm}\NormalTok{go_backwards}\OperatorTok{=}\VariableTok{False}\NormalTok{, stateful}\OperatorTok{=}\VariableTok{False}\NormalTok{, unroll}\OperatorTok{=}\VariableTok{False}\NormalTok{, reset_after}\OperatorTok{=}\VariableTok{False}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
 门限循环单元网络 - Cho et al. 2014.
+
+有两种变体。默认的基于 1406.1078v3
+并且在矩阵乘法之前将复位门应用于隐藏状态。 另一种则是基于 1406.1078v1
+并且顺序倒置。
+
+第二种变体与 CuDNNGRU(GPU-only) 兼容并且允许在 CPU 上进行推理。
+因此它对于 \texttt{kernel} 和 \texttt{recurrent\_kernel} 有可分离偏置。
+使用 \texttt{\textquotesingle{}reset\_after\textquotesingle{}=True} 和
+\texttt{recurrent\_activation=\textquotesingle{}sigmoid\textquotesingle{}}
+。
+
 
 \textbf{参数}
 
@@ -279,11 +289,11 @@ RNN 层初始状态的 Numpy 数组或者 Numpy 数组列表。
   \textbf{units}: 正整数，输出空间的维度。
 \item
   \textbf{activation}: 要使用的激活函数 (详见
-  \hyperref[activations]{activations})。 如果传入
-  None，则不使用激活函数 (即 线性激活：\texttt{a(x)\ =\ x})。
+  \hyperref[activations]{activations})。 默认：双曲正切
+  (\texttt{tanh})。如果传入None，则不使用激活函数 (即 线性激活：\texttt{a(x)\ =\ x})。
 \item
   \textbf{recurrent\_activation}: 用于循环时间步的激活函数 (详见
-  \hyperref[activations]{activations})。
+  \hyperref[activations]{activations})。默认：分段线性近似 sigmoid (\texttt{hard\_sigmoid})。
 \item
   \textbf{use\_bias}: 布尔值，该层是否使用偏置向量。
 \item
@@ -343,12 +353,19 @@ RNN 层初始状态的 Numpy 数组或者 Numpy 数组列表。
   \textbf{unroll}: 布尔值 (默认 False)。 如果为
   True，则网络将展开，否则将使用符号循环。 展开可以加速
   RNN，但它往往会占用更多的内存。 展开只适用于短序列。
+\item
+  \textbf{reset\_after}: GRU 公约
+  (是否在矩阵乘法之前或者之后使用重置门)。 False =「之前」(默认)，Ture
+  =「之后」( CuDNN 兼容)。
 \end{itemize}
 
 \textbf{参考文献}
 
 \begin{itemize}
 \tightlist
+\item
+  \href{https://arxiv.org/abs/1406.1078}{Learning Phrase Representations
+  using RNN Encoder-Decoder for Statistical Machine Translation}
 \item
   \href{https://arxiv.org/abs/1409.1259}{On the Properties of Neural
   Machine Translation: Encoder-Decoder Approaches}
