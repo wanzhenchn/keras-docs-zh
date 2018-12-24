@@ -1,12 +1,14 @@
 \section{模型}\label{about-keras-models}
 \subsection{关于Keras模型}
-在 Keras 中有两类模型：\hyperref[sequential-api]{Sequential 顺序模型} 和
-\hyperref[model-api]{使用函数式 API 的 Model 类模型}。
+在 Keras 中有两类主要的模型：\hyperref[sequential-api]{Sequential 顺序模型} 和 \hyperref[model-api]{使用函数式 API 的 Model 类模型}。
 
-这些模型有许多共同的方法：
+这些模型有许多共同的方法和属性：
 
 \begin{itemize}
 \tightlist
+\item \texttt{model.layers}是包含模型网络层的展平列表。
+\item \texttt{model.inputs}是模型输入张量的列表。
+\item \texttt{model.outputs}是模型输出张量的列表。
 \item
   \texttt{model.summary()}: 打印出模型概述信息。 它是
   \hyperref[print-summary]{utils.print\_summary} 的简捷调用。
@@ -77,3 +79,66 @@
   来载入那些名字相同的层的权重。
 \end{itemize}
 
+注意：另请参阅\hyperref[how-can-i-install-HDF5-or-h5py-to-save-my-models-in-Keras]{如何安装HDF5 或 h5py 以保存 Keras 模型}，在常见问题中了解如何安装 \texttt{h5py}
+的说明。
+
+
+\textbf{Model 子类}
+
+除了这两类模型之外，你还可以通过继承 \texttt{Model} 类并在 \texttt{call}
+方法中实现你自己的前向传播，以创建你自己的完全定制化的模型，（\texttt{Model} 子类 API 引入于 Keras 2.2.0）。
+
+这里是一个用 \texttt{Model} 子类写的简单的多层感知器的例子：
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{import}\NormalTok{ keras}
+
+\KeywordTok{class}\NormalTok{ SimpleMLP(keras.Model):}
+
+    \KeywordTok{def} \FunctionTok{__init__}\NormalTok{(}\VariableTok{self}\NormalTok{, use_bn}\OperatorTok{=}\VariableTok{False}\NormalTok{, use_dp}\OperatorTok{=}\VariableTok{False}\NormalTok{, num_classes}\OperatorTok{=}\DecValTok{10}\NormalTok{):}
+        \BuiltInTok{super}\NormalTok{(SimpleMLP, }\VariableTok{self}\NormalTok{).}\FunctionTok{__init__}\NormalTok{(name}\OperatorTok{=}\StringTok{'mlp'}\NormalTok{)}
+        \VariableTok{self}\NormalTok{.use_bn }\OperatorTok{=}\NormalTok{ use_bn}
+        \VariableTok{self}\NormalTok{.use_dp }\OperatorTok{=}\NormalTok{ use_dp}
+        \VariableTok{self}\NormalTok{.num_classes }\OperatorTok{=}\NormalTok{ num_classes}
+
+        \VariableTok{self}\NormalTok{.dense1 }\OperatorTok{=}\NormalTok{ keras.layers.Dense(}\DecValTok{32}\NormalTok{, activation}\OperatorTok{=}\StringTok{'relu'}\NormalTok{)}
+        \VariableTok{self}\NormalTok{.dense2 }\OperatorTok{=}\NormalTok{ keras.layers.Dense(num_classes, activation}\OperatorTok{=}\StringTok{'softmax'}\NormalTok{)}
+        \ControlFlowTok{if} \VariableTok{self}\NormalTok{.use_dp:}
+            \VariableTok{self}\NormalTok{.dp }\OperatorTok{=}\NormalTok{ keras.layers.Dropout(}\FloatTok{0.5}\NormalTok{)}
+        \ControlFlowTok{if} \VariableTok{self}\NormalTok{.use_bn:}
+            \VariableTok{self}\NormalTok{.bn }\OperatorTok{=}\NormalTok{ keras.layers.BatchNormalization(axis}\OperatorTok{=-}\DecValTok{1}\NormalTok{)}
+
+    \KeywordTok{def}\NormalTok{ call(}\VariableTok{self}\NormalTok{, inputs):}
+\NormalTok{        x }\OperatorTok{=} \VariableTok{self}\NormalTok{.dense1(inputs)}
+        \ControlFlowTok{if} \VariableTok{self}\NormalTok{.use_dp:}
+\NormalTok{            x }\OperatorTok{=} \VariableTok{self}\NormalTok{.dp(x)}
+        \ControlFlowTok{if} \VariableTok{self}\NormalTok{.use_bn:}
+\NormalTok{            x }\OperatorTok{=} \VariableTok{self}\NormalTok{.bn(x)}
+        \ControlFlowTok{return} \VariableTok{self}\NormalTok{.dense2(x)}
+
+\NormalTok{model }\OperatorTok{=}\NormalTok{ SimpleMLP()}
+\NormalTok{model.}\BuiltInTok{compile}\NormalTok{(...)}
+\NormalTok{model.fit(...)}
+\end{Highlighting}
+\end{Shaded}
+
+网络层定义在 \texttt{\_\_init\_\_(self,\ ...)} 中，前向传播在
+\texttt{call(self,\ inputs)} 中指定。在 \texttt{call}
+中，你可以指定自定义的损失函数，通过调用
+\texttt{self.add\_loss(loss\_tensor)} （就像你在自定义层中一样）。
+
+在子类模型中，模型的拓扑结构是由 Python
+代码定义的（而不是网络层的静态图）。这意味着该模型的拓扑结构不能被检查或序列化。因此，以下方法和属性不适用于子类模型：
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{model.inputs} 和 \texttt{model.outputs}。
+\item
+  \texttt{model.to\_yaml()} 和 \texttt{model.to\_json()}。
+\item
+  \texttt{model.get\_config()} 和 \texttt{model.save()}。
+\end{itemize}
+
+关键点：为每个任务使用正确的 API。\texttt{Model} 子类化 API 可以为实现复杂模型提供更大的灵活性，但它需要付出代价（比如缺失的特性）：它更冗长，更复杂，并且有更多的用户错误机会。如果可能的话，尽可能使用函数式API，这对用户更友好。
