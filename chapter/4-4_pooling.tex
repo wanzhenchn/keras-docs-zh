@@ -493,4 +493,106 @@
 
 尺寸是 \texttt{(batch\_size,\ channels)} 的 2D 张量
 
+
+
+
+\subsubsection{GlobalMaxPooling3D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/pooling.py\#L639}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.GlobalMaxPooling3D(data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+对于 3D 数据的全局最大池化。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{data\_format}: 一个字符串，\texttt{channels\_last}
+  （默认值）或者 \texttt{channels\_first}。 输入张量中的维度顺序。
+  \texttt{channels\_last} 代表尺寸是
+  \texttt{(batch,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3,\ channels)}
+  的输入张量，而 \texttt{channels\_first} 代表尺寸是
+  \texttt{(batch,\ channels,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3)}
+  的输入张量。 默认值根据 Keras 配置文件
+  \texttt{\textasciitilde{}/.keras/keras.json} 中的
+  \texttt{image\_data\_format} 值来设置。
+  如果还没有设置过，那么默认值就是 ``channels\_last''。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_last\textquotesingle{}}:
+  尺寸是
+  \texttt{(batch\_size,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3,\ channels)}
+  的 5D 张量
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_first\textquotesingle{}}:
+  尺寸是
+  \texttt{(batch\_size,\ channels,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3)}
+  的 5D 张量
+\end{itemize}
+
+\textbf{输出尺寸}
+
+尺寸是 \texttt{(batch\_size,\ channels)} 的 2D 张量
+
+
+\subsubsection{GlobalAveragePooling3D {\href{https://github.com/keras-team/keras/blob/master/keras/layers/pooling.py\#L604}{{[}source{]}}}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{keras.layers.GlobalAveragePooling3D(data_format}\OperatorTok{=}\VariableTok{None}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+对于 3D 数据的全局平均池化。
+
+\textbf{参数}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{data\_format}: 一个字符串，\texttt{channels\_last}
+  （默认值）或者 \texttt{channels\_first}。 输入张量中的维度顺序。
+  \texttt{channels\_last} 代表尺寸是
+  \texttt{(batch,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3,\ channels)}
+  的输入张量，而 \texttt{channels\_first} 代表尺寸是
+  \texttt{(batch,\ channels,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3)}
+  的输入张量。 默认值根据 Keras 配置文件
+  \texttt{\textasciitilde{}/.keras/keras.json} 中的
+  \texttt{image\_data\_format} 值来设置。
+  如果还没有设置过，那么默认值就是 ``channels\_last''。
+\end{itemize}
+
+\textbf{输入尺寸}
+
+\begin{itemize}
+\tightlist
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_last\textquotesingle{}}:
+  尺寸是
+  \texttt{(batch\_size,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3,\ channels)}
+  的 5D 张量
+\item
+  如果
+  \texttt{data\_format=\textquotesingle{}channels\_first\textquotesingle{}}:
+  尺寸是
+  \texttt{(batch\_size,\ channels,\ spatial\_dim1,\ spatial\_dim2,\ spatial\_dim3)}
+  的 5D 张量
+\end{itemize}
+
+\textbf{输出尺寸}
+
+尺寸是 \texttt{(batch\_size,\ channels)} 的 2D 张量
+
 \newpage
